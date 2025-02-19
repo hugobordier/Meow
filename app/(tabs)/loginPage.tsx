@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import axios from "axios";
 
 const LoginPage = () => {
   const [email, setEmail] = useState('test@mail.fr');
@@ -17,17 +18,10 @@ const LoginPage = () => {
     
 
     try {
-      const res = await fetch(url, {
-        method: 'POST', 
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body:JSON.stringify(data),
-      });
+      const res = await axios.post(url,data);
 
-      const result = await res.json();
-      console.log(result)
-      setResponse(result);
+      console.log(res.data);
+      setResponse(res.data);
     } catch (error) {
       console.error('Error:', error);
     }
@@ -35,6 +29,7 @@ const LoginPage = () => {
 
   return (
     <View style={styles.container}>
+      <Text>fdfd</Text>
       <Text style={styles.title}>Login</Text>
       <TextInput
         style={styles.input}
