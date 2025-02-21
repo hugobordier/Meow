@@ -1,12 +1,9 @@
-import { StatusBar } from 'expo-status-bar';
-import React from 'react';
-import { Text, View } from 'react-native';
+//redirect si auth plus tard mais pour l'instant on redirige vers welcome
 
-export default function App() {
-  return (
-   <View className="flex-1 items-center justify-center bg-white">
-      <Text>Open up App.js to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
-  );
-}
+import { Redirect } from "expo-router";
+
+const Page = () => {
+  return <Redirect href="/(auth)/welcome" />;
+};
+
+export default Page;
