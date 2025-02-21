@@ -1,21 +1,20 @@
-import React from "react";
-import { View, Text, TextInput, Button } from "react-native";
+import React, { useState } from "react";
+import { View, Text, Button } from "react-native";
+import { icons, images } from "@/constants";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const SignInScreen = () => {
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+  });
+
   return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+    <SafeAreaView className="flex-1 justify-center items-center">
       <Text>Sign In</Text>
-      <TextInput
-        placeholder="Email"
-        style={{ borderWidth: 1, width: 200, marginVertical: 10 }}
-      />
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        style={{ borderWidth: 1, width: 200, marginVertical: 10 }}
-      />
+
       <Button title="Sign In" onPress={() => {}} />
-    </View>
+    </SafeAreaView>
   );
 };
 
