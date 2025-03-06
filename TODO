@@ -1,4 +1,4 @@
-in terminal :
+Dans le terminal :
 - npm install @react-oauth/google@latest
 
 Create OAuth2.0 client ID :
@@ -13,3 +13,5 @@ Maintenant dans le code :
 Récuperer l'ID crée qu'il faut copier dans le fichier où on a la page de login 
 Il faut aussi importer la librairie dans le fichier où on a la page de login : import { GoogleOAuthProvier } from '@react-oauth/google';
 ! il ne faut pas mettre l'ID en clair dans le code, il faut le mettre dans un fichier .env.local
+
+Le reste du tuto est bien fait là : https://github.com/MomenSherif/react-oauth
