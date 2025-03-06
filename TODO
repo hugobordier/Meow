@@ -1,0 +1,15 @@
+in terminal :
+- npm install @react-oauth/google@latest
+
+Create OAuth2.0 client ID :
+setup the authorized redirect URIs :  - http://localhost:3000 (react port used by default)
+                                      - http://localhost
+
+Toujours sur google cloud platform
+Ajouter des utilisateurs de test : https://console.cloud.google.com/auth/audience
+(on a besoin es utilisateurs e test parceque tous les comptes google sont bloqués tant que l'app n'est pas publiée)
+
+Maintenant dans le code :
+Récuperer l'ID crée qu'il faut copier dans le fichier où on a la page de login 
+Il faut aussi importer la librairie dans le fichier où on a la page de login : import { GoogleOAuthProvier } from '@react-oauth/google';
+! il ne faut pas mettre l'ID en clair dans le code, il faut le mettre dans un fichier .env.local
