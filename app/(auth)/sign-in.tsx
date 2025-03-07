@@ -1,5 +1,6 @@
 import { Link } from "expo-router";
-import { useState } from "react";
+import React, { useState } from "react";
+import ConfettiCannon from "react-native-confetti-cannon";
 import {
   ActivityIndicator,
   Alert,
@@ -26,11 +27,9 @@ const SignInScreen = () => {
     setLoading(true);
     console.log(form);
     try {
-      const { data } = await api.post(
-        "https://meowback-production.up.railway.app/authRoutes/login",
-        form,
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await api.post("authRoutes/login", form, {
+        headers: { "Content-Type": "application/json" },
+      });
       console.log(data);
       if (data.accessToken) {
         await AsyncStorage.setItem("accessToken", data.accessToken);
@@ -48,10 +47,9 @@ const SignInScreen = () => {
 
   const test = async () => {
     try {
-      const { data } = await api.get(
-        "https://meowback-production.up.railway.app/authRoutes/test",
-        { headers: { "Content-Type": "application/json" } }
-      );
+      const { data } = await api.get("authRoutes/test", {
+        headers: { "Content-Type": "application/json" },
+      });
       console.log(data);
     } catch (error: any) {
       console.error(error.message);
@@ -60,17 +58,17 @@ const SignInScreen = () => {
   };
 
   return (
-    <ScrollView className="flex-1 bg-white">
-      <View className="flex-1 bg-white">
+    <ScrollView className="flex-1 bg-white h-full dark:bg-gray-700 ">
+      <View className="flex-1 bg-white dark:bg-gray-700">
         <View className="relative w-full h-64">
-          <Text className="text-4xl text-black font-JakartaSemiBold absolute bottom-5 left-1/3">
+          <Text className="text-4xl text-black dark:text-white font-JakartaSemiBold absolute bottom-5 left-1/3">
             Welcome 👋
           </Text>
         </View>
 
         <View className="p-5">
           <View className="my-2 w-full">
-            <Text className="text-lg text-black font-JakartaSemiBold mb-3">
+            <Text className="text-lg text-black font-JakartaSemiBold mb-3 dark:text-white">
               Email
             </Text>
             <View className="flex flex-row items-center bg-neutral-100 rounded-full border border-neutral-100">
@@ -152,6 +150,7 @@ const SignInScreen = () => {
           </Link>
         </View>
       </View>
+      <ConfettiCannon count={200} origin={{ x: -10, y: 0 }} />
     </ScrollView>
   );
 };
