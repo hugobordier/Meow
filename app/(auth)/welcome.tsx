@@ -1,7 +1,6 @@
 import { useNavigation, Link } from "expo-router";
 import React from "react";
 import { View, Text, Image } from "react-native";
-import { icons } from "@/constants";
 
 const WelcomeScreen = () => {
   const navigation = useNavigation();
@@ -30,7 +29,12 @@ const WelcomeScreen = () => {
       >
         chat
       </Link>
-      <Image source={icons.email}></Image>
+      <Link
+        className="text-xl font-bold text-primary-500"
+        href="../(discussion)/camera"
+      >
+        camera
+      </Link>
     </View>
   );
 };
