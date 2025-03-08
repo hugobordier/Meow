@@ -36,12 +36,12 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
+  //<ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen name="(root)" options={{ headerShown: false }} />
+        <Stack.Screen name="(home)" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
