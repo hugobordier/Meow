@@ -1,9 +1,15 @@
-//redirect si auth plus tard mais pour l'instant on redirige vers welcome
-
 import { Redirect } from "expo-router";
+import { useAuth } from "@/hooks/useAuth";
 
 const Page = () => {
-  return <Redirect href="/(auth)/welcome" />;
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null;
+
+  const redirect = isAuthenticated ? "/(home)/home" : "/(auth)/welcome";
+
+
+  return <Redirect href={redirect} />;
 };
 
 export default Page;
