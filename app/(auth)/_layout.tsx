@@ -7,6 +7,7 @@ const Layout = () => {
       <Stack.Screen name="sign-up" options={{ headerShown: false }} />
       <Stack.Screen name="sign-in" options={{ headerShown: false }} />
       <Stack.Screen name="homePage" options={{ headerShown: false }} />
+      <Stack.Screen name="login-with-google" options={{ headerShown: false }} />
     </Stack>
   );
 };

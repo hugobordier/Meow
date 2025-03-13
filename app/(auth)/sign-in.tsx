@@ -7,6 +7,7 @@ import { api } from "@/services/api";
 import ConfettiCannon from "react-native-confetti-cannon";
 
 const SignInScreen = () => {
+  console.log('user on sign in page');
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
@@ -87,7 +88,7 @@ const SignInScreen = () => {
         <Text className="text-base ml-3 text-black dark:text-white">
           Continuer avec Google
         </Text>
-      </TouchableOpacity>
+      </TouchableOpacity> 
 
       <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-400">
         En cliquant sur continuer, vous acceptez la politique privée et les

@@ -59,6 +59,8 @@ export default function SignUpScreen() {
   };
 
   return (
+    console.log('user on sign-up page'),
+
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView className='flex-1 bg-white'>
         <ScrollView className='p-4'>
@@ -154,7 +156,7 @@ export default function SignUpScreen() {
 
             <TouchableOpacity className='bg-gray-200 px-6 py-3 rounded-lg mb-1 w-full flex-row items-center justify-center '>
               <AntDesign name="google" size={16} color="black" />
-              <Link href="/sign-in" className='text-black text-center ml-2'>Continuer avec Google</Link>
+              <Link href="/login-with-google" className='text-black text-center ml-2' onPress={() => console.log('Google button pressed')}>Continuer avec Google</Link>
             </TouchableOpacity>
 
           </View>
