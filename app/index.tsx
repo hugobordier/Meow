@@ -9,7 +9,7 @@ const Page = () => {
   const redirect = isAuthenticated ? "/(home)/home" : "/(auth)/welcome";
 
 
-  return <Redirect href={redirect} />;
+  return <Redirect href="/(auth)/homePage" />;
 };
 
 export default Page;
