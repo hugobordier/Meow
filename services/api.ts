@@ -42,16 +42,4 @@ export const login = async (email: string, mdp: string) => {
   }
 };
 
-export const register = async (pseudo: string, email: string, mdp: string) => {
-  try {
-    const response = await api.post("/register", {
-      pseudo: pseudo,
-      email: email,
-      mdp: mdp,
-    });
-    return response.data;
-  } catch (error) {
-    //@ts-ignore
-    throw error.response.data.error;
-  }
-};
+
