@@ -8,12 +8,10 @@ const HomeScreen = () => {
       <Text className="text-2xl dark:text-stone-400 font-bold mt-4">
         Welcome to Expo Router
       </Text>
-      <Link
-        href="../(auth)/sign-in"
-        className="text-blue-500 text-xl font-JakartaExtraBold mt-4"
-      >
-        Login
-      </Link>
+      <Image
+        source={require("@/assets/icons/icon.png")}
+        style={{ width: 200, height: 200 }}
+      />
     </View>
   );
 };

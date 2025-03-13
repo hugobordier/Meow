@@ -6,10 +6,9 @@ const Page = () => {
 
   if (loading) return null;
 
-  const redirect = isAuthenticated ? "/(home)/home" : "/(auth)/welcome";
+  const redirect = isAuthenticated ? "/(home)/home" : "/(auth)/homePage";
 
-
-  return <Redirect href="/(auth)/homePage" />;
+  return <Redirect href={redirect} />;
 };
 
 export default Page;

@@ -42,7 +42,7 @@ const SignInScreen = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-black">
+    <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-gray-700">
       <Text className="text-3xl font-bold mb-5 text-black dark:text-white">
         MEOW
       </Text>
@@ -60,7 +60,7 @@ const SignInScreen = () => {
         onChangeText={(value) => handleChange("email", value)}
         keyboardType="email-address"
         autoCapitalize="none"
-        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
       />
 
       <TextInput
@@ -68,12 +68,12 @@ const SignInScreen = () => {
         value={form.password}
         onChangeText={(value) => handleChange("password", value)}
         secureTextEntry
-        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
       />
 
       <TouchableOpacity
         onPress={handleLogin}
-        className="w-full bg-black py-4 rounded-lg items-center"
+        className="w-full bg-black py-4 rounded-lg items-center dark:bg-indigo-900"
         disabled={loading}
       >
         <Text className="text-white text-base font-bold">
@@ -81,15 +81,15 @@ const SignInScreen = () => {
         </Text>
       </TouchableOpacity>
 
-      <Text className="my-5 text-gray-600 dark:text-gray-400">ou</Text>
+      <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>
 
-      <TouchableOpacity className="w-full flex-row items-center py-4 border rounded-lg mb-3 border-gray-300 bg-white dark:border-gray-600 dark:bg-gray-800">
+      <TouchableOpacity className="w-full flex-row items-center py-4 border rounded-lg mb-3 border-gray-300 bg-white dark:border-gray-500 dark:bg-slate-600">
         <Text className="text-base ml-3 text-black dark:text-white">
           Continuer avec Google
         </Text>
       </TouchableOpacity>
 
-      <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-400">
+      <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
         En cliquant sur continuer, vous acceptez la politique privée et les
         conditions générales.
       </Text>
