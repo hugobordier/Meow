@@ -20,7 +20,7 @@ api.interceptors.request.use(
       !config.url?.includes("/forgot-password") &&
       !config.url?.includes("/verify-reset-code")
     ) {
-      console.log("y'a bine le access");
+      console.log("y'a bien le access");
       config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
     return config;

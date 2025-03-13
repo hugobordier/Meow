@@ -18,9 +18,8 @@ export const useAuth = () => {
           return;
         }
 
-        const { data } = await api.get("/authRoutes/test");
+        const { data } = await api.get("/authRoutes/me");
         console.log("data", data);
-        console.log(data);
         setUser(data);
         setIsAuthenticated(true);
       } catch (error) {
@@ -34,27 +33,11 @@ export const useAuth = () => {
     checkAuth();
   }, []);
 
-  const login = useCallback(async (email: string, password: string) => {
-    setLoading(true);
-    try {
-      const { data } = await api.post("/login", { email, password });
-
-      await AsyncStorage.setItem("accessToken", data.token);
-      setUser(data.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error("Login failed", error);
-      throw new Error("Invalid credentials");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   const logout = useCallback(async () => {
     await AsyncStorage.removeItem("accessToken");
     setUser(null);
     setIsAuthenticated(false);
   }, []);
 
-  return { user, isAuthenticated, loading, login, logout };
+  return { user, isAuthenticated, loading, logout };
 };
