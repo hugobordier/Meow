@@ -1,0 +1,21 @@
+export type User = {
+    username: string;
+    email: string;
+    password: string;
+    lastName: string;
+    firstName: string;
+    age: number;
+    birthDate: string;
+    city?: string;
+    country?: string;
+    gender?: string;
+    profilePicture?: string;
+    bio?: string;
+    bankInfo?: string;
+    rating?: number;
+    phoneNumber: string;
+    address?: string;
+    identityDocument?: string;
+    insuranceCertificate?: string;
+    isAdmin?: boolean;
+};
