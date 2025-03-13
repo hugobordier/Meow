@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "@/services/api";
+import ConfettiCannon from "react-native-confetti-cannon";
 
 const SignInScreen = () => {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -92,6 +93,8 @@ const SignInScreen = () => {
         En cliquant sur continuer, vous acceptez la politique privée et les
         conditions générales.
       </Text>
+
+      <ConfettiCannon count={200} origin={{ x: -10, y: 0 }} />
     </SafeAreaView>
   );
 };
