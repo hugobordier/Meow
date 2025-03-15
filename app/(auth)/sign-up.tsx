@@ -2,20 +2,11 @@ import { register } from "@/services/auth.service";
 import { User } from "@/types/user";
 import { Link, router, useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  SafeAreaView,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView, TouchableWithoutFeedback, Keyboard, } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { AntDesign } from "@expo/vector-icons";
 
-const handleSubmit = () => {};
+const handleSubmit = () => { };
 export default function SignUpScreen() {
   const [errors, setErrors] = useState<{ [key in keyof User]?: string }>({});
   const router = useRouter();
@@ -61,21 +52,37 @@ export default function SignUpScreen() {
     setDatePickerVisibility(false);
   };
 
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+  const phoneRegex = /^0\d{9}$/;
+
   const validateFields = () => {
+    //Erreur saisie fields
     let newErrors: { [key in keyof User]?: string } = {};
-    if (!user.username.trim()) newErrors.username = "Nom d'utilisateur requis";
-    if (!user.lastName.trim()) newErrors.lastName = "Nom de famille requis";
-    if (!user.firstName.trim()) newErrors.firstName = "Prénom requis";
-    if (!user.email.trim() || !user.email.includes("@"))
+    if (!user.username.trim())
+      newErrors.username = "Nom d'utilisateur requis";
+    if (!user.lastName.trim())
+      newErrors.lastName = "Nom de famille requis";
+    if (!user.firstName.trim())
+      newErrors.firstName = "Prénom requis";
+    if (!user.email.trim() || !emailRegex.test(user.email))
       newErrors.email = "Email invalide";
-    if (!user.password.trim() || user.password.length < 6)
-      newErrors.password = "Mot de passe trop court";
-    if (user.age && isNaN(Number(user.age))) newErrors.age = "Âge invalide";
+    if (!user.password.trim()) {
+      newErrors.password = "Mot de passe requis";
+    } else if (!passwordRegex.test(user.password)) {
+      newErrors.password = "Le mot de passe doit contenir au minimum :\n• 1 lettre minuscule\n• 1 lettre majuscule\n• 1 chiffre\n• 1 caractère spécial\n• 6 caractères minimum";
+    }
     if (!user.birthDate) newErrors.birthDate = "Date de naissance requise";
-    if (!user.phoneNumber.trim())
+    if (!user.phoneNumber.trim()) {
       newErrors.phoneNumber = "Numéro de téléphone requis";
+    } else if (!phoneRegex.test(user.phoneNumber)) {
+      newErrors.phoneNumber = "Numéro de téléphone invalide";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+
+    //Erreur utilisateur existe ou email existe ou phone existe etc
+    //let newErrors: { [key in keyof User]?: string } = {};
   };
 
   const handleSubmit = async () => {
@@ -83,7 +90,7 @@ export default function SignUpScreen() {
     setLoading(true);
     try {
       await register(user);
-      router.push("../(home)/home");
+      router.push("../(auth)/sign-in");
     } catch (error) {
       setSubmitError("Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
@@ -97,118 +104,138 @@ export default function SignUpScreen() {
         <ScrollView className="p-4">
           <View className="flex-1 items-center justify-center bg-white p-4">
             <Text className="text-4xl font-bold mb-2">MEOW</Text>
-            <Text className="text-x1 font-bold mb-2">Créer un compte</Text>
-            <Text className="text-x1 mb-8">
+            <Text className="text-lg font-bold mb-2">Créer un compte</Text>
+            <Text className="text-sm mb-4">
               Entrez vos informations pour créer un compte
             </Text>
 
-            <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-              placeholder="Nom d'utilisateur"
-              placeholderTextColor="gray"
-              value={user.username}
-              onChangeText={(value) => handleChange("username", value)}
-            />
+            <View className="w-full mb-3">
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full"
+                placeholder="Nom d'utilisateur"
+                placeholderTextColor="gray"
+                value={user.username}
+                onChangeText={(value) => handleChange("username", value)}
+              />
 
-            {errors.username && (
-              <Text className="text-red-500 ">{errors.username}</Text>
-            )}
+              {errors.username && (
+                <Text className="text-red-500 text-center">{errors.username}</Text>
+              )}
+            </View>
 
-            <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-              placeholder="Nom de famille"
-              placeholderTextColor="gray"
-              value={user.lastName}
-              onChangeText={(value) => handleChange("lastName", value)}
-            />
+            <View className="w-full mb-3">
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full"
+                placeholder="Nom de famille"
+                placeholderTextColor="gray"
+                value={user.lastName}
+                onChangeText={(value) => handleChange("lastName", value)}
+              />
 
-            {errors.lastName && (
-              <Text className="text-red-500">{errors.lastName}</Text>
-            )}
+              {errors.lastName && (
+                <Text className="text-red-500 text-center">{errors.lastName}</Text>
+              )}
+            </View>
 
-            <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-              placeholder="Prénom"
-              placeholderTextColor="gray"
-              value={user.firstName}
-              onChangeText={(value) => handleChange("firstName", value)}
-            />
+            <View className="w-full mb-3">
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full "
+                placeholder="Prénom"
+                placeholderTextColor="gray"
+                value={user.firstName}
+                onChangeText={(value) => handleChange("firstName", value)}
+              />
 
-            {errors.firstName && (
-              <Text className="text-red-500 text-sm text-left">
-                {errors.firstName}
-              </Text>
-            )}
+              {errors.firstName && (
+                <Text className="text-red-500 text-left text-center">
+                  {errors.firstName}
+                </Text>
+              )}
+            </View>
 
-            <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-              placeholder="email@domain.com"
-              placeholderTextColor="gray"
-              value={user.email}
-              onChangeText={(value) => handleChange("email", value)}
-            />
+            <View className="w-full mb-3">
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full "
+                placeholder="email@domain.com"
+                placeholderTextColor="gray"
+                value={user.email}
+                onChangeText={(value) => handleChange("email", value)}
+              />
 
-            {errors.email && (
-              <Text className="text-red-500">{errors.email}</Text>
-            )}
+              {errors.email && (
+                <Text className="text-red-500 text-center">{errors.email}</Text>
+              )}
+            </View>
 
-            <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-              placeholder="Mot de passe"
-              placeholderTextColor="gray"
-              value={user.password}
-              secureTextEntry
-              onChangeText={(value) => handleChange("password", value)}
-            />
+            <View className="w-full mb-3">
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full "
+                placeholder="Mot de passe"
+                placeholderTextColor="gray"
+                value={user.password}
+                secureTextEntry
+                onChangeText={(value) => handleChange("password", value)}
+              />
 
-            {errors.password && (
-              <Text className="text-red-500">{errors.password}</Text>
-            )}
+              {errors.password && (
+                <Text className="text-red-500 text-center">{errors.password}</Text>
+              )}
+            </View>
 
-            <TouchableOpacity
-              onPress={() => setDatePickerVisibility(true)}
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-            >
-              <Text className="text-gray-500">
-                {user.birthDate || "Sélectionner la date de naissance"}
-              </Text>
-            </TouchableOpacity>
+            <View className="w-full mb-3">
+              <TouchableOpacity
+                onPress={() => setDatePickerVisibility(true)}
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full"
+              >
+                <Text className="text-gray-500">
+                  {user.birthDate || "Sélectionner la date de naissance"}
+                </Text>
+              </TouchableOpacity>
 
-            <DateTimePickerModal
-              isVisible={isDatePickerVisible}
-              mode="date"
-              onConfirm={handleDateConfirm}
-              onCancel={() => setDatePickerVisibility(false)}
-            />
+              <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="date"
+                onConfirm={handleDateConfirm}
+                onCancel={() => setDatePickerVisibility(false)}
+              />
 
-            {errors.birthDate && (
-              <Text className="text-red-500">{errors.birthDate}</Text>
-            )}
-            <TextInput
-              className="border border-gray-300 rounded-lg px-4 py-2 w-full mb-4"
-              placeholder="Numéro de téléphone portable"
-              placeholderTextColor="gray"
-              value={user.phoneNumber}
-              onChangeText={(value) => handleChange("phoneNumber", value)}
-              keyboardType="numeric"
-            />
+              {errors.birthDate && (
+                <Text className="text-red-500 text-center">{errors.birthDate}</Text>
+              )}
+            </View>
 
-            {errors.phoneNumber && (
-              <Text className="text-red-500">{errors.phoneNumber}</Text>
-            )}
+            <View className="w-full mb-3">
+              <TextInput
+                className="border border-gray-300 rounded-lg px-4 py-2 w-full"
+                placeholder="Numéro de téléphone portable"
+                placeholderTextColor="gray"
+                value={user.phoneNumber}
+                onChangeText={(value) => handleChange("phoneNumber", value)}
+                keyboardType="numeric"
+              />
+
+              {errors.phoneNumber && (
+                <Text className="text-red-500 text-center">{errors.phoneNumber}</Text>
+              )}
+            </View>
 
             <Text className="text-gray-400 text-x1 mb-1">
               Le mot de passe doit contenir au minimum:
             </Text>
             <Text className="text-gray-400 text-x1 mb-1">
-              • Lettre minuscule
+              • 1 Lettre minuscule
             </Text>
             <Text className="text-gray-400 text-x1 mb-1">
-              • Lettre majuscule
+              • 1 Lettre majuscule
             </Text>
-            <Text className="text-gray-400 text-x1 mb-1">• Chiffre</Text>
+            <Text className="text-gray-400 text-x1 mb-1">
+              • 1 Chiffre
+            </Text>
+            <Text className="text-gray-400 text-x1 mb-1">
+              • 1 Caractère spécial
+            </Text>
             <Text className="text-gray-400 text-x1 mb-2">
-              • Caractère spécial
+              • 6 Caractères
             </Text>
 
             <TouchableOpacity
@@ -235,6 +262,6 @@ export default function SignUpScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </TouchableWithoutFeedback>
+    </TouchableWithoutFeedback >
   );
 }
