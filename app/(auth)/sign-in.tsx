@@ -2,12 +2,16 @@ import React, { useState } from "react";
 import { Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { api } from "@/services/api";
+import { login } from "@/services/auth.service";
+import { router } from "expo-router";
+import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contexte pour setUser
+import { User } from "@/types/user";
 
 const SignInScreen = () => {
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+
+  const { setUser } = useAuthContext();
 
   const handleChange = (name: string, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -21,14 +25,11 @@ const SignInScreen = () => {
 
     setLoading(true);
     try {
-      const { data } = await api.post("authRoutes/login", form, {
-        headers: { "Content-Type": "application/json" },
-      });
-
-      if (data.accessToken) {
-        await AsyncStorage.setItem("accessToken", data.accessToken);
-        Alert.alert("Succès", "Connexion réussie !");
+      const user = await login(form);
+      if (user as User) {
+        setUser(user);
       }
+      router.push("/(home)/home");
     } catch (error: any) {
       console.error(error.message);
       Alert.alert(
@@ -92,7 +93,6 @@ const SignInScreen = () => {
         En cliquant sur continuer, vous acceptez la politique privée et les
         conditions générales.
       </Text>
-
     </SafeAreaView>
   );
 };
