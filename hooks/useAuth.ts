@@ -39,5 +39,5 @@ export const useAuth = () => {
     setIsAuthenticated(false);
   }, []);
 
-  return { user, isAuthenticated, loading, logout };
+  return { user, setUser, isAuthenticated, loading, logout };
 };
