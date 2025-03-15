@@ -8,6 +8,7 @@ import { AntDesign } from "@expo/vector-icons";
 
 const handleSubmit = () => { };
 export default function SignUpScreen() {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key in keyof User]?: string }>({});
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -22,6 +23,12 @@ export default function SignUpScreen() {
     birthDate: "",
     phoneNumber: "",
   });
+
+  //const checkEmailAvailability
+
+  //const checkPhoneNumberAvailability
+
+  //const checkUsernameAvailability
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
@@ -51,6 +58,17 @@ export default function SignUpScreen() {
     }));
     setDatePickerVisibility(false);
   };
+
+  const emailDomains = ['gmail.com', 'epfedu.fr', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com', 'hotmail.fr', 'msn.com', 'yahoo.fr', 'wanadoo.fr', 'orange.fr', 'yandex.ru', 'mail.ru', 'free.fr', 'ymail.com', 'sfr.fr', 'laposte.net'];
+  const suggestEmailDomains = (email: string) => {
+    const [usernamePart, domainPart] = email.split('@');
+
+    if (!domainPart) return [];
+
+    return emailDomains
+      .filter((domain) => domain.startsWith(domainPart)) //filtrage en fonction de l'input
+      .map((domain) => `${usernamePart}@${domain}`); //creation des suggestions des adresses mail full
+  }
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
   const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
@@ -115,7 +133,10 @@ export default function SignUpScreen() {
                 placeholder="Nom d'utilisateur"
                 placeholderTextColor="gray"
                 value={user.username}
-                onChangeText={(value) => handleChange("username", value)}
+                onChangeText={(value) => {
+                  handleChange("username", value)
+                  //checkUsernameAvailability(value);
+                }}
               />
 
               {errors.username && (
@@ -159,8 +180,27 @@ export default function SignUpScreen() {
                 placeholder="email@domain.com"
                 placeholderTextColor="gray"
                 value={user.email}
-                onChangeText={(value) => handleChange("email", value)}
+                onChangeText={(value) => {
+                  handleChange("email", value);
+                  setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
+                  //checkEmailAvailability(value);
+                }}
+                onFocus={() => setSuggestions(suggestEmailDomains(user.email))}
               />
+              {suggestions.length > 0 && (
+                <View className="absolute top-full w-full bg-white shadow-md rounded-lg p-2 z-50">
+                  {suggestions.map((suggestion, index) => (
+                    <TouchableOpacity key={index} onPress={() => {
+                      handleChange("email", suggestion); // Autofill email when clicked
+                      setSuggestions([]);
+                    }}
+                      className="p-2 border-b border-gray-200">
+                      <Text className="text-black text-center">{suggestion}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
 
               {errors.email && (
                 <Text className="text-red-500 text-center">{errors.email}</Text>
@@ -210,7 +250,10 @@ export default function SignUpScreen() {
                 placeholder="Numéro de téléphone portable"
                 placeholderTextColor="gray"
                 value={user.phoneNumber}
-                onChangeText={(value) => handleChange("phoneNumber", value)}
+                onChangeText={(value) => {
+                  handleChange("phoneNumber", value)
+                  //checkPhoneNumberAvailability(value);
+                }}
                 keyboardType="numeric"
               />
 
