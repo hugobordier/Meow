@@ -31,11 +31,7 @@ const SignInScreen = () => {
       }
       router.push("/(home)/home");
     } catch (error: any) {
-      console.error(error.message);
-      Alert.alert(
-        "Erreur",
-        error.response?.data?.message || "Échec de la connexion"
-      );
+      Alert.alert("Erreur", error || "Échec de la connexion");
     } finally {
       setLoading(false);
     }

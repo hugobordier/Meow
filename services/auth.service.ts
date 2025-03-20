@@ -1,7 +1,7 @@
 import { User } from "@/types/user";
 import { api } from "./api";
-import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { AxiosError } from "axios";
 
 export const register = async (user: User) => {
   try {
@@ -46,6 +46,6 @@ export const login = async (form: { email: string; password: string }) => {
     const userData = await api.get("/authRoutes/me");
     return userData.data;
   } catch (error: any) {
-    throw error.response?.data?.message || "Échec de la connexion";
+    throw error.response?.data?.error || "Échec de la connexion";
   }
 };
