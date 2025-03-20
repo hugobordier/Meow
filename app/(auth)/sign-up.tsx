@@ -6,7 +6,7 @@ import { View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView, Touc
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { AntDesign } from "@expo/vector-icons";
 
-const handleSubmit = () => { };
+
 export default function SignUpScreen() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key in keyof User]?: string }>({});
@@ -23,12 +23,6 @@ export default function SignUpScreen() {
     birthDate: "",
     phoneNumber: "",
   });
-
-  //const checkEmailAvailability
-
-  //const checkPhoneNumberAvailability
-
-  //const checkUsernameAvailability
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
@@ -104,12 +98,18 @@ export default function SignUpScreen() {
   };
 
   const handleSubmit = async () => {
-    if (!validateFields()) return;
     setLoading(true);
+
+    if (!validateFields()) {
+      setLoading(false);
+      return;
+    }
+
     try {
       await register(user);
       router.push("../(auth)/sign-in");
     } catch (error) {
+      console.log(error)
       setSubmitError("Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
       setLoading(false);
@@ -135,7 +135,6 @@ export default function SignUpScreen() {
                 value={user.username}
                 onChangeText={(value) => {
                   handleChange("username", value)
-                  //checkUsernameAvailability(value);
                 }}
               />
 
@@ -183,7 +182,6 @@ export default function SignUpScreen() {
                 onChangeText={(value) => {
                   handleChange("email", value);
                   setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
-                  //checkEmailAvailability(value);
                 }}
                 onFocus={() => setSuggestions(suggestEmailDomains(user.email))}
               />
@@ -252,7 +250,6 @@ export default function SignUpScreen() {
                 value={user.phoneNumber}
                 onChangeText={(value) => {
                   handleChange("phoneNumber", value)
-                  //checkPhoneNumberAvailability(value);
                 }}
                 keyboardType="numeric"
               />
@@ -284,10 +281,11 @@ export default function SignUpScreen() {
             <TouchableOpacity
               className="bg-black px-6 py-3 rounded-lg mb-1 w-full"
               onPress={handleSubmit}
+              disabled={loading}
             >
-              <Link href="/sign-up" className="text-white text-center">
-                Continuer
-              </Link>
+              <Text className="text-white text-center">
+                {loading ? "Chargement..." : "Continuer"}
+              </Text>
             </TouchableOpacity>
 
             <View className="flex-row items-center my-2 w-3/4">
