@@ -30,7 +30,7 @@ export const register = async (user: User) => {
   } catch (error) {
     console.log(error);
     //@ts-ignore
-    throw error.response.data.error;
+    throw error.response.data.error || "Echec de la connexion";
   }
 };
 
