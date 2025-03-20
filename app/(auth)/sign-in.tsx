@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Alert, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
@@ -6,6 +6,15 @@ import { login } from "@/services/auth.service";
 import { router } from "expo-router";
 import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contexte pour setUser
 import { User } from "@/types/user";
+import * as WebBrowser from "expo-web-browser";
+import * as Google from "expo-auth-session/providers/google";
+
+WebBrowser.maybeCompleteAuthSession();
+
+//TODO cacher les infos, si vous regarez ça depuis un comit précedent, vous etes vilain >:(
+const iosClientId = "984005830165-9n5uacij1cho2vg1mn3fqvs2ti97v9e4.apps.googleusercontent.com";
+const androidClientId = "984005830165-6qbciblgiaeeq73jhgvt2nadmmkvf2ht.apps.googleusercontent.com";
+const webClientId = "984005830165-9oqh54f5rceb0rg7ipm74niuduv3lbpd.apps.googleusercontent.com";
 
 const SignInScreen = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -52,6 +61,47 @@ const SignInScreen = () => {
       setLoading(false);
     }
   };
+
+  const config = {
+    webClientId,
+    iosClientId,
+    androidClientId    
+  }
+
+  const [request, response, promptAsync] = Google.useAuthRequest(config)
+
+  const getUserProfile = async (token: any) => {
+    if (!token) return;
+    try {
+      const response = await fetch("https://www.googleapi.com/userinfo/v2/me",{ //TODO url probablement mauvais, copié d'un tuto, à verifier/changer
+        headers: {Authorization: `Bearer ${token}`}
+      });
+
+      const user = await response.json();
+      console.log(user) //json à envoyer au back
+
+    } catch (error) {
+      console.log(error);      
+    }
+  }
+
+  const handleToken = () => {
+    if (response?.type === 'success') {
+      const {authentication} = response;
+      const token = authentication?.accessToken;
+      console.log("access token", token )
+      getUserProfile(token)
+    }
+  }
+
+
+
+  useEffect(() => { //native function of react
+   handleToken();
+  }, [response])
+
+
+
 
   return (
     <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-gray-700">
@@ -119,8 +169,8 @@ const SignInScreen = () => {
         className="w-full flex-row items-center py-4 border rounded-lg mb-3 border-gray-300 bg-white dark:border-gray-500 dark:bg-slate-600"
         onPress={() => {
           console.log("Tentative de connexion avec Google");
-        }}
-      >
+          promptAsync();
+        }}>
         <Text className="text-base ml-3 text-black dark:text-white">
           Continuer avec Google
         </Text>
