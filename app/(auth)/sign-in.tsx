@@ -115,7 +115,12 @@ const SignInScreen = () => {
 
       <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>
 
-      <TouchableOpacity className="w-full flex-row items-center py-4 border rounded-lg mb-3 border-gray-300 bg-white dark:border-gray-500 dark:bg-slate-600">
+      <TouchableOpacity 
+        className="w-full flex-row items-center py-4 border rounded-lg mb-3 border-gray-300 bg-white dark:border-gray-500 dark:bg-slate-600"
+        onPress={() => {
+          console.log("Tentative de connexion avec Google");
+        }}
+      >
         <Text className="text-base ml-3 text-black dark:text-white">
           Continuer avec Google
         </Text>
