@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Alert } from "react-native";
+import { Alert, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
 import { login } from "@/services/auth.service";
@@ -8,10 +8,22 @@ import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contex
 import { User } from "@/types/user";
 
 const SignInScreen = () => {
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
 
   const { setUser } = useAuthContext();
+
+  const emailDomains = ['gmail.com', 'epfedu.fr', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com', 'hotmail.fr', 'msn.com', 'yahoo.fr', 'wanadoo.fr', 'orange.fr', 'yandex.ru', 'mail.ru', 'free.fr', 'ymail.com', 'sfr.fr', 'laposte.net'];
+  const suggestEmailDomains = (email: string) => {
+    const [usernamePart, domainPart] = email.split('@');
+
+    if (!domainPart) return [];
+
+    return emailDomains
+      .filter((domain) => domain.startsWith(domainPart)) //filtrage en fonction de l'input
+      .map((domain) => `${usernamePart}@${domain}`); //creation des suggestions des adresses mail full
+  }
 
   const handleChange = (name: string, value: string) => {
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -54,14 +66,34 @@ const SignInScreen = () => {
         Entrez votre email pour vous connecter à votre compte
       </Text>
 
-      <TextInput
-        placeholder="email@domain.com"
-        value={form.email}
-        onChangeText={(value) => handleChange("email", value)}
-        keyboardType="email-address"
-        autoCapitalize="none"
-        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
-      />
+      <View className="w-full mb-3 relative">
+        <TextInput
+          placeholder="email@domain.com"
+          value={form.email}
+          onChangeText={(value) => {
+            handleChange("email", value)
+            setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
+          }}
+          onFocus={() => setSuggestions(suggestEmailDomains(form.email))}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white mb-0"
+        />
+
+        {suggestions.length > 0 && (
+          <View className="absolute top-full w-full bg-white shadow-md rounded-lg p-2 z-50">
+            {suggestions.map((suggestion, index) => (
+              <TouchableOpacity key={index} onPress={() => {
+                handleChange("email", suggestion); // Autofill email when clicked
+                setSuggestions([]);
+              }}
+                className="p-2 border-b border-gray-200">
+                <Text className="text-black text-center">{suggestion}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
+      </View>
 
       <TextInput
         placeholder="Mot de passe"
