@@ -12,9 +12,13 @@ import { AntDesign } from "@expo/vector-icons";
 
 WebBrowser.maybeCompleteAuthSession();
 
-const iosClientId = process.env.EXO_PUBLIC_IOS_CLIENT_ID;
-const androidClientId = process.env.EXO_PUBLIC_ANDROID_CLIENT_ID;
-const webClientId = process.env.EXO_PUBLIC_WEB_CLIENT_ID;
+const iosClientId = process.env.EXPO_PUBLIC_IOS_CLIENT_ID;
+const androidClientId = process.env.EXPO_PUBLIC_ANDROID_CLIENT_ID;
+const webClientId = process.env.EXPO_PUBLIC_WEB_CLIENT_ID;
+
+console.log("iosClientId", iosClientId);
+console.log("androidClientId", androidClientId);
+console.log("webClientId", webClientId);
 
 const SignInScreen = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);

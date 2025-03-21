@@ -41,3 +41,6 @@ app-example
 # ide
 .idea
 .vscode
+
+# eas
+eas.json
