@@ -3,7 +3,7 @@ import { Alert, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
 import { login } from "@/services/auth.service";
-import { router } from "expo-router";
+import { Link, router } from "expo-router";
 import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contexte pour setUser
 import { User } from "@/types/user";
 import * as WebBrowser from "expo-web-browser";
@@ -174,6 +174,20 @@ const SignInScreen = () => {
         secureTextEntry
         className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
       />
+      <View className="flex-row pb-3 justify-between w-full ">
+        <Link
+          className="font-Jakarta text-lg text-blue-500"
+          href="/(auth)/sign-up"
+        >
+          Pas de compte ?
+        </Link>
+        <Link
+          className="font-Jakarta text-lg text-blue-500"
+          href="/(auth)/forgot-password"
+        >
+          Mot de passe oublié ?
+        </Link>
+      </View>
 
       <TouchableOpacity
         onPress={handleLogin}

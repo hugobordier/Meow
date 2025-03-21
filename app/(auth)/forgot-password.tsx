@@ -10,8 +10,12 @@ import {
 import { useState } from "react";
 import { forgotPassword, verifyResetCode } from "@/services/auth.service";
 import { formatTime } from "@/utils/formatTime";
+import { useToast, ToastType } from "@/context/ToastContext";
+import AnimatedButton from "@/components/AnimatedButton";
 
 export default function ForgotPassword() {
+  const { showToast } = useToast();
+
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
@@ -20,12 +24,14 @@ export default function ForgotPassword() {
   const [resetCode, setResetCode] = useState("");
   const [timeLeft, setTimeLeft] = useState(600);
   const [password, setPassword] = useState("");
+  const [buttonVisible, setButtonVisible] = useState(false);
 
   const handleResetPassword = async () => {
     setLoading(true);
     try {
       await forgotPassword(email.toLowerCase());
       setEmailSent(true);
+      showToast("Email envoyé avec succes", ToastType.SUCCESS);
       // Démarrer un timer de 10 minutes pour réinitialiser emailSent
       setTimeout(() => {
         setEmailSent(false);
@@ -44,6 +50,7 @@ export default function ForgotPassword() {
 
       return () => clearInterval(interval);
     } catch (err: any) {
+      showToast(err, ToastType.ERROR);
       setError(err || "Une Erreur est survenue");
     } finally {
       setLoading(false);
@@ -55,7 +62,10 @@ export default function ForgotPassword() {
     try {
       await verifyResetCode(email, resetCode, password);
       setMessage("Mot de passe réinitialisé avec succès");
+      setButtonVisible(true);
+      showToast("Mot de passe réinitialisé avec succès", ToastType.SUCCESS);
     } catch (err: any) {
+      showToast("Le code n'est pas valide", ToastType.ERROR);
       setError(
         err || "Une erreur est survenue lors de la vérification du code"
       );
@@ -85,6 +95,7 @@ export default function ForgotPassword() {
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
+              textAlign="left"
             />
 
             <Pressable
@@ -151,7 +162,7 @@ export default function ForgotPassword() {
 
             <Pressable
               onPress={handleVerifyCode}
-              className="bg-black p-4 rounded-md mt-6 w-full items-center"
+              className="bg-black p-4 rounded-md mt-6 mb-2 w-full items-center"
               disabled={loading}
             >
               {loading ? (
@@ -163,8 +174,13 @@ export default function ForgotPassword() {
               )}
             </Pressable>
 
-            {message && (
-              <Text className="text-center text-red-500 mt-4">{message}</Text>
+            {buttonVisible && (
+              <AnimatedButton
+                text="Se connecter"
+                route="/(auth)/sign-in"
+                visible={buttonVisible}
+                style={{ backgroundColor: "#e74c3c" }}
+              ></AnimatedButton>
             )}
 
             <Text className="text-lg underline text-center text-gray-400 mt-4">
