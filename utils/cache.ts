@@ -10,7 +10,7 @@ const createCache = <K, V>(maxCacheSize: number, expirationTime: number) => {
     const currentTime = Date.now();
 
     if (currentTime - cachedItem.timestamp > expirationTime) {
-      cacheMap.delete(key); // Si expiré, on le supprime
+      cacheMap.delete(key); // Suppression si expiré
       return false;
     }
 
@@ -23,8 +23,10 @@ const createCache = <K, V>(maxCacheSize: number, expirationTime: number) => {
 
   const set = (key: K, value: V): void => {
     if (cacheMap.size >= maxCacheSize) {
-      const firstKey = cacheMap.keys().next().value;
-      cacheMap.delete(firstKey!);
+      const firstEntry = cacheMap.keys().next();
+      if (!firstEntry.done) {
+        cacheMap.delete(firstEntry.value);
+      }
     }
 
     cacheMap.set(key, { value, timestamp: Date.now() });

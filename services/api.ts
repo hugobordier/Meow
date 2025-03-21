@@ -23,17 +23,18 @@ api.interceptors.request.use(
       !config.url?.includes("/forgot-password") &&
       !config.url?.includes("/verify-reset-code")
     ) {
-      console.log("accessToken :", accessToken);
       config.headers["Authorization"] = `Bearer ${accessToken}`;
     }
 
-    const cacheKey = `${config.url}?${new URLSearchParams(
-      config.params
-    ).toString()}`;
+    const paramsString = config.params
+      ? new URLSearchParams(config.params).toString()
+      : "";
+    const bodyString = config.data ? JSON.stringify(config.data) : "";
+    const cacheKey = `${config.url}?${paramsString}&body=${bodyString}`;
 
     const cachedData = cache.get(cacheKey);
     if (cachedData) {
-      console.log("cache : ", cachedData);
+      console.log("cache hit : ", cachedData);
       return Promise.reject({ isCached: true, data: cachedData });
     }
 

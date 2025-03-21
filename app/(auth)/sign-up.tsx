@@ -15,7 +15,6 @@ import {
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { AntDesign } from "@expo/vector-icons";
 
-const handleSubmit = () => {};
 export default function SignUpScreen() {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key in keyof User]?: string }>({});
@@ -32,12 +31,6 @@ export default function SignUpScreen() {
     birthDate: "",
     phoneNumber: "",
   });
-
-  //const checkEmailAvailability
-
-  //const checkPhoneNumberAvailability
-
-  //const checkUsernameAvailability
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
@@ -146,7 +139,7 @@ export default function SignUpScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <ScrollView className="p-4">
           <View className="flex-1 items-center justify-center bg-white p-4">
-            <Text className="text-4xl font-bold mb-2">MEOW</Text>
+            <Text className="text-4xl font-bold mb-2">MEOW🐱</Text>
             <Text className="text-lg font-bold mb-2">Créer un compte</Text>
             <Text className="text-sm mb-4">
               Entrez vos informations pour créer un compte
