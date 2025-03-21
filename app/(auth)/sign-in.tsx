@@ -9,6 +9,7 @@ import { User } from "@/types/user";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { AntDesign } from "@expo/vector-icons";
+import { GoogleSVG } from "@/assets/svg/icons";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -187,14 +188,14 @@ const SignInScreen = () => {
       <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>
 
       <TouchableOpacity
-        className="bg-gray-200 px-6 py-3 rounded-lg mb-1 w-full flex-row items-center justify-center "
+        className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
         onPress={() => {
           console.log("Tentative de connexion avec Google");
           promptAsync();
         }}
       >
-        <AntDesign name="google" size={16} color="black" />
-        <Text className="text-base ml-3 text-black dark:text-white">
+        <GoogleSVG size={16} />
+        <Text className="text-base ml-3 text-black  dark:text-white">
           Continuer avec Google
         </Text>
       </TouchableOpacity>
