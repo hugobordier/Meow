@@ -1,6 +1,5 @@
 import { User } from "@/types/user";
 import { api } from "./api";
-import { Alert } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const register = async (user: User) => {
@@ -30,7 +29,7 @@ export const register = async (user: User) => {
   } catch (error) {
     console.log(error);
     //@ts-ignore
-    throw error.response.data.error;
+    throw error.response.data.error || "Echec de la connexion";
   }
 };
 
@@ -46,6 +45,30 @@ export const login = async (form: { email: string; password: string }) => {
     const userData = await api.get("/authRoutes/me");
     return userData.data;
   } catch (error: any) {
-    throw error.response?.data?.message || "Échec de la connexion";
+    throw error.response?.data?.error || "Échec de la connexion";
+  }
+};
+
+export const forgotPassword = async (email: string) => {
+  try {
+    const { data } = await api.post("/authRoutes/forgot-password", { email });
+  } catch (error: any) {
+    throw error?.response?.data.error || "Le code n'a pas pu etre envoyé";
+  }
+};
+
+export const verifyResetCode = async (
+  email: string,
+  resetCode: string,
+  password: string
+) => {
+  try {
+    const { data } = await api.post("authRoutes/verify-reset-code", {
+      email: email.toLowerCase(),
+      code: resetCode,
+      password,
+    });
+  } catch (error: any) {
+    throw error?.response?.data.error || "Le code n'a pas pu etre envoyé";
   }
 };

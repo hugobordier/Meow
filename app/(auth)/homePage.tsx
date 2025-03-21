@@ -5,7 +5,7 @@ export default function HomePage() {
   return (
     <View className="flex-1 items-center justify-center bg-white dark:bg-gray-700 p-4">
       <Text className="text-4xl font-JakartaExtraBold mb-8 text-black dark:text-slate-200">
-        MEOW
+        MEOW🐱
       </Text>
 
       <Link href="/sign-up" asChild>
