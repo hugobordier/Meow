@@ -12,10 +12,9 @@ import { AntDesign } from "@expo/vector-icons";
 
 WebBrowser.maybeCompleteAuthSession();
 
-//TODO cacher les infos, si vous regarez ça depuis un comit précedent, vous etes vilain >:(
-const iosClientId = "984005830165-9n5uacij1cho2vg1mn3fqvs2ti97v9e4.apps.googleusercontent.com";
-const androidClientId = "984005830165-6qbciblgiaeeq73jhgvt2nadmmkvf2ht.apps.googleusercontent.com";
-const webClientId = "984005830165-9oqh54f5rceb0rg7ipm74niuduv3lbpd.apps.googleusercontent.com";
+const iosClientId = process.env.EXO_PUBLIC_IOS_CLIENT_ID;
+const androidClientId = process.env.EXO_PUBLIC_ANDROID_CLIENT_ID;
+const webClientId = process.env.EXO_PUBLIC_WEB_CLIENT_ID;
 
 const SignInScreen = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
