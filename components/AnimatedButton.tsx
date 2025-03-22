@@ -33,7 +33,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   text = "Cliquez ici",
   route = "/",
   visible = true,
-  animationType = "fade", // 'fade', 'slide', 'scale'
+  animationType = AnimationType.FADE, // 'fade', 'slide', 'scale'
   style = {},
 }) => {
   const router = useRouter();
@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   button: {
-    backgroundColor: "#3498db",
+    //backgroundColor: "#3498db",
     paddingVertical: 15,
     paddingHorizontal: 25,
     borderRadius: 10,
