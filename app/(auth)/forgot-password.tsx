@@ -6,6 +6,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useState } from "react";
 import { forgotPassword, verifyResetCode } from "@/services/auth.service";
@@ -179,7 +180,7 @@ export default function ForgotPassword() {
                 text="Se connecter"
                 route="/(auth)/sign-in"
                 visible={buttonVisible}
-                style={{ backgroundColor: "#e74c3c" }}
+                style={{ backgroundColor: "#16b2e8" }}
               ></AnimatedButton>
             )}
 
