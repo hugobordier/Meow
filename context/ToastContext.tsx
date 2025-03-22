@@ -184,7 +184,6 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
   };
 
   const { bgColor, borderColor, textColor, Icon, iconColor } = configs[type];
-
   return (
     <View
       className={`flex-row items-center p-4 rounded-lg shadow-md border-l-4 ${bgColor} ${borderColor}`}
