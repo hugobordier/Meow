@@ -10,6 +10,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { AntDesign } from "@expo/vector-icons";
 import { GoogleSVG } from "@/assets/svg/icons";
+import { ToastType, useToast } from "@/context/ToastContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -27,6 +28,7 @@ const SignInScreen = () => {
   const [loading, setLoading] = useState(false);
 
   const { setUser } = useAuthContext();
+  const { showToast } = useToast();
 
   const emailDomains = [
     "gmail.com",
@@ -63,7 +65,7 @@ const SignInScreen = () => {
 
   const handleLogin = async () => {
     if (!form.email || !form.password) {
-      Alert.alert("Erreur", "Veuillez remplir tous les champs.");
+      showToast("Veuillez remplir tous les champs.", ToastType.ERROR);
       return;
     }
 
@@ -73,7 +75,7 @@ const SignInScreen = () => {
       if (user as User) {
         setUser(user);
       }
-      router.push("/(home)/home");
+      router.push("/(auth)/home");
     } catch (error: any) {
       console.error(error.message);
       Alert.alert(
@@ -146,7 +148,7 @@ const SignInScreen = () => {
           onFocus={() => setSuggestions(suggestEmailDomains(form.email))}
           keyboardType="email-address"
           autoCapitalize="none"
-          className="w-full border rounded-lg px-4 py-2 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white mb-0"
+          className="w-full border rounded-lg px-4 py-2 bg-white text-black border-gray-300 dark:border-gray-500 dark:bg-slate-600 dark:text-white mb-0"
         />
 
         {suggestions.length > 0 && (
@@ -177,7 +179,7 @@ const SignInScreen = () => {
       <View className="flex-row pb-3 justify-between w-full ">
         <Link
           className="font-Jakarta text-lg text-blue-500"
-          href="/(auth)/sign-up"
+          href="/(auth)/home"
         >
           Pas de compte ?
         </Link>
