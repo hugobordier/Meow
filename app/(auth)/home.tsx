@@ -33,7 +33,7 @@ const HomeScreen = () => {
         <View className="flex-1 justify-center items-center">
           <Text className="font-bold mb-6">Proposer des services</Text>
           <Link
-            href="/(home)/homeMainPetsitter"
+            href="/(auth)/(id_verification)/welcome_id_verification"
             className="w-40 h-56 bg-slate-300 rounded-3xl flex items-center justify-center shadow-md"
           >
             <View className="flex items-center justify-center w-full h-full">

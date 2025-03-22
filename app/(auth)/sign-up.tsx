@@ -335,6 +335,10 @@ export default function SignUpScreen() {
               </Link>
             </TouchableOpacity>
           </View>
+          <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
+            En cliquant sur continuer, vous acceptez la politique privée et les
+            conditions générales.
+          </Text>
         </ScrollView>
       </SafeAreaView>
     </TouchableWithoutFeedback>
