@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Alert, View } from "react-native";
+import { View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
 import { login } from "@/services/auth.service";
@@ -8,7 +8,6 @@ import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contex
 import { User } from "@/types/user";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
-import { AntDesign } from "@expo/vector-icons";
 import { GoogleSVG } from "@/assets/svg/icons";
 import { ToastType, useToast } from "@/context/ToastContext";
 
@@ -124,7 +123,7 @@ const SignInScreen = () => {
   return (
     <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-gray-700">
       <Text className="text-3xl font-bold mb-5 text-black dark:text-white">
-        MEOW
+        MEOW🐱
       </Text>
 
       <Text className="text-lg font-semibold mb-2 text-black dark:text-gray-300">
@@ -139,7 +138,7 @@ const SignInScreen = () => {
           placeholder="email@domain.com"
           value={form.email}
           onChangeText={(value) => {
-            handleChange("email", value);
+            handleChange("email", value.toLocaleLowerCase());
             setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
           }}
           onFocus={() => setSuggestions(suggestEmailDomains(form.email))}
@@ -154,7 +153,7 @@ const SignInScreen = () => {
               <TouchableOpacity
                 key={index}
                 onPress={() => {
-                  handleChange("email", suggestion); // Autofill email when clicked
+                  handleChange("email", suggestion.toLocaleLowerCase()); // Autofill email when clicked
                   setSuggestions([]);
                 }}
                 className="p-2 border-b border-gray-200"
