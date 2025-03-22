@@ -77,11 +77,8 @@ const SignInScreen = () => {
       }
       router.push("/(auth)/home");
     } catch (error: any) {
-      console.error(error.message);
-      Alert.alert(
-        "Erreur",
-        error.response?.data?.message || "Échec de la connexion"
-      );
+      console.error(error);
+      showToast(error, ToastType.ERROR);
     } finally {
       setLoading(false);
     }
@@ -148,7 +145,7 @@ const SignInScreen = () => {
           onFocus={() => setSuggestions(suggestEmailDomains(form.email))}
           keyboardType="email-address"
           autoCapitalize="none"
-          className="w-full border rounded-lg px-4 py-2 bg-white text-black border-gray-300 dark:border-gray-500 dark:bg-slate-600 dark:text-white mb-0"
+          className="w-full border rounded-lg p-3 mb-1 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
         />
 
         {suggestions.length > 0 && (
@@ -193,7 +190,7 @@ const SignInScreen = () => {
 
       <TouchableOpacity
         onPress={handleLogin}
-        className="w-full bg-black py-4 rounded-lg items-center dark:bg-indigo-900"
+        className="w-full bg-black py-3 rounded-lg items-center dark:bg-indigo-900"
         disabled={loading}
       >
         <Text className="text-white text-base font-bold">
@@ -211,7 +208,7 @@ const SignInScreen = () => {
         }}
       >
         <GoogleSVG size={16} />
-        <Text className="text-base ml-3 text-black  dark:text-white">
+        <Text className="text-base font-bold ml-3 text-black  dark:text-white">
           Continuer avec Google
         </Text>
       </TouchableOpacity>

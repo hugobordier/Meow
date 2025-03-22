@@ -158,40 +158,72 @@ const Toast: React.FC<ToastProps> = ({ toast, onDismiss }) => {
   const { colorScheme } = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  // Configurations selon le type
-  const configs: Record<ToastType, ToastConfig> = {
+  const configs: Record<
+    ToastType,
+    {
+      backgroundColor: string;
+      borderColor: string;
+      textColor: string;
+      Icon: React.ComponentType<any>;
+      iconColor: string;
+    }
+  > = {
     [ToastType.SUCCESS]: {
-      bgColor: isDark ? "bg-green-900" : "bg-green-100",
-      borderColor: "border-green-500",
-      textColor: isDark ? "text-green-100" : "text-green-800",
+      backgroundColor: isDark ? "#14532d" : "#dcfce7",
+      borderColor: "#22c55e",
+      textColor: isDark ? "#dcfce7" : "#166534",
       Icon: CheckCircle,
       iconColor: isDark ? "#4ade80" : "#22c55e",
     },
     [ToastType.ERROR]: {
-      bgColor: isDark ? "bg-red-900" : "bg-red-100",
-      borderColor: "border-red-500",
-      textColor: isDark ? "text-red-100" : "text-red-800",
+      backgroundColor: isDark ? "#7f1d1d" : "#fee2e2",
+      borderColor: "#ef4444",
+      textColor: isDark ? "#fee2e2" : "#991b1b",
       Icon: AlertCircle,
       iconColor: isDark ? "#f87171" : "#ef4444",
     },
     [ToastType.WARNING]: {
-      bgColor: isDark ? "bg-amber-900" : "bg-amber-100",
-      borderColor: "border-amber-500",
-      textColor: isDark ? "text-amber-100" : "text-amber-800",
+      backgroundColor: isDark ? "#78350f" : "#fef3c7",
+      borderColor: "#f59e0b",
+      textColor: isDark ? "#fef3c7" : "#92400e",
       Icon: AlertTriangle,
       iconColor: isDark ? "#fbbf24" : "#f59e0b",
     },
   };
 
-  const { bgColor, borderColor, textColor, Icon, iconColor } = configs[type];
+  const { backgroundColor, borderColor, textColor, Icon, iconColor } =
+    configs[type];
+
   return (
     <View
-      className={`flex-row items-center p-4 rounded-lg shadow-md border-l-4 ${bgColor} ${borderColor}`}
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        padding: 16,
+        borderRadius: 8,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 2,
+        borderLeftWidth: 4,
+        borderLeftColor: borderColor,
+        backgroundColor: backgroundColor,
+      }}
     >
       <Icon width={20} height={20} color={iconColor} />
-      <Text className={`flex-1 mx-3 font-medium ${textColor}`}>{message}</Text>
+      <Text
+        style={{
+          flex: 1,
+          marginHorizontal: 12,
+          fontWeight: "500",
+          color: textColor,
+        }}
+      >
+        {message}
+      </Text>
       <TouchableOpacity
-        className="p-1"
+        style={{ padding: 4 }}
         onPress={onDismiss}
         hitSlop={{ top: 10, right: 10, bottom: 10, left: 10 }}
       >

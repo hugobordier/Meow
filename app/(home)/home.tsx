@@ -7,9 +7,9 @@ const Home = () => {
   const { user } = useAuthContext();
 
   return (
-    <SafeAreaView className=" bg-red-600 h-screen flex items-center justify-center">
-      <Text className="p-4">Bonjour {user?.username}</Text>
-      <Link href="/(auth)/homePage">
+    <SafeAreaView className=" bg-gray-700 h-screen flex items-center justify-center">
+      <Text className="p-4 dark:text-white">Bonjour {user?.username}</Text>
+      <Link className="dark:text-white" href="/(auth)/homePage">
         {" "}
         Aller au a la page de premier connexion , button a supr
       </Link>
