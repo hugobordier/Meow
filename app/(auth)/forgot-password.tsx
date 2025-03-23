@@ -59,6 +59,17 @@ export default function ForgotPassword() {
   };
 
   const handleVerifyCode = async () => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+    if (!password.trim()) {
+      showToast("Mot de passe requis", ToastType.ERROR);
+      return;
+    } else if (!passwordRegex.test(password)) {
+      showToast(
+        "Le mot de passe doit contenir au minimum :\n• 1 lettre minuscule\n• 1 lettre majuscule\n• 1 chiffre\n• 1 caractère spécial\n• 6 caractères minimum",
+        ToastType.ERROR
+      );
+      return;
+    }
     setLoading(true);
     try {
       await verifyResetCode(email, resetCode, password);

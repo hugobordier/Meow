@@ -87,7 +87,7 @@ export default function SignUpScreen() {
 
     return emailDomains
       .filter((domain) => domain.startsWith(domainPart)) //filtrage en fonction de l'input
-      .map((domain) => `${usernamePart}@${domain}`); //creation des suggestions des adresses mail full
+      .map((domain) => `${usernamePart}@${domain}`.toLocaleLowerCase()); //creation des suggestions des adresses mail full
   };
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -208,7 +208,7 @@ export default function SignUpScreen() {
                 placeholderTextColor="gray"
                 value={user.email}
                 onChangeText={(value) => {
-                  handleChange("email", value);
+                  handleChange("email", value.toLowerCase());
                   setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
                 }}
                 onFocus={() => setSuggestions(suggestEmailDomains(user.email))}
