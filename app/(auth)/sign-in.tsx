@@ -74,7 +74,7 @@ const SignInScreen = () => {
       if (user as User) {
         setUser(user);
       }
-      router.push("/(auth)/home");
+      handleRedirect();
     } catch (error: any) {
       console.error(error);
       showToast(error, ToastType.ERROR);
@@ -119,6 +119,11 @@ const SignInScreen = () => {
     //native function of react
     handleToken();
   }, [response]);
+
+  const handleRedirect = () => {
+    router.dismissAll();
+    router.replace("/(auth)/home");
+  };
 
   return (
     <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-gray-700">
