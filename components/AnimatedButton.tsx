@@ -78,7 +78,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   // Navigation vers la route spécifiée
   const handlePress = () => {
-    router.push(route as Href);
+    router.replace(route as Href);
   };
 
   return (
