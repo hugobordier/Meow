@@ -7,6 +7,8 @@ import Svg, { Path } from "react-native-svg";
 const HomeScreen = () => {
   const { user } = useAuthContext();
 
+  console.log("teste", user);
+
   const handleRedirect = () => {
     router.dismissAll();
     router.replace("/(home)/home");
@@ -31,7 +33,9 @@ const HomeScreen = () => {
 
       <View className="items-center mt-6">
         <Text className="text-4xl font-bold mb-1">MEOW</Text>
-        <Text className="text-xl font-bold mt-2">Que voulez-vous faire?</Text>
+        <Text className="text-xl font-bold mt-2">
+          Que voulez-vous faire {user?.username}?
+        </Text>
       </View>
 
       <View className="flex-row mt-20 justify-center items-center">

@@ -72,7 +72,7 @@ const SignInScreen = () => {
     try {
       const user = await login(form);
       if (user as User) {
-        setUser(user);
+        setUser(user.data);
       }
       handleRedirect();
       showToast("Connexion reussi avec  succes", ToastType.SUCCESS);
