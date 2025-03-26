@@ -45,7 +45,12 @@ const idCardVerif = () => {
                     Veuillez joindre votre carte d’identité recto-verso au format .pdf, .jpeg ou .pnj comme ci-dessus.
                 </Text>
 
-                <Icon name="download" size={100} color="black" title="Open" onPress={handleOpenBottomSheet} />
+                <TouchableOpacity
+                    onPress={handleOpenBottomSheet}
+                    className="w-full border-2 border-dashed border-black p-6 rounded-lg my-6 items-center justify-center"
+                >
+                    <Icon name="download" size={80} color="black" />
+                </TouchableOpacity>
 
                 <Text className="text-xs text-center mt-10 text-gray-600 dark:text-gray-300">
                     La vérification de l’identité peut prendre jusqu’à 7 jours ouvrés.
