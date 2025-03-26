@@ -1,11 +1,18 @@
-import { Link } from "expo-router";
+import { Link, router } from "expo-router";
 import React from "react";
-import { View, Text, Image } from "react-native";
+import { View, Text, Image, Pressable } from "react-native";
 import { useAuthContext } from "@/context/AuthContext";
 import Svg, { Path } from "react-native-svg";
 
 const HomeScreen = () => {
   const { user } = useAuthContext();
+
+  console.log("teste", user);
+
+  const handleRedirect = () => {
+    router.dismissAll();
+    router.replace("/(home)/home");
+  };
 
   return (
     <View className="flex-1 justify-start bg-fuchsia-50 relative">
@@ -26,7 +33,9 @@ const HomeScreen = () => {
 
       <View className="items-center mt-6">
         <Text className="text-4xl font-bold mb-1">MEOW</Text>
-        <Text className="text-xl font-bold mt-2">Que voulez-vous faire?</Text>
+        <Text className="text-xl font-bold mt-2">
+          Que voulez-vous faire {user?.username}?
+        </Text>
       </View>
 
       <View className="flex-row mt-20 justify-center items-center">
@@ -44,14 +53,15 @@ const HomeScreen = () => {
 
         <View className="flex-1 justify-center items-center">
           <Text className="font-bold mb-6">Rechercher un pet-sitter</Text>
-          <Link
-            href="/(auth)/sign-up"
+          <Pressable
+            //href="/(home)/home"
+            onPress={handleRedirect}
             className="w-40 h-56 bg-slate-300 rounded-3xl flex items-center justify-center shadow-md"
           >
             <View className="flex items-center justify-center w-full h-full">
               <Text className="text-9xl">🏡</Text>
             </View>
-          </Link>
+          </Pressable>
         </View>
       </View>
     </View>

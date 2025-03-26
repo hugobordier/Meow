@@ -19,8 +19,8 @@ export const useAuth = () => {
         }
 
         const { data } = await api.get("/authRoutes/me");
-        console.log("data", data);
-        setUser(data);
+        console.log("dat", data.data);
+        setUser(data.data);
         setIsAuthenticated(true);
       } catch (error) {
         console.error("Auth check failed", error);

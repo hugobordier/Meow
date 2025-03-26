@@ -6,6 +6,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useState } from "react";
 import { forgotPassword, verifyResetCode } from "@/services/auth.service";
@@ -58,6 +59,17 @@ export default function ForgotPassword() {
   };
 
   const handleVerifyCode = async () => {
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{6,}$/;
+    if (!password.trim()) {
+      showToast("Mot de passe requis", ToastType.ERROR);
+      return;
+    } else if (!passwordRegex.test(password)) {
+      showToast(
+        "Le mot de passe doit contenir au minimum :\n• 1 lettre minuscule\n• 1 lettre majuscule\n• 1 chiffre\n• 1 caractère spécial\n• 6 caractères minimum",
+        ToastType.ERROR
+      );
+      return;
+    }
     setLoading(true);
     try {
       await verifyResetCode(email, resetCode, password);
@@ -179,7 +191,7 @@ export default function ForgotPassword() {
                 text="Se connecter"
                 route="/(auth)/sign-in"
                 visible={buttonVisible}
-                style={{ backgroundColor: "#e74c3c" }}
+                style={{ backgroundColor: "#16b2e8" }}
               ></AnimatedButton>
             )}
 

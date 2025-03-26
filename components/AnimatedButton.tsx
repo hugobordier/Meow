@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Pressable,
   Text,
@@ -12,7 +12,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   withSpring,
-  Easing,
 } from "react-native-reanimated";
 
 export enum AnimationType {
@@ -33,7 +32,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   text = "Cliquez ici",
   route = "/",
   visible = true,
-  animationType = AnimationType.FADE, // 'fade', 'slide', 'scale'
+  animationType = AnimationType.SLIDE, // 'fade', 'slide', 'scale'
   style = {},
 }) => {
   const router = useRouter();
@@ -79,7 +78,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 
   // Navigation vers la route spécifiée
   const handlePress = () => {
-    router.push(route as Href);
+    router.replace(route as Href);
   };
 
   return (
@@ -98,14 +97,14 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
 const styles = StyleSheet.create({
   container: {
     overflow: "hidden",
-    borderRadius: 10,
     marginVertical: 10,
+    width: "100%",
   },
   button: {
-    //backgroundColor: "#3498db",
-    paddingVertical: 15,
+    backgroundColor: "#3498db",
+    paddingVertical: 12,
     paddingHorizontal: 25,
-    borderRadius: 10,
+    borderRadius: 6,
     alignItems: "center",
     justifyContent: "center",
     shadowColor: "#000",

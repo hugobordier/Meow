@@ -1,6 +1,6 @@
 import { register } from "@/services/auth.service";
 import { User } from "@/types/user";
-import { Link, router, useRouter } from "expo-router";
+import { Link, useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   View,
@@ -87,7 +87,7 @@ export default function SignUpScreen() {
 
     return emailDomains
       .filter((domain) => domain.startsWith(domainPart)) //filtrage en fonction de l'input
-      .map((domain) => `${usernamePart}@${domain}`); //creation des suggestions des adresses mail full
+      .map((domain) => `${usernamePart}@${domain}`.toLocaleLowerCase()); //creation des suggestions des adresses mail full
   };
 
   const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
@@ -145,7 +145,7 @@ export default function SignUpScreen() {
       <SafeAreaView className="flex-1 bg-white">
         <ScrollView className="p-4">
           <View className="flex-1 items-center justify-center bg-white p-4">
-            <Text className="text-4xl font-bold mb-2">MEOW</Text>
+            <Text className="text-4xl font-bold mb-2">MEOW🐱</Text>
             <Text className="text-lg font-bold mb-2">Créer un compte</Text>
             <Text className="text-sm mb-4">
               Entrez vos informations pour créer un compte
@@ -208,7 +208,7 @@ export default function SignUpScreen() {
                 placeholderTextColor="gray"
                 value={user.email}
                 onChangeText={(value) => {
-                  handleChange("email", value);
+                  handleChange("email", value.toLowerCase());
                   setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
                 }}
                 onFocus={() => setSuggestions(suggestEmailDomains(user.email))}

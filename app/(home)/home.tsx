@@ -5,7 +5,6 @@ import { Text } from "react-native";
 
 const Home = () => {
   const { user } = useAuthContext();
-
   return (
     <SafeAreaView className=" bg-gray-700 h-screen flex items-center justify-center">
       <Text className="p-4 dark:text-white">Bonjour {user?.username}</Text>
