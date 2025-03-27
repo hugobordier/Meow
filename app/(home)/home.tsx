@@ -1,30 +1,19 @@
-import { Link } from "expo-router";
-import React from "react";
-import { View, Text, Image } from "react-native";
 import { useAuthContext } from "@/context/AuthContext";
+import { Link } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Text } from "react-native";
 
-const HomeScreen = () => {
+const Home = () => {
   const { user } = useAuthContext();
-
   return (
-    <View className="flex-1 justify-center bg-fuchsia-50 dark:bg-gray-700 items-center">
-      <Text className="text-2xl dark:text-stone-400 font-bold mt-4">
-        {user ? `Hello, ${user.username}` : "Welcome to Expo Router"}{" "}
-      </Text>
-      <Image
-        source={require("@/assets/icons/icon.png")}
-        style={{ width: 200, height: 200 }}
-      />
-      <Link
-        href="/(auth)/homePage"
-        className="p-4 bg-slate-300 rounded-full mt-3 "
-      >
-        <Text className="text-blue-500 font-JakartaBold dark:text-black mt-4">
-          Go to HomePage
-        </Text>
+    <SafeAreaView className=" bg-gray-700 h-screen flex items-center justify-center">
+      <Text className="p-4 dark:text-white">Bonjour {user?.username}</Text>
+      <Link className="dark:text-white" href="/(auth)/homePage">
+        {" "}
+        Aller au a la page de premier connexion , button a supr
       </Link>
-    </View>
+    </SafeAreaView>
   );
 };
 
-export default HomeScreen;
+export default Home;
