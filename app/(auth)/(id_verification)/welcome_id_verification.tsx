@@ -10,10 +10,12 @@ const welcomeIdVerif = () => {
             <Header />
 
             <View className="justify-center items-center">
-                <Image
-                    source={require("@/assets/icons/icon.png")}
-                    style={{ width: 159, height: 159 }}
-                />
+                <Pressable onPress={() => router.push("/settings/HomeSettings")}>
+                    <Image
+                        source={require("@/assets/icons/icon.png")}
+                        style={{ width: 159, height: 159 }}
+                    />
+                </Pressable>
                 <Text className="text-xl font-bold">
                     Bienvenue sur Meow
                 </Text>
