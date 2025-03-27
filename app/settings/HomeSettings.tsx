@@ -1,28 +1,30 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { ArrowLeft, ChevronRight } from "lucide-react-native";
 
+
 const settingsOptions = [
-    { title: "Mode sombre", value: "Système" },
-    { title: "Statut en ligne", value: "Activé" },
-    { title: "Accessibilité" },
-    { title: "Confidentialité et sécurité" },
-    { title: "Notifications et sons", value: "Activé" },
-    { title: "Stockage et données" },
-    { title: "Mention légales et politiques" },
-    { title: "Gérer le compte" },
+    { title: "Mode sombre", value: "Système", screen: "/settings/dark_mode" as const },
+    { title: "Statut en ligne", value: "Activé", screen: "/settings/online" as const },
+    { title: "Confidentialité et sécurité", screen: "/settings/security" as const },
+    { title: "Notifications et sons", value: "Activé", screen: "/settings/notif" as const },
+    { title: "Stockage et données", screen: "/settings/data"  as const},
+    { title: "Mention légales et politiques", screen: "/settings/policy" as const },
+    { title: "Gérer le compte", screen: "/settings/manage" as const },
 ];
 
-const home_settings = () => {
-    const navigation = useNavigation();
+const HomeSettings = () => {
+
+    const router = useRouter();
+
 
     return (
         <SafeAreaView className="flex-1 bg-white">
             {/* Header */}
             <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => router.back()}>
                     <ArrowLeft size={24} className="text-black" />
                 </TouchableOpacity>
                 <Text className="flex-1 text-center text-xl font-bold">MEOW</Text>
@@ -36,6 +38,7 @@ const home_settings = () => {
                     <TouchableOpacity
                         key={index}
                         className="flex-row items-center justify-between py-4 border-b border-gray-200"
+                        onPress={() => item.screen && router.push(item.screen)}
                     >
                         <Text className="text-base text-black">{item.title}</Text>
                         <View className="flex-row items-center">
@@ -49,4 +52,4 @@ const home_settings = () => {
     );
 };
 
-export default home_settings;
+export default HomeSettings;

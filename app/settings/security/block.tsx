@@ -1,18 +1,18 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
+import { useRouter } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
 
 
 const signal = () => {
-    const navigation = useNavigation();
+    const router = useRouter();
 
     return (
         <SafeAreaView className="flex-1 bg-white">
             {/* Header */}
             <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
-                <TouchableOpacity onPress={() => navigation.goBack()}>
+                <TouchableOpacity onPress={() => router.back()}>
                     <ArrowLeft size={24} className="text-black" />
                 </TouchableOpacity>
                 <Text className="flex-1 text-center text-xl font-bold">MEOW</Text>
