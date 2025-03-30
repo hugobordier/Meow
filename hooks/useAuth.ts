@@ -14,6 +14,7 @@ export const useAuth = () => {
       try {
         const token = await AsyncStorage.getItem("accessToken");
         if (!token) {
+          console.log("ya pas de token");
           setLoading(false);
           return;
         }
@@ -22,7 +23,7 @@ export const useAuth = () => {
         console.log("dat", data.data);
         setUser(data.data);
         setIsAuthenticated(true);
-      } catch (error) {
+      } catch (error: any) {
         console.error("Auth check failed", error);
         logout();
       } finally {

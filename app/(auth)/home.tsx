@@ -7,8 +7,6 @@ import Svg, { Path } from "react-native-svg";
 const HomeScreen = () => {
   const { user } = useAuthContext();
 
-  console.log("teste", user);
-
   const handleRedirect = () => {
     router.dismissAll();
     router.replace("/(home)/home");
