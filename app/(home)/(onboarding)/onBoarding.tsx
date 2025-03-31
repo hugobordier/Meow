@@ -7,6 +7,7 @@ import {
   ScrollView,
   Dimensions,
   Animated,
+  useColorScheme,
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { router } from "expo-router";
@@ -36,6 +37,8 @@ export default function Onboarding() {
   const scrollRef = useRef(null);
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const nextPage = () => {
     if (pageIndex < pages.length - 1) {
@@ -85,7 +88,7 @@ export default function Onboarding() {
   }, [pageIndex]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className={`flex-1 ${isDark ? "bg-gray-900" : "bg-white"}`}>
       <SafeAreaView className="absolute top-0 w-full z-10 flex items-end p-4">
         <TouchableOpacity
           className="p-5"
@@ -94,7 +97,11 @@ export default function Onboarding() {
             scrollToPage(pages.length - 1);
           }}
         >
-          <Text className="text-gray-500 underline text-xl font-bold">
+          <Text
+            className={`underline text-xl font-bold ${
+              isDark ? "text-gray-300" : "text-gray-500"
+            }`}
+          >
             Skip
           </Text>
         </TouchableOpacity>
@@ -114,7 +121,11 @@ export default function Onboarding() {
             </View>
 
             <View className="w-full px-8 pt-8 items-center">
-              <Text className="text-3xl font-bold text-center mb-6 text-gray-800 leading-tight">
+              <Text
+                className={`text-3xl font-bold text-center mb-6 leading-tight ${
+                  isDark ? "text-white" : "text-gray-800"
+                }`}
+              >
                 {page.text}
               </Text>
 
@@ -127,7 +138,9 @@ export default function Onboarding() {
                   }}
                 >
                   <TouchableOpacity
-                    className="bg-black w-full px-6 py-4 rounded-2xl shadow-lg"
+                    className={`w-full px-6 py-4 rounded-2xl shadow-lg ${
+                      isDark ? "bg-indigo-600" : "bg-black"
+                    }`}
                     onPress={nextPage}
                     activeOpacity={0.7}
                   >
@@ -147,7 +160,13 @@ export default function Onboarding() {
           <TouchableOpacity
             key={index}
             className={`mx-2 h-3 w-3 rounded-full ${
-              index === pageIndex ? "bg-black" : "bg-gray-300"
+              index === pageIndex
+                ? isDark
+                  ? "bg-indigo-500"
+                  : "bg-black"
+                : isDark
+                ? "bg-gray-600"
+                : "bg-gray-300"
             }`}
             onPress={() => {
               setPageIndex(index);
