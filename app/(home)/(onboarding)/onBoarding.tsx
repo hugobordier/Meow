@@ -11,8 +11,9 @@ import {
 } from "react-native";
 import { useState, useRef, useEffect } from "react";
 import { router } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const { width } = Dimensions.get("window");
+const { width, height } = Dimensions.get("window");
 
 const pages = [
   {
@@ -39,6 +40,9 @@ export default function Onboarding() {
   const scaleAnim = useRef(new Animated.Value(0.9)).current;
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const insets = useSafeAreaInsets();
+
+  const bottomControlsHeight = 120 + insets.bottom;
 
   const nextPage = () => {
     if (pageIndex < pages.length - 1) {
@@ -117,7 +121,13 @@ export default function Onboarding() {
         {pages.map((page, index) => (
           <View key={index} style={{ width }} className="flex-1">
             <View className="w-full">
-              <Image source={page.image} className="w-full h-auto" />
+              <Image
+                source={page.image}
+                className="w-full "
+                style={{
+                  height: height - bottomControlsHeight - insets.top - 150,
+                }}
+              />
             </View>
 
             <View className="w-full px-8 pt-8 items-center">
