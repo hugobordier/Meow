@@ -125,7 +125,7 @@ export default function Onboarding() {
                 source={page.image}
                 className="w-full "
                 style={{
-                  height: height - bottomControlsHeight - insets.top - 150,
+                  height: height - bottomControlsHeight - insets.top - 100,
                 }}
               />
             </View>
