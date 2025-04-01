@@ -23,7 +23,7 @@ const HomeScreen = () => {
           height="100"
           width="100%"
           viewBox="0 0 375 100"
-          style={{ position: "absolute", bottom: -20, left: 0 }}
+          style={{ position: "absolute", bottom: -25, left: 0 }}
         >
           <Path d="M0,80 Q187.5,0 375,80 Z" fill="#fdf4ff" />
         </Svg>
