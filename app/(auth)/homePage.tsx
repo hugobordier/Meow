@@ -29,14 +29,6 @@ export default function HomePage() {
           </Text>
         </TouchableOpacity>
       </Link>
-
-      <Link href="/(home)/(onboarding)/onBoarding" asChild>
-        <TouchableOpacity className="bg-gray-200 dark:bg-indigo-800 px-6 py-3 mt-4 rounded-lg mb-4 w-full">
-          <Text className="text-black dark:text-slate-200 font-Jakarta w-full text-center">
-            test on boarding
-          </Text>
-        </TouchableOpacity>
-      </Link>
     </View>
   );
 }

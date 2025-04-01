@@ -9,7 +9,7 @@ const HomeScreen = () => {
 
   const handleRedirect = () => {
     router.dismissAll();
-    router.replace("/(home)/home");
+    router.replace("/(home)/(onboarding)/onBoarding");
   };
 
   return (
@@ -52,7 +52,6 @@ const HomeScreen = () => {
         <View className="flex-1 justify-center items-center">
           <Text className="font-bold mb-6">Rechercher un pet-sitter</Text>
           <Pressable
-            //href="/(home)/home"
             onPress={handleRedirect}
             className="w-40 h-56 bg-slate-300 rounded-3xl flex items-center justify-center shadow-md"
           >
