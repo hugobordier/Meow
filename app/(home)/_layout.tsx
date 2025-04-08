@@ -1,11 +1,33 @@
-import { Stack } from "expo-router";
+import BottomNavBar from "@/components/BottomNavBar";
+import { Stack, usePathname } from "expo-router";
+import { View } from "react-native";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Layout = () => {
+  const pathname = usePathname();
+  const isOnboarding = pathname?.includes("onBoarding");
+
   return (
-    <Stack>
-      <Stack.Screen name="home" options={{ headerShown: false }} />
-      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-    </Stack>
+    <SafeAreaProvider>
+      <View className="flex-1">
+        <Stack>
+          <Stack.Screen
+            name="(main)"
+            options={{ headerShown: false, animation: "none" }}
+          />
+          <Stack.Screen
+            name="(maps)"
+            options={{ headerShown: false, animation: "none" }}
+          />
+          <Stack.Screen
+            name="(onboarding)"
+            options={{ headerShown: false, animation: "none" }}
+          />
+        </Stack>
+
+        {!isOnboarding && <BottomNavBar />}
+      </View>
+    </SafeAreaProvider>
   );
 };
 

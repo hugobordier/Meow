@@ -50,7 +50,7 @@ export default function Onboarding() {
       setPageIndex(nextIndex);
       scrollToPage(nextIndex);
     } else {
-      router.replace("/(home)/home");
+      router.replace("/(home)/(main)/home");
     }
   };
 
@@ -145,6 +145,7 @@ export default function Onboarding() {
                     opacity: fadeAnim,
                     transform: [{ scale: scaleAnim }],
                     width: "100%",
+                    zIndex: 10,
                   }}
                 >
                   <TouchableOpacity
@@ -165,7 +166,7 @@ export default function Onboarding() {
         ))}
       </ScrollView>
 
-      <View className="flex-row justify-center items-center pb-10 pt-4">
+      <View className="flex-row justify-center items-center pb-5 pt-4 ">
         {pages.map((_, index) => (
           <TouchableOpacity
             key={index}

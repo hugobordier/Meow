@@ -9,18 +9,31 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires."
+      },
+      "config": {
+        "googleMapsApiKey": "VOTRE_CLE_API_GOOGLE_MAPS"
+      }
     },
     "android": {
+      "config": {
+        "googleMaps": {
+          "apiKey": "VOTRE_CLE_API_GOOGLE_MAPS"
+        }
+      },
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
       "package": "com.anonymous.Meow"
     },

@@ -75,10 +75,11 @@ const SignInScreen = () => {
         setUser(user.data);
       }
       handleRedirect();
-      showToast("Connexion reussi avec  succes", ToastType.SUCCESS);
+      showToast("Connexion réussie avec succès", ToastType.SUCCESS);
     } catch (error: any) {
       console.error(error);
-      showToast(error, ToastType.ERROR);
+
+      showToast(error.message || "Une erreur s'est produite", ToastType.ERROR);
     } finally {
       setLoading(false);
     }
