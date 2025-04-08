@@ -1,6 +1,6 @@
 import BottomNavBar from "@/components/BottomNavBar";
 import { Stack, usePathname } from "expo-router";
-import { View } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Layout = () => {

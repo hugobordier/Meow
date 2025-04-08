@@ -4,10 +4,11 @@ import {
   Text,
   useColorScheme,
   StyleSheet,
+  Keyboard,
 } from "react-native";
 import { useRouter, usePathname, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { type ComponentProps } from "react";
+import { type ComponentProps, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
@@ -25,6 +26,27 @@ export default function BottomNavBar() {
   const insets = useSafeAreaInsets();
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener(
+      "keyboardDidShow",
+      () => {
+        setKeyboardVisible(true);
+      }
+    );
+    const keyboardDidHideListener = Keyboard.addListener(
+      "keyboardDidHide",
+      () => {
+        setKeyboardVisible(false);
+      }
+    );
+
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
 
   const routes: Route[] = [
     {
@@ -67,6 +89,7 @@ export default function BottomNavBar() {
           backgroundColor: isDarkMode ? "#111827" : "#fdf4ff",
           borderTopColor: isDarkMode ? "#1f2937" : "#e5e7eb",
           paddingBottom: Math.max((insets.bottom * 8) / 10, 10),
+          display: isKeyboardVisible ? "none" : "flex",
         },
       ]}
     >
@@ -122,6 +145,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 12,
     borderTopWidth: 1,
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
   },
   tab: {
     alignItems: "center",
