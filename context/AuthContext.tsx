@@ -18,7 +18,6 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { user, setUser, isAuthenticated, loading, logout } = useAuth();
-
   return (
     <AuthContext.Provider
       value={{ user, isAuthenticated, loading, setUser, logout }}

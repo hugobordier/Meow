@@ -2,6 +2,7 @@ import axios from "axios";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import createCache from "@/utils/cache";
 import { router } from "expo-router";
+import NetInfo from "@react-native-community/netinfo";
 
 const BASE_URL = "https://meowback-production.up.railway.app/";
 
@@ -16,6 +17,15 @@ const cache = createCache(500, 300000);
 //send the accessToken for each request except login & register
 api.interceptors.request.use(
   async (config) => {
+    const netInfo = await NetInfo.fetch();
+    if (!netInfo.isConnected) {
+      return Promise.reject({
+        response: {
+          data: { message: "Pas de connexion Internet" },
+        },
+      });
+    }
+
     const accessToken = await AsyncStorage.getItem("accessToken");
     if (
       accessToken &&
@@ -25,8 +35,8 @@ api.interceptors.request.use(
       !config.url?.includes("/verify-reset-code") &&
       !config.url?.includes("/logout")
     ) {
-      console.log("bizarre y'a plus d'access normaleùment");
       config.headers["Authorization"] = `Bearer ${accessToken}`;
+      console.log(accessToken);
     }
 
     const paramsString = config.params
@@ -71,7 +81,6 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
-    console.log("eroor", error);
     if (error.isCached) {
       return Promise.resolve({ data: error.data });
     }
@@ -84,7 +93,6 @@ api.interceptors.response.use(
       !originalRequest._retry
     ) {
       if (isRefreshing) {
-        // Si un refresh est déjà en cours, ajoute la requête à la file d'attente
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
@@ -101,36 +109,24 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        console.log(
-          "ON VA CHERCHER UN NOUVEAU TOKEN LEZGO CA VA MARCHER SI Y'A UN REFRESH DE MOINS DE 7 JOURS"
-        );
-        // Appel à la route de refresh
         const response = await api.post("/authRoutes/refresh");
         const { accessToken } = response.data;
 
-        // Sauvegarde du nouveau token
         await AsyncStorage.setItem("accessToken", accessToken);
 
-        // Met à jour le header pour toutes les requêtes suivantes
         api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
 
-        // Met à jour le header pour la requête originale
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
-        // Traite les requêtes en attente
         processQueue(null, accessToken);
 
         isRefreshing = false;
 
-        // Réexécute la requête originale avec le nouveau token
         return api(originalRequest);
       } catch (refreshError) {
-        console.log("CA A PAS MARCHE LE USER SE RECONNECTE LE LOSER");
-        // En cas d'échec du refresh, nettoie la file d'attente
         processQueue(refreshError, null);
         isRefreshing = false;
 
-        // Supprime les tokens et redirige vers la page de login
         await AsyncStorage.removeItem("accessToken");
 
         router.replace("/(auth)/sign-in");

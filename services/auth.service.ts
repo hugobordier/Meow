@@ -26,14 +26,13 @@ export const login = async (form: { email: string; password: string }) => {
     const { data } = await api.post("authRoutes/login", form, {
       headers: { "Content-Type": "application/json" },
     });
-
     if (data.accessToken) {
       await AsyncStorage.setItem("accessToken", data.accessToken);
     }
     const userData = await api.get("/authRoutes/me");
     return userData.data;
   } catch (error: any) {
-    throw error.response.data.message || "Échec de la connexion";
+    throw error.response.data || "Échec de la connexion";
   }
 };
 

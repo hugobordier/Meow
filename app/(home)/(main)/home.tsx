@@ -12,6 +12,15 @@ const Home = () => {
         {" "}
         Aller au a la page de premier connexion , button a supr
       </Link>
+
+      <Link className="text-black p-5 bg-yellow-200" href="/(maps)/Maps">
+        {" "}
+        Aller au a la page de MAPS
+      </Link>
+      <Link className="text-black p-5 bg-yellow-200" href="/(maps)/Maps2">
+        {" "}
+        Aller au a la page de MAPS2
+      </Link>
     </SafeAreaView>
   );
 };

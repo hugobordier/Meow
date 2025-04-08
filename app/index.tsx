@@ -1,5 +1,4 @@
 import { Redirect } from "expo-router";
-import { View } from "react-native";
 import { useAuthContext } from "@/context/AuthContext";
 
 const Page = () => {
@@ -7,13 +6,9 @@ const Page = () => {
 
   if (loading) return null;
 
-  const redirect = isAuthenticated ? "/(home)/home" : "/(auth)/homePage";
+  const redirect = isAuthenticated ? "/(home)/(main)/home" : "/(auth)/homePage";
 
-  return (
-    <View className=" flex-1 bg-white dark:bg-gray-700">
-      <Redirect href={redirect} />
-    </View>
-  );
+  return <Redirect href={redirect} />;
 };
 
 export default Page;

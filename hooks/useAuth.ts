@@ -14,15 +14,15 @@ export const useAuth = () => {
       try {
         const token = await AsyncStorage.getItem("accessToken");
         if (!token) {
-          console.log("ya pas de token");
           setLoading(false);
           return;
         }
 
         const { data } = await api.get("/authRoutes/me");
-        console.log("dat", data.data);
-        setUser(data.data);
-        setIsAuthenticated(true);
+        if (data) {
+          setUser(data.data);
+          setIsAuthenticated(true);
+        }
       } catch (error: any) {
         console.error("Auth check failed", error);
         logout();
