@@ -63,7 +63,7 @@ export default function BottomNavBar() {
     },
     {
       name: "Menu",
-      path: "/",
+      path: "/(home)/(maps)/Maps2",
       icon: "menu-outline",
       activeIcon: "menu",
     },
@@ -104,7 +104,7 @@ export default function BottomNavBar() {
           >
             <Ionicons
               name={isActive ? route.activeIcon : route.icon}
-              size={isActive ? 26 : 24}
+              size={isActive ? 22 : 18}
               color={
                 isActive
                   ? isDarkMode

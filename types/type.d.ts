@@ -45,3 +45,23 @@ interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface LatLng {
+  latitude: number;
+  longitude: number;
+}
+
+export interface Region extends LatLng {
+  latitudeDelta: number;
+  longitudeDelta: number;
+}
+
+export interface MapEvent {
+  nativeEvent: {
+    coordinate: LatLng;
+    position: {
+      x: number;
+      y: number;
+    };
+  };
+}
