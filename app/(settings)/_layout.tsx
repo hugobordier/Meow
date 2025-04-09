@@ -1,13 +1,9 @@
-import BottomNavBar from "@/components/BottomNavBar";
 import Header from "@/components/header";
-import useFantinMusic from "@/hooks/useFantinMode";
-import { Stack, usePathname } from "expo-router";
-import { View, StyleSheet } from "react-native";
+import { Stack } from "expo-router";
+import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Layout = () => {
-  useFantinMusic();
-
   return (
     <>
       <Header />

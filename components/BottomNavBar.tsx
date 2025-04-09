@@ -5,6 +5,7 @@ import {
   useColorScheme,
   StyleSheet,
   Keyboard,
+  Platform,
 } from "react-native";
 import { useRouter, usePathname, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -29,23 +30,25 @@ export default function BottomNavBar() {
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      () => {
-        setKeyboardVisible(true);
-      }
-    );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      () => {
-        setKeyboardVisible(false);
-      }
-    );
+    if (Platform.OS === "android") {
+      const keyboardDidShowListener = Keyboard.addListener(
+        "keyboardDidShow",
+        () => {
+          setKeyboardVisible(true);
+        }
+      );
+      const keyboardDidHideListener = Keyboard.addListener(
+        "keyboardDidHide",
+        () => {
+          setKeyboardVisible(false);
+        }
+      );
 
-    return () => {
-      keyboardDidHideListener.remove();
-      keyboardDidShowListener.remove();
-    };
+      return () => {
+        keyboardDidHideListener.remove();
+        keyboardDidShowListener.remove();
+      };
+    }
   }, []);
 
   const routes: Route[] = [

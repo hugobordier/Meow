@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     right: 0,
     height: height,
     justifyContent: "flex-end",
-    zIndex: 2,
+    zIndex: 2000,
   },
   backdrop: {
     position: "absolute",

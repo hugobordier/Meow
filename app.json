@@ -11,7 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires."
+        "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
+        "UIBackgroundModes": ["audio"],
+        "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe."
       }
     },
     "android": {

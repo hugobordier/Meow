@@ -1,40 +1,59 @@
 import { useEffect, useRef } from "react";
-import { Audio } from "expo-av";
+import { Audio, InterruptionModeIOS, InterruptionModeAndroid } from "expo-av";
 import { usePreferencesStore } from "@/store/preferences";
 
 const useFantinMusic = () => {
   const fantinMode = usePreferencesStore((state) => state.fantinMode);
   const soundRef = useRef<Audio.Sound | null>(null);
+  const isPlayingRef = useRef(false); // on garde en mémoire si c’est en cours
 
   useEffect(() => {
-    const setupMusic = async () => {
-      if (soundRef.current) {
-        await soundRef.current.stopAsync();
-        await soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
+    const playMusic = async () => {
+      if (isPlayingRef.current) return; // déjà en cours
+      try {
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: false,
+          staysActiveInBackground: true,
+          interruptionModeIOS: InterruptionModeIOS.DoNotMix,
+          playsInSilentModeIOS: true,
+          shouldDuckAndroid: true,
+          interruptionModeAndroid: InterruptionModeAndroid.DoNotMix,
+          playThroughEarpieceAndroid: false,
+        });
 
-      if (fantinMode) {
         const { sound } = await Audio.Sound.createAsync(
           require("@/assets/music/meow.mp3"),
-          {
-            shouldPlay: true,
-            isLooping: true, // 🔁 relance auto
-            volume: 0.5,
-          }
+          { isLooping: true }
         );
         soundRef.current = sound;
+        isPlayingRef.current = true;
+        await sound.playAsync();
+      } catch (error) {}
+    };
+
+    const stopMusic = async () => {
+      try {
+        if (soundRef.current && isPlayingRef.current) {
+          console.log("ca stop ");
+          await soundRef.current.stopAsync();
+          await soundRef.current.unloadAsync();
+          soundRef.current = null;
+          isPlayingRef.current = false;
+          console.log("🛑 Fantin music stopped");
+        }
+      } catch (error) {
+        console.error("Error stopping Fantin music:", error);
       }
     };
 
-    setupMusic();
+    if (fantinMode) {
+      playMusic();
+    } else {
+      stopMusic();
+    }
 
     return () => {
-      if (soundRef.current) {
-        soundRef.current.stopAsync();
-        soundRef.current.unloadAsync();
-        soundRef.current = null;
-      }
+      if (!fantinMode) stopMusic();
     };
   }, [fantinMode]);
 };
