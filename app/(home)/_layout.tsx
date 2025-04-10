@@ -1,15 +1,18 @@
 import BottomNavBar from "@/components/BottomNavBar";
+import Header from "@/components/header";
+import useFantinMusic from "@/hooks/useFantinMode";
 import { Stack, usePathname } from "expo-router";
-import { View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 const Layout = () => {
   const pathname = usePathname();
   const isOnboarding = pathname?.includes("onBoarding");
+  useFantinMusic();
 
   return (
-    <SafeAreaProvider>
-      <View className="flex-1">
+    <>
+      <SafeAreaProvider>
+        {!isOnboarding && <Header />}
         <Stack>
           <Stack.Screen
             name="(main)"
@@ -26,8 +29,8 @@ const Layout = () => {
         </Stack>
 
         {!isOnboarding && <BottomNavBar />}
-      </View>
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </>
   );
 };
 

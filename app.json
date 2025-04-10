@@ -11,18 +11,12 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires."
-      },
-      "config": {
-        "googleMapsApiKey": "VOTRE_CLE_API_GOOGLE_MAPS"
+        "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
+        "UIBackgroundModes": ["audio"],
+        "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe."
       }
     },
     "android": {
-      "config": {
-        "googleMaps": {
-          "apiKey": "VOTRE_CLE_API_GOOGLE_MAPS"
-        }
-      },
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
