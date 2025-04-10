@@ -1,21 +1,27 @@
-import { TouchableOpacity, View, Text, Pressable, Image } from "react-native"
-import Header from "@/components/header"
-import { Link } from "react-native-feather";
+import { TouchableOpacity, View, Text, Pressable, Image } from "react-native";
+import Header from "@/components/header";
 import React from "react";
-import { router } from "expo-router";
+import { useRouter } from "expo-router"; // ✅ Utilisation correcte de router
 
-const welcomeIdVerif = () => {
+const WelcomeIdVerif = () => {
+    const router = useRouter(); // ✅ Initialisation correcte de router
+
     return (
         <View className="bg-white flex-1 justify-start bg-fuchsia-50 relative px-4">
             <Header />
 
             <View className="justify-center items-center">
+
                 <Pressable onPress={() => router.push("/settings/HomeSettings")}>
-                    <Image
-                        source={require("@/assets/icons/icon.png")}
-                        style={{ width: 159, height: 159 }}
-                    />
+                    <Text className="text-xl font-bold">
+                        parametres
+                    </Text>
                 </Pressable>
+                <Image
+                    source={require("@/assets/icons/icon.png")}
+                    style={{ width: 159, height: 159 }}
+                />
+
                 <Text className="text-xl font-bold">
                     Bienvenue sur Meow
                 </Text>
@@ -43,21 +49,18 @@ const welcomeIdVerif = () => {
 
             <TouchableOpacity
                 className="bg-black px-6 py-3 rounded-lg mb-1 mt-6 w-full"
+                onPress={() => router.push("/(auth)/(id_verification)/id_card_verification")} // ✅ Ici aussi
             >
-                <Pressable onPress={() => router.push("/(auth)/(id_verification)/id_card_verification")}>
-                    <Text className="text-white text-center">
-                        Continuer
-                    </Text>
-                </Pressable>
+                <Text className="text-white text-center">
+                    Continuer
+                </Text>
             </TouchableOpacity>
-
 
             <Pressable onPress={() => router.push("/(home)/homeMainPetsitter")}>
                 <Text className="text-red-500 text-center mt-6">
                     Ignorer cette étape pour le moment
                 </Text>
             </Pressable>
-
 
             <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
                 En cliquant sur continuer, vous acceptez la politique privée et les
@@ -67,4 +70,4 @@ const welcomeIdVerif = () => {
     );
 };
 
-export default welcomeIdVerif;
+export default WelcomeIdVerif;

@@ -1,8 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useNavigation } from "@react-navigation/native";
-import { ArrowLeft, ChevronRight } from "lucide-react-native";
+import { ArrowLeft } from "lucide-react-native";
 import {useRouter} from "expo-router";
 
 const policyOption = [

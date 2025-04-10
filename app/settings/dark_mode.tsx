@@ -35,6 +35,12 @@ const dark_mode = () => {
             >
                 <Text style={tw`${selected === "Désactivé" ? "font-bold" : "text-gray-600"}`}>Désactivé</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+                style={tw`p-4 border-b border-gray-200`}
+                onPress={() => setSelected("Automatique")}
+            >
+                <Text style={tw`${selected === "Automatique" ? "font-bold" : "text-gray-600"}`}>Automatique</Text>
+            </TouchableOpacity>
         </View>
     );
 };
