@@ -91,7 +91,7 @@ export default function BottomNavBar() {
         {
           backgroundColor: isDarkMode ? "#111827" : "#fdf4ff",
           borderTopColor: isDarkMode ? "#1f2937" : "#e5e7eb",
-          paddingBottom: Math.max((insets.bottom * 8) / 10, 10),
+          paddingBottom: Math.max((insets.bottom * 7) / 10, 10),
           display: isKeyboardVisible ? "none" : "flex",
         },
       ]}
@@ -148,11 +148,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingTop: 12,
     borderTopWidth: 1,
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    zIndex: 100,
   },
   tab: {
     alignItems: "center",
