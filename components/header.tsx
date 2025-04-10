@@ -32,7 +32,7 @@ const Header = () => {
 
       <View className="flex-row space-x-2">
         <TouchableOpacity
-          onPress={() => router.push("/(settings)/settings")}
+          onPress={() => router.push("/settings/HomeSettings")}
           className="bg-slate-200 dark:bg-slate-800 p-2 rounded-full"
         >
           <AntDesign
