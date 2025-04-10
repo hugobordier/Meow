@@ -75,10 +75,11 @@ const SignInScreen = () => {
         setUser(user.data);
       }
       handleRedirect();
-      showToast("Connexion reussi avec  succes", ToastType.SUCCESS);
+      showToast("Connexion réussie avec succès", ToastType.SUCCESS);
     } catch (error: any) {
       console.error(error);
-      showToast(error, ToastType.ERROR);
+
+      showToast(error.message || "Une erreur s'est produite", ToastType.ERROR);
     } finally {
       setLoading(false);
     }
@@ -101,7 +102,6 @@ const SignInScreen = () => {
       });
 
       const user = await response.json();
-      console.log(user); //json à envoyer au back
     } catch (error) {
       console.log(error);
     }
@@ -111,7 +111,6 @@ const SignInScreen = () => {
     if (response?.type === "success") {
       const { authentication } = response;
       const token = authentication?.accessToken;
-      console.log("access token", token);
       getUserProfile(token);
     }
   };

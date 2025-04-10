@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   loading: boolean;
-  setUser: (user: User) => void;
+  setUser: (user: User | null) => void;
   logout: () => void;
 }
 
@@ -18,7 +18,6 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const { user, setUser, isAuthenticated, loading, logout } = useAuth();
-
   return (
     <AuthContext.Provider
       value={{ user, isAuthenticated, loading, setUser, logout }}

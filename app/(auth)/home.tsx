@@ -7,11 +7,9 @@ import Svg, { Path } from "react-native-svg";
 const HomeScreen = () => {
   const { user } = useAuthContext();
 
-  console.log("teste", user);
-
   const handleRedirect = () => {
     router.dismissAll();
-    router.replace("/(home)/home");
+    router.replace("/(home)/(onboarding)/onBoarding");
   };
 
   return (
@@ -25,7 +23,7 @@ const HomeScreen = () => {
           height="100"
           width="100%"
           viewBox="0 0 375 100"
-          style={{ position: "absolute", bottom: -20, left: 0 }}
+          style={{ position: "absolute", bottom: -25, left: 0 }}
         >
           <Path d="M0,80 Q187.5,0 375,80 Z" fill="#fdf4ff" />
         </Svg>
@@ -54,7 +52,6 @@ const HomeScreen = () => {
         <View className="flex-1 justify-center items-center">
           <Text className="font-bold mb-6">Rechercher un pet-sitter</Text>
           <Pressable
-            //href="/(home)/home"
             onPress={handleRedirect}
             className="w-40 h-56 bg-slate-300 rounded-3xl flex items-center justify-center shadow-md"
           >

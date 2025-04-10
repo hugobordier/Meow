@@ -19,10 +19,11 @@ export const useAuth = () => {
         }
 
         const { data } = await api.get("/authRoutes/me");
-        console.log("dat", data.data);
-        setUser(data.data);
-        setIsAuthenticated(true);
-      } catch (error) {
+        if (data) {
+          setUser(data.data);
+          setIsAuthenticated(true);
+        }
+      } catch (error: any) {
         console.error("Auth check failed", error);
         logout();
       } finally {

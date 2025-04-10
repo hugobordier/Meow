@@ -45,3 +45,8 @@ interface User {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface LatLng {
+  latitude: number;
+  longitude: number;
+}
