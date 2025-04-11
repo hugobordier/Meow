@@ -93,6 +93,16 @@ const HomeSettings = () => {
             {fantinMode ? "🎵 Mode Fantin Activé" : "😼 Activer le Mode Fantin"}
           </Text>
         </TouchableOpacity>
+        <TouchableOpacity
+          onPress={toggleNoAds}
+          className={`px-4 py-3 rounded-2xl ${
+            noAds ? "bg-green-600" : "bg-gray-700"
+          }`}
+        >
+          <Text className="text-white text-lg font-semibold">
+            {noAds ? "✅ Mode Sans Pub Activé" : "🚫 Activer le Mode Sans Pub"}
+          </Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
