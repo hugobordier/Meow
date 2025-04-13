@@ -14,7 +14,6 @@ export const api = axios.create({
 
 const cache = createCache(500, 300000);
 
-//send the accessToken for each request except login & register
 api.interceptors.request.use(
   async (config) => {
     const netInfo = await NetInfo.fetch();
