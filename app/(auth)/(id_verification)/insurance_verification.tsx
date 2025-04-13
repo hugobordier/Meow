@@ -15,7 +15,6 @@ const InsuranceVerif = () => {
     // renders
     return (
         <View className="bg-white flex-1 justify-start bg-fuchsia-50 relative px-4">
-            <Header />
             <Icon name="download" size={100} color="black" title="Open" onPress={handleOpenBottomSheet} />
             <View className="flex-1 p-6">
                 <BottomSheet ref={bottomSheetRef} index={-1} snapPoints={snapPoints} enablePanDownToClose>

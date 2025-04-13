@@ -10,6 +10,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeft, ChevronRight } from "lucide-react-native";
 import { usePreferencesStore } from "@/store/preferences";
+import { logout } from "@/services/api";
 
 const settingsOptions = [
   {
@@ -102,6 +103,12 @@ const HomeSettings = () => {
           <Text className="text-white text-lg font-semibold">
             {noAds ? "✅ Mode Sans Pub Activé" : "🚫 Activer le Mode Sans Pub"}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={async () => await logout()}
+          className={`px-4 py-3 rounded-2xl `}
+        >
+          <Text className="text-white text-lg font-semibold"> se deco</Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>

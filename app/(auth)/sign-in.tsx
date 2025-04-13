@@ -5,7 +5,7 @@ import { Text, TextInput, TouchableOpacity } from "react-native";
 import { login } from "@/services/auth.service";
 import { Link, router } from "expo-router";
 import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contexte pour setUser
-import { User } from "@/types/user";
+import { User } from "@/types/type";
 import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { GoogleSVG } from "@/assets/svg/icons";

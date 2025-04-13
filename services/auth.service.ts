@@ -1,4 +1,4 @@
-import { User } from "@/types/user";
+import { User } from "@/types/type";
 import { api } from "./api";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -32,6 +32,8 @@ export const login = async (form: { email: string; password: string }) => {
     const userData = await api.get("/authRoutes/me");
     return userData.data;
   } catch (error: any) {
+    console.log(error, "error");
+
     throw error.response.data || "Échec de la connexion";
   }
 };

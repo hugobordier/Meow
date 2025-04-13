@@ -1,12 +1,8 @@
-import { View } from "react-native"
-import Header from "@/components/header"
+import { View } from "react-native";
+import Header from "@/components/header";
 
 const ribVerif = () => {
-    return (
-        <View>
-            <Header />
-        </View>
-    );
+  return <View></View>;
 };
 
 export default ribVerif;

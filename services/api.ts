@@ -32,7 +32,8 @@ api.interceptors.request.use(
       !config.url?.includes("/register") &&
       !config.url?.includes("/forgot-password") &&
       !config.url?.includes("/verify-reset-code") &&
-      !config.url?.includes("/logout")
+      !config.url?.includes("/logout") &&
+      !config.url?.includes("/refresh")
     ) {
       config.headers["Authorization"] = `Bearer ${accessToken}`;
       console.log(accessToken);
@@ -89,7 +90,8 @@ api.interceptors.response.use(
     if (
       error.response &&
       error.response.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      error.response.data.message === "No refresh token found"
     ) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
@@ -159,6 +161,8 @@ export const logout = async () => {
     const res = await api.post("/authRoutes/logout");
 
     cache.clear();
+
+    router.replace("/(auth)/homePage");
 
     return res.data.success;
   } catch (error) {
