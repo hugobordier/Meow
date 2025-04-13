@@ -72,7 +72,7 @@ export default function BottomNavBar() {
     },
     {
       name: "Chat",
-      path: "/",
+      path: "/(home)/(main)/test",
       icon: "chatbubble-outline",
       activeIcon: "chatbubble",
     },

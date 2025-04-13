@@ -8,17 +8,115 @@ import {
 } from "react-native";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
+import ProfilePictureModal from "@/components/ProfilePictureModal";
+import * as ImagePicker from "expo-image-picker";
+import { useState } from "react";
+import { updateProfilePicture } from "@/services/user.service";
+import { getRandomPlaceholderImage } from "@/utils/getRandomPlaceholderImage";
+import { ToastType, useToast } from "@/context/ToastContext";
+import { User } from "@/types/type";
 
 export default function HomeScreen() {
-  const { user } = useAuthContext();
+  const { user, setUser } = useAuthContext();
+  const [modalVisible, setModalVisible] = useState(false);
+  const { showToast } = useToast();
+
+  const handleOpenPhotoLibrary = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== "granted") {
+      showToast("L'accès à la galerie est requis.", ToastType.ERROR);
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        const res = await updateProfilePicture(selectedUri);
+        setModalVisible(false);
+        console.log(res);
+        setUser({
+          ...user,
+          profilePicture: res.data.profilePicture,
+        } as User);
+      } else {
+        showToast(
+          "Veuillez d'abord sélectionner une image.",
+          ToastType.WARNING
+        );
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la sélection d'image:", error);
+      showToast(
+        error.message || "Erreur lors de la sélection d'image",
+        ToastType.ERROR
+      );
+      setModalVisible(false);
+    }
+  };
+
+  const handleOpenCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (status !== "granted") {
+      showToast("L'accès à la caméra est requis.", ToastType.ERROR);
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        const res = await updateProfilePicture(selectedUri);
+        setUser({
+          ...user,
+          profilePicture: res.data.profilePicture,
+        } as User);
+      } else {
+        showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la prise de photo:", error);
+      showToast(
+        error.message || "Impossible de prendre une photo.",
+        ToastType.ERROR
+      );
+    } finally {
+      setModalVisible(false);
+    }
+  };
+
   return (
     <ScrollView className="flex-1 bg-gray-100 dark:bg-slate-900">
       {/* User Profile */}
       <View className="flex-row items-center px-4 mt-4">
-        <Image
-          source={{ uri: user?.profilePicture }}
-          className="w-12 h-12 rounded-full bg-yellow-200 dark:bg-yellow-300"
-        />
+        <TouchableOpacity onPress={() => setModalVisible(true)}>
+          {user?.profilePicture ? (
+            <Image
+              source={{ uri: user?.profilePicture }}
+              className="w-12 h-12 rounded-full bg-yellow-200 dark:bg-yellow-300"
+            />
+          ) : (
+            <Image
+              source={getRandomPlaceholderImage()}
+              className="w-12 h-12 rounded-full bg-yellow-200 dark:bg-yellow-300"
+            />
+          )}
+        </TouchableOpacity>
+
         <View className="ml-3">
           <Text className="text-lg font-semibold text-black dark:text-white">
             Hi, {user?.username}!
@@ -33,6 +131,15 @@ export default function HomeScreen() {
           </Text>
         </View>
       </View>
+
+      <ProfilePictureModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        profilePicture={user?.profilePicture}
+        onChooseFromLibrary={handleOpenPhotoLibrary}
+        onTakePhoto={handleOpenCamera}
+        isUser={true}
+      />
 
       {/* Search Bar */}
       <View className="mx-4 mt-4">
