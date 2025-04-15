@@ -67,6 +67,7 @@
     "react-native-confetti-cannon": "^1.5.2",
     "react-native-feather": "^1.1.2",
     "react-native-gesture-handler": "~2.20.2",
+    "react-native-loading-cat": "^1.1.0",
     "react-native-maps": "^1.20.1",
     "react-native-maps-directions": "^1.9.0",
     "react-native-modal-datetime-picker": "^18.0.0",
