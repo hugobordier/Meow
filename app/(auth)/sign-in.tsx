@@ -10,6 +10,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { GoogleSVG } from "@/assets/svg/icons";
 import { ToastType, useToast } from "@/context/ToastContext";
+import { Ionicons } from "@expo/vector-icons"; // Ajout de Ionicons pour l'icône d'œil
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,6 +26,7 @@ const SignInScreen = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // État pour gérer la visibilité du mot de passe
 
   const { setUser } = useAuthContext();
   const { showToast } = useToast();
@@ -125,6 +127,11 @@ const SignInScreen = () => {
     router.replace("/(auth)/home");
   };
 
+  // Fonction pour basculer la visibilité du mot de passe
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
     <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-gray-700">
       <Text className="text-3xl font-bold mb-5 text-black dark:text-white">
@@ -170,13 +177,26 @@ const SignInScreen = () => {
         )}
       </View>
 
-      <TextInput
-        placeholder="Mot de passe"
-        value={form.password}
-        onChangeText={(value) => handleChange("password", value)}
-        secureTextEntry
-        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
-      />
+      <View className="w-full relative mb-4">
+        <TextInput
+          placeholder="Mot de passe"
+          value={form.password}
+          onChangeText={(value) => handleChange("password", value)}
+          secureTextEntry={!showPassword} // Utilise l'état pour déterminer si le mot de passe est visible
+          className="w-full border rounded-lg p-3 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white pr-10"
+        />
+        <TouchableOpacity
+          onPress={togglePasswordVisibility}
+          className="absolute right-3 top-1/2 transform -translate-y-1/2"
+        >
+          <Ionicons
+            name={showPassword ? "eye-outline" : "eye-off-outline"}
+            size={24}
+            color="#888"
+          />
+        </TouchableOpacity>
+      </View>
+
       <View className="flex-row pb-3 justify-between w-full ">
         <Link
           className="font-Jakarta text-lg text-blue-500"

@@ -1,64 +1,90 @@
-import { TouchableOpacity, View, Text, Pressable, Image } from "react-native";
-import React from "react";
-import { useRouter } from "expo-router";
+import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 
-const WelcomeIdVerif = () => {
-  const router = useRouter();
-
+export default function WelcomeIdVerif() {
   return (
-    <View className=" flex-1 justify-start bg-fuchsia-50 relative px-4">
-      <View className="justify-center items-center">
-        <Pressable onPress={() => router.push("/settings/HomeSettings")}>
-          <Text className="text-xl font-bold">Parametres</Text>
-        </Pressable>
+    <ScrollView className="flex-1 bg-white">
+      {/* Header */}
+      <View className="p-4">
+        <Text className="text-gray-500 text-base">
+          Completer le profil (carte d'identité)
+        </Text>
+      </View>
+
+      {/* Colorful logo */}
+      <View className="absolute left-4 top-16">
         <Image
-          source={require("@/assets/icons/icon.png")}
-          style={{ width: 159, height: 159 }}
+          source={require("@/assets/images/asterisk-logo.png")}
+          className="w-12 h-12"
         />
+      </View>
 
-        <Text className="text-xl font-bold">Bienvenue sur Meow</Text>
-        <Text className="text-sm text-gray-400 text-center">
-          Simplifiez-vous la vie, meow après meow
+      {/* Welcome section with image */}
+      <View className="mx-4 mt-2 rounded-lg overflow-hidden border border-blue-400">
+        <LinearGradient
+          colors={["#ffb6c1", "#98fb98"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          className="p-4 items-center"
+        >
+          <Image
+            source={require("@/assets/images/person-with-dog.png")}
+            className="w-40 h-40"
+            resizeMode="contain"
+          />
+          <Text className="text-black text-xl font-bold mt-2">
+            Bienvenue sur Meow
+          </Text>
+          <Text className="text-gray-700 text-xs">
+            Simplifiez-vous la vie avec notre application
+          </Text>
+        </LinearGradient>
+      </View>
+
+      {/* Verification requirements box */}
+      <View className="mx-4 mt-6 bg-gray-200 p-4 rounded-lg">
+        <Text className="text-black font-bold text-center text-base mb-2">
+          Vérification d'identité obligatoire
+        </Text>
+        <Text className="text-black mb-2">
+          Documents requis pour la vérification de votre compte:
+        </Text>
+        <View className="ml-4">
+          <Text className="text-black">• Carte d'identité</Text>
+          <Text className="text-black">• Relevé d'identité bancaire (RIB)</Text>
+          <Text className="text-black">• Certificat d'assurance</Text>
+        </View>
+      </View>
+
+      {/* Verification time notice */}
+      <View className="mx-4 mt-6">
+        <Text className="text-gray-500 text-center">
+          La vérification de l'identité peut prendre jusqu'à 7 jours ouvrés.
         </Text>
       </View>
 
-      <View className="w-full h-48 bg-slate-300 rounded-3xl shadow-md mt-10 flex items-center justify-evenly px-4">
-        <Text className="font-bold text-xl mb-2 text-center">
-          Vérification d’identité obligatoire
-        </Text>
-
-        <Text className="text-center text-sm leading-5">
-          Documents requis pour la vérification de votre compte:{"\n"}• Carte
-          d’identité{"\n"}• Relevé d’identité bancaire (RIB){"\n"}• Certificat
-          d’assurance{"\n"}
-        </Text>
-      </View>
-
-      <Text className="text-xs text-center mt-10 text-gray-600 dark:text-gray-300">
-        La vérification de l’identité peut prendre jusqu’à 7 jours ouvrés.
-      </Text>
-
+      {/* Continue button */}
       <TouchableOpacity
-        className="bg-black px-6 py-3 rounded-lg mb-1 mt-6 w-full"
-        onPress={() =>
-          router.push("/(auth)/(id_verification)/id_card_verification")
-        } // ✅ Ici aussi
+        className="mx-4 mt-6 bg-black py-4 rounded-lg"
+        activeOpacity={0.8}
       >
-        <Text className="text-white text-center">Continuer</Text>
+        <Text className="text-white text-center font-semibold">Continuer</Text>
       </TouchableOpacity>
 
-      <Pressable onPress={() => router.push("/(home)/homeMainPetsitter")}>
-        <Text className="text-red-500 text-center mt-6">
+      {/* Skip option */}
+      <TouchableOpacity className="mt-2">
+        <Text className="text-red-500 text-center">
           Ignorer cette étape pour le moment
         </Text>
-      </Pressable>
+      </TouchableOpacity>
 
-      <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
-        En cliquant sur continuer, vous acceptez la politique privée et les
-        conditions générales.
-      </Text>
-    </View>
+      {/* Terms notice */}
+      <View className="mx-8 mt-4 mb-8">
+        <Text className="text-gray-500 text-center text-xs">
+          En cliquant sur continuer vous acceptez les politiques de
+          confidentialités et les conditions générales.
+        </Text>
+      </View>
+    </ScrollView>
   );
-};
-
-export default WelcomeIdVerif;
+}

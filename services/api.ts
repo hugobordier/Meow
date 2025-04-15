@@ -94,14 +94,21 @@ api.interceptors.response.use(
       error.response.data.message === "No refresh token found"
     ) {
       if (isRefreshing) {
+        console.log("isRefreshing");
+        // Si une requête de rafraîchissement est déjà en cours, on attend qu'elle se termine
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
+            console.log(
+              "token qui a ete ajouté avec les ancienne requete",
+              token
+            );
             originalRequest.headers["Authorization"] = `Bearer ${token}`;
             return api(originalRequest);
           })
           .catch((err) => {
+            console.log("erreur dans le refresh", err);
             return Promise.reject(err);
           });
       }
@@ -110,8 +117,10 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
+        console.log("on appelle la route pour rafraichir avec levieux token");
         const response = await api.post("/authRoutes/refresh");
         const { accessToken } = response.data;
+        console.log("le nouveau token est : ", accessToken);
 
         await AsyncStorage.setItem("accessToken", accessToken);
 
