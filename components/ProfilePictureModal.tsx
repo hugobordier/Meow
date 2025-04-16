@@ -8,8 +8,10 @@ import {
   Animated,
   Dimensions,
   View,
+  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { getRandomPlaceholderImage } from "@/utils/getRandomPlaceholderImage";
 
 interface ProfilePictureModalProps {
@@ -31,9 +33,17 @@ export default function ProfilePictureModal({
   onTakePhoto,
   isUser = true,
 }: ProfilePictureModalProps) {
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
+  const gradientColors = isDarkMode
+    ? ["#dc30f0", "#7c3aed", "#2f0952"]
+    : ["#c7d2fe", "#818cf8", "#4f46e5"];
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(50)).current;
   const contentOpacityAnim = useRef(new Animated.Value(0)).current;
+
+  const imageSize = width * 0.8;
+  const borderWidth = 8;
 
   useEffect(() => {
     if (visible) {
@@ -142,31 +152,41 @@ export default function ProfilePictureModal({
                 <Ionicons name="close" size={20} color="#555" />
               </TouchableOpacity>
 
-              {profilePicture ? (
-                <Image
-                  source={{ uri: profilePicture }}
-                  className="rounded-full"
-                  style={{
-                    width: width * 0.8,
-                    height: width * 0.8,
-                    borderWidth: 2,
-                    borderColor: "#ddd",
-                  }}
-                  resizeMode="cover"
-                />
-              ) : (
-                <Image
-                  source={getRandomPlaceholderImage()}
-                  className="rounded-full"
-                  style={{
-                    width: width * 0.8,
-                    height: width * 0.8,
-                    borderWidth: 2,
-                    borderColor: "#ddd",
-                  }}
-                  resizeMode="cover"
-                />
-              )}
+              <LinearGradient
+                //@ts-ignore
+                colors={gradientColors}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{
+                  width: imageSize + borderWidth * 2,
+                  height: imageSize + borderWidth * 2,
+                  borderRadius: (imageSize + borderWidth * 2) / 2,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                {profilePicture ? (
+                  <Image
+                    source={{ uri: profilePicture }}
+                    className="rounded-full"
+                    style={{
+                      width: width * 0.8,
+                      height: width * 0.8,
+                    }}
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <Image
+                    source={getRandomPlaceholderImage()}
+                    className="rounded-full"
+                    style={{
+                      width: width * 0.8,
+                      height: width * 0.8,
+                    }}
+                    resizeMode="cover"
+                  />
+                )}
+              </LinearGradient>
 
               {isUser && (
                 <View className="flex justify-center space-x-4 mt-6">
