@@ -25,6 +25,7 @@ export const useAuth = () => {
         }
       } catch (error: any) {
         console.error("Auth check failed", error);
+        console.error("Auth check failed", error.message);
         logout();
       } finally {
         setLoading(false);

@@ -12,7 +12,9 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
-        "UIBackgroundModes": ["audio"],
+        "UIBackgroundModes": [
+          "audio"
+        ],
         "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe."
       }
     },
@@ -54,7 +56,8 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ]
+      ],
+      "react-native-vision-camera"
     ],
     "experiments": {
       "typedRoutes": true

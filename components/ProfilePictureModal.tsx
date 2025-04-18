@@ -43,7 +43,7 @@ export default function ProfilePictureModal({
   const contentOpacityAnim = useRef(new Animated.Value(0)).current;
 
   const imageSize = width * 0.8;
-  const borderWidth = 8;
+  const borderWidth = 5;
 
   useEffect(() => {
     if (visible) {
