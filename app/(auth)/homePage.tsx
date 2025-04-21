@@ -3,7 +3,7 @@ import { Link } from "expo-router";
 
 export default function HomePage() {
   return (
-    <View className="flex-1 items-center justify-center bg-white dark:bg-gray-700 p-4">
+    <View className="flex-1 items-center justify-center bg-fushia-50 dark:bg-gray-900 p-4">
       <Text className="text-4xl font-JakartaExtraBold mb-8 text-black dark:text-slate-200">
         MEOW🐱
       </Text>

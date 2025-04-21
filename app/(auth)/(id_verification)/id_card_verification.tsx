@@ -47,8 +47,8 @@ const idCardVerif = () => {
   };
 
   return (
-    <SafeAreaView
-      className={`flex-1 justify-center relative px-4 ${
+    <View
+      className={`flex-1 justify-center relative  ${
         isDarkMode ? "bg-gray-900" : "bg-fuchsia-50"
       }`}
     >
@@ -97,7 +97,7 @@ const idCardVerif = () => {
 
           <TouchableOpacity
             onPress={handleOpenBottomSheet}
-            className={`w-full border-2 border-dashed p-6 rounded-lg my-6 items-center justify-center ${
+            className={`w-[95%] border-2 border-dashed p-6 rounded-lg my-6 items-center justify-center px-4 ${
               isDarkMode ? "border-gray-500" : "border-black"
             }`}
           >
@@ -113,7 +113,7 @@ const idCardVerif = () => {
           </Text>
 
           <TouchableOpacity
-            className={`px-6 py-3 rounded-lg mb-1 mt-6 w-full ${
+            className={`px-6 py-3 rounded-lg mb-1 mt-6 w-11/12  ${
               isDarkMode ? "bg-fuchsia-700" : "bg-black"
             }`}
             onPress={() =>
@@ -123,7 +123,7 @@ const idCardVerif = () => {
             <Text className="text-white text-center">Continuer</Text>
           </TouchableOpacity>
 
-          <Text className="text-xs text-center mt-6 text-gray-500 dark:text-gray-400">
+          <Text className="text-xs text-center mt-6 text-gray-500 w-11/12 dark:text-gray-400">
             En cliquant sur continuer, vous acceptez la politique privée et les
             conditions générales.
           </Text>
@@ -144,8 +144,12 @@ const idCardVerif = () => {
         <BottomSheetView className="items-center justify-start rounded-xl flex-1">
           <View className="h-2/3 w-full justify-between pt-2 ">
             <TouchableOpacity className="flex-row items-center space-x-4 w-full justify-center  p-4">
-              <Feather name="upload" size={32} color="#ffffff" />
-              <Text className="text-xl font-medium text-white ml-2">
+              <Feather
+                name="upload"
+                size={32}
+                color={isDarkMode ? "#ffffff" : "#000"}
+              />
+              <Text className="text-xl font-medium dark:text-white ml-2">
                 Upload un fichier
               </Text>
             </TouchableOpacity>
@@ -157,16 +161,16 @@ const idCardVerif = () => {
               <MaterialCommunityIcons
                 name="camera-outline"
                 size={32}
-                color="#ffffff"
+                color={isDarkMode ? "#ffffff" : "#000"}
               />
-              <Text className="text-xl font-medium text-white ml-2">
+              <Text className="text-xl font-medium dark:text-white ml-2">
                 Prendre une photo
               </Text>
             </TouchableOpacity>
           </View>
         </BottomSheetView>
       </BottomSheet>
-    </SafeAreaView>
+    </View>
   );
 };
 
