@@ -12,6 +12,11 @@ import { CameraView, Camera, CameraCapturedPicture } from "expo-camera";
 
 import { Feather } from "@expo/vector-icons";
 import ImageIdDisplay from "./ImageDocIdDisplay";
+import { updateDocId } from "@/services/user.service";
+import { ToastType, useToast } from "@/context/ToastContext";
+import { CpuIcon } from "lucide-react-native";
+import Loading from "./Loading";
+import { router } from "expo-router";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const aspectRatio = 16 / 9;
@@ -33,6 +38,31 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const [photo, setPhoto] = useState<CameraCapturedPicture | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const { showToast } = useToast();
+
+  const handleUdateDocId = async (uri: string) => {
+    setIsLoading(true);
+    try {
+      const response = await updateDocId(uri);
+      showToast(
+        "Document d'identité mis à jour avec succès",
+        ToastType.SUCCESS
+      );
+      console.log("Document ID updated successfully:", response.data.message);
+      router.push("/(auth)/(id_verification)/id_card_verification");
+    } catch (error: any) {
+      console.log("on passe ici et c'est logique", error);
+      showToast(
+        error.message || "Document invalide ou trop flou",
+        ToastType.ERROR
+      );
+      setCapturedImage(null);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -96,6 +126,10 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
     );
   }
 
+  if (isLoading) {
+    return <Loading text="Traitement de votre image..." />;
+  }
+
   return (
     <View className="flex-1 w-screen h-screen">
       {capturedImage ? (
@@ -104,6 +138,8 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
           imageUri={capturedImage}
           onAccept={(croppedUri) => {
             setCapturedImage(croppedUri);
+            console.log("Image acceptée :", croppedUri);
+            handleUdateDocId(capturedImage);
           }}
           onReject={() => setCapturedImage(null)}
         />

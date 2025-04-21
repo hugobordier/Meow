@@ -12,9 +12,7 @@
       "supportsTablet": true,
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
-        "UIBackgroundModes": [
-          "audio"
-        ],
+        "UIBackgroundModes": ["audio"],
         "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe."
       }
     },
@@ -57,7 +55,13 @@
           "recordAudioAndroid": true
         }
       ],
-      "react-native-vision-camera"
+      [
+        "@stripe/stripe-react-native",
+        {
+          //"merchantIdentifier": "test", //A CHANGER mais relou il faut un compte apple dev
+          "enableGooglePay": true
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

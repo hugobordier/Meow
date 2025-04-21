@@ -93,7 +93,7 @@ api.interceptors.response.use(
       error.response.data.error === "Accès interdit, pas de token" ||
       error.response.data.error === "No refresh token found";
 
-    console.log("debug", debug);
+    console.log("problement avec le token : ", debug);
 
     if (error.response.status === 401 && !originalRequest._retry && debug) {
       console.log("error 401 le token est surment plus valide");
@@ -167,7 +167,7 @@ api.interceptors.response.use(
       }
     }
     console.log("test");
-    console.log("error", error);
+    console.log("error", error.response.data);
     return Promise.reject(error);
   }
 );

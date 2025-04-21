@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   useColorScheme,
   Dimensions,
+  Pressable,
 } from "react-native";
 import { router } from "expo-router";
 import BottomSheet, {
@@ -15,11 +16,12 @@ import BottomSheet, {
 import Feather from "react-native-vector-icons/Feather";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Icon from "react-native-vector-icons/Feather";
-import { SafeAreaView } from "react-native-safe-area-context";
 import DocumentScanCamera from "@/components/DocumentScanCamera";
+import { ScrollView } from "react-native-gesture-handler";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const idCardVerif = () => {
-  const snapPoints = useMemo(() => ["27%"], []);
+  const snapPoints = useMemo(() => ["24%"], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
@@ -45,132 +47,150 @@ const idCardVerif = () => {
     bottomSheetRef.current?.close();
     setShowCamera(true);
   };
+  const insets = useSafeAreaInsets();
 
   return (
-    <View
-      className={`flex-1 justify-center relative  ${
-        isDarkMode ? "bg-gray-900" : "bg-fuchsia-50"
-      }`}
+    <ScrollView
+      className={`flex-1 ${isDarkMode ? "bg-gray-900" : "bg-fuchsia-50"}`}
+      contentContainerStyle={{ flexGrow: 1 }}
     >
-      {showCamera ? (
-        <DocumentScanCamera
-          onClose={() => {
-            setShowCamera(false);
-          }}
-        />
-      ) : (
-        <View className="justify-center items-center my-6">
-          <Text
-            className={`text-2xl font-bold ${
-              isDarkMode ? "text-white" : "text-black"
-            }`}
+      <View className={`flex-1 justify-center relative `}>
+        {showCamera ? (
+          <DocumentScanCamera
+            onClose={() => {
+              setShowCamera(false);
+            }}
+          />
+        ) : (
+          <View
+            className="justify-center items-center my-6"
+            style={{ paddingTop: insets.top * 1.1 }}
           >
-            Vérification de la carte d'identité
-          </Text>
+            <Text
+              className={`text-2xl font-bold ${
+                isDarkMode ? "text-white" : "text-black"
+              }`}
+            >
+              Vérification de la carte d'identité
+            </Text>
 
-          <View className="relative items-center justify-center my-6">
-            <Image
-              source={require("@/assets/images/gradient.png")}
-              style={{
-                width: Dimensions.get("window").width,
-                position: "absolute",
-                top: -imageHeight,
-                zIndex: -10,
-                opacity: 0.9,
-              }}
-            />
-            <Image
-              source={require("@/assets/images/id_card_example.jpg")}
-              style={{ width: imageSize, height: imageHeight }}
-              className="rounded-lg"
-            />
-          </View>
-
-          <Text
-            className={`mt-6 mb-6 text-center ${
-              isDarkMode ? "text-gray-300" : "text-gray-700"
-            }`}
-          >
-            Veuillez joindre votre carte d'identité recto-verso au format .pdf,
-            .jpeg ou .png comme ci-dessus.
-          </Text>
-
-          <TouchableOpacity
-            onPress={handleOpenBottomSheet}
-            className={`w-[95%] border-2 border-dashed p-6 rounded-lg my-6 items-center justify-center px-4 ${
-              isDarkMode ? "border-gray-500" : "border-black"
-            }`}
-          >
-            <Icon
-              name="download"
-              size={80}
-              color={isDarkMode ? "#d1d5db" : "black"}
-            />
-          </TouchableOpacity>
-
-          <Text className="text-xs text-center mt-10 text-gray-500 dark:text-gray-400">
-            La vérification de l'identité peut prendre jusqu'à 7 jours ouvrés.
-          </Text>
-
-          <TouchableOpacity
-            className={`px-6 py-3 rounded-lg mb-1 mt-6 w-11/12  ${
-              isDarkMode ? "bg-fuchsia-700" : "bg-black"
-            }`}
-            onPress={() =>
-              router.push("/(auth)/(id_verification)/insurance_verification")
-            }
-          >
-            <Text className="text-white text-center">Continuer</Text>
-          </TouchableOpacity>
-
-          <Text className="text-xs text-center mt-6 text-gray-500 w-11/12 dark:text-gray-400">
-            En cliquant sur continuer, vous acceptez la politique privée et les
-            conditions générales.
-          </Text>
-        </View>
-      )}
-
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        enablePanDownToClose
-        backdropComponent={renderBackDrop}
-        backgroundStyle={{ backgroundColor: isDarkMode ? "#1f2937" : "white" }}
-        handleIndicatorStyle={{
-          backgroundColor: isDarkMode ? "#9ca3af" : "#9ca3af",
-        }}
-      >
-        <BottomSheetView className="items-center justify-start rounded-xl flex-1">
-          <View className="h-2/3 w-full justify-between pt-2 ">
-            <TouchableOpacity className="flex-row items-center space-x-4 w-full justify-center  p-4">
-              <Feather
-                name="upload"
-                size={32}
-                color={isDarkMode ? "#ffffff" : "#000"}
+            <View className="relative items-center justify-center my-6">
+              <Image
+                source={require("@/assets/images/gradient.png")}
+                style={{
+                  width: Dimensions.get("window").width,
+                  position: "absolute",
+                  top: -imageHeight,
+                  zIndex: -10,
+                  opacity: 0.9,
+                }}
               />
-              <Text className="text-xl font-medium dark:text-white ml-2">
-                Upload un fichier
-              </Text>
-            </TouchableOpacity>
+              <Image
+                source={require("@/assets/images/id_card_example.jpg")}
+                style={{ width: imageSize, height: imageHeight }}
+                className="rounded-lg"
+              />
+            </View>
+
+            <Text
+              className={`mt-6 mb-6 text-center ${
+                isDarkMode ? "text-gray-300" : "text-gray-700"
+              }`}
+            >
+              Veuillez joindre votre carte d'identité recto-verso au format
+              .pdf, .jpeg ou .png comme ci-dessus.
+            </Text>
 
             <TouchableOpacity
-              className="flex-row items-center space-x-4 w-full justify-center p-4"
-              onPress={handleTakePhoto}
+              onPress={handleOpenBottomSheet}
+              className={`w-[95%] border-2 border-dashed p-6 rounded-lg my-6 items-center justify-center px-4 ${
+                isDarkMode ? "border-gray-500" : "border-black"
+              }`}
             >
-              <MaterialCommunityIcons
-                name="camera-outline"
-                size={32}
-                color={isDarkMode ? "#ffffff" : "#000"}
+              <Icon
+                name="download"
+                size={80}
+                color={isDarkMode ? "#d1d5db" : "black"}
               />
-              <Text className="text-xl font-medium dark:text-white ml-2">
-                Prendre une photo
-              </Text>
             </TouchableOpacity>
+
+            <Text className="text-xs text-center mt-10 text-gray-500 dark:text-gray-400">
+              La vérification de l'identité peut prendre jusqu'à 7 jours ouvrés.
+            </Text>
+
+            <TouchableOpacity
+              className={`px-6 py-3 rounded-lg mb-1 mt-6 w-11/12  ${
+                isDarkMode ? "bg-fuchsia-700" : "bg-black"
+              }`}
+              onPress={handleOpenBottomSheet}
+            >
+              <Text className="text-white text-center">Continuer</Text>
+            </TouchableOpacity>
+
+            <Text className="text-xs text-center mt-6 text-gray-500 w-11/12 dark:text-gray-400">
+              En cliquant sur continuer, vous acceptez la politique privée et
+              les conditions générales.
+            </Text>
+            <Pressable
+              onPress={() =>
+                router.push("/(auth)/(id_verification)/rib_verification")
+              }
+            >
+              <Text
+                className={`text-center mt-6 ${
+                  isDarkMode ? "text-red-400" : "text-red-500"
+                }`}
+              >
+                Ignorer cette étape pour le moment
+              </Text>
+            </Pressable>
           </View>
-        </BottomSheetView>
-      </BottomSheet>
-    </View>
+        )}
+
+        <BottomSheet
+          ref={bottomSheetRef}
+          index={-1}
+          snapPoints={snapPoints}
+          enablePanDownToClose
+          backdropComponent={renderBackDrop}
+          backgroundStyle={{
+            backgroundColor: isDarkMode ? "#1f2937" : "white",
+          }}
+          handleIndicatorStyle={{
+            backgroundColor: isDarkMode ? "#9ca3af" : "#9ca3af",
+          }}
+        >
+          <BottomSheetView className="items-center justify-start rounded-xl flex-1">
+            <View className="h-2/3 w-full justify-between pt-2  ">
+              <TouchableOpacity className="flex-row items-center space-x-4 w-full justify-center  p-4">
+                <Feather
+                  name="upload"
+                  size={32}
+                  color={isDarkMode ? "#ffffff" : "#000"}
+                />
+                <Text className="text-xl font-medium dark:text-white ml-2">
+                  Upload un fichier
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                className="flex-row items-center space-x-4 w-full justify-center p-4"
+                onPress={handleTakePhoto}
+              >
+                <MaterialCommunityIcons
+                  name="camera-outline"
+                  size={32}
+                  color={isDarkMode ? "#ffffff" : "#000"}
+                />
+                <Text className="text-xl font-medium dark:text-white ml-2">
+                  Prendre une photo
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </BottomSheetView>
+        </BottomSheet>
+      </View>{" "}
+    </ScrollView>
   );
 };
 

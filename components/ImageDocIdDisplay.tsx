@@ -31,7 +31,6 @@ const ImageIdDisplay = ({
   onAccept,
   onReject,
 }: ImageIdDisplayProps) => {
-  const isDarkMode = useColorScheme() === "dark";
   const [croppedUri, setCroppedUri] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
   const context = ImageManipulator.useImageManipulator(photo!.uri);
@@ -75,12 +74,11 @@ const ImageIdDisplay = ({
 
       if (photo && photo.width && photo.height) {
         const cropWidth = photo.width * 0.9;
-        const cropHeight = cropWidth / aspectRatio;
 
         try {
           context.crop({
             originX: photo.width * 0.05,
-            originY: photo.height * 0.45, // Moved down from 0.39 to 0.45
+            originY: photo.height * 0.39,
             width: cropWidth,
             height: cropWidth / aspectRatio,
           });
@@ -91,7 +89,7 @@ const ImageIdDisplay = ({
           setIsCropped(true);
           setCroppedUri(result.uri);
         } catch (error) {
-          console.error("Crop error:", error);
+          //console.error("Crop error:", error);
           setCroppedUri(imageUri);
         }
       } else {
@@ -142,8 +140,7 @@ const ImageIdDisplay = ({
         </Animated.View>
 
         <Animated.Text style={[styles.explanationText, { opacity: fadeAnim }]}>
-          Votre image a été traitée avec succès. Vous pouvez l'accepter ou la
-          reprendre.
+          Voici votre image. Vous pouvez l'accepter ou la reprendre.
         </Animated.Text>
 
         <Animated.View

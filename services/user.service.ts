@@ -1,4 +1,3 @@
-import { Alert } from "react-native";
 import { api } from "./api";
 import { User } from "@/types/type";
 
@@ -24,5 +23,63 @@ export const updateProfilePicture = async (image: string) => {
   } catch (error: any) {
     console.error("Erreur lors de l'upload:", error);
     throw error;
+  }
+};
+
+export const updateDocId = async (image: string) => {
+  try {
+    const formData = new FormData();
+    const filename = image.split("/").pop() || "photo.jpg";
+    const match = /\.(\w+)$/.exec(filename);
+    const type = match ? `image/${match[1]}` : "image/jpeg";
+
+    formData.append("file", {
+      uri: image,
+      name: filename,
+      type,
+    } as any);
+
+    const response = await api.patch("/User/identityDoc", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    return response.data;
+  } catch (error: any) {
+    console.error("Erreur lors de l'upload:", error.data);
+    throw error.response.data;
+  }
+};
+
+const forbiddenFields = [
+  "identityDocument",
+  "profilePicture",
+  "password",
+  "isAdmin",
+  "createdAt",
+  "updatedAt",
+];
+
+export const updateUser = async (data: Partial<User>) => {
+  try {
+    const sanitizedData = Object.keys(data).reduce((acc, key) => {
+      if (!forbiddenFields.includes(key)) {
+        (acc as any)[key] = (data as any)[key];
+      }
+      return acc;
+    }, {} as Partial<User>);
+
+    if (sanitizedData.age && sanitizedData.age < 18) {
+      throw new Error("L'utilisateur doit avoir au moins 18 ans.");
+    }
+    console.log("Sanitized data:", sanitizedData);
+
+    const response = await api.patch("/User/update", sanitizedData);
+    return response.data;
+  } catch (error: any) {
+    console.error("Erreur lors de la mise à jour de l'utilisateur:", error);
+    throw (
+      error.response?.data || { message: "Une erreur inconnue est survenue" }
+    );
   }
 };
