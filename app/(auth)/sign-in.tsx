@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -224,9 +225,18 @@ const SignInScreen = () => {
           className="w-full bg-black py-3 rounded-lg items-center dark:bg-indigo-900"
           disabled={loading}
         >
-          <Text className="text-white text-base font-bold">
-            {loading ? "Connexion..." : "Continuer"}
-          </Text>
+          {loading ? (
+            <View className="flex-row items-center space-x-2">
+              <Text className="text-white text-base font-bold">
+                Connexion...
+              </Text>
+              <ActivityIndicator color="#fff" />
+            </View>
+          ) : (
+            <View className="flex-row items-center space-x-2">
+              <Text className="text-white text-base font-bold">Continuer</Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>

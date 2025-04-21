@@ -46,6 +46,7 @@ export const updateDocId = async (image: string) => {
     });
     return response.data;
   } catch (error: any) {
+    console.log(error);
     console.error("Erreur lors de l'upload:", error.data);
     throw error.response.data;
   }

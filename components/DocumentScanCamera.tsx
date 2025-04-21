@@ -14,9 +14,10 @@ import { Feather } from "@expo/vector-icons";
 import ImageIdDisplay from "./ImageDocIdDisplay";
 import { updateDocId } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
-import { CpuIcon } from "lucide-react-native";
 import Loading from "./Loading";
 import { router } from "expo-router";
+import UpdateNameModal from "@/components/UpdateNameModal";
+import { useAuthContext } from "@/context/AuthContext";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 const aspectRatio = 16 / 9;
@@ -39,8 +40,21 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
   const isDarkMode = colorScheme === "dark";
   const [photo, setPhoto] = useState<CameraCapturedPicture | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [newInfo, setNewInfo] = useState(false);
 
   const { showToast } = useToast();
+  const { user } = useAuthContext();
+
+  const [isModalVisible, setIsModalVisible] = useState(false);
+
+  const handleOpenModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalVisible(false);
+  };
 
   const handleUdateDocId = async (uri: string) => {
     setIsLoading(true);
@@ -54,11 +68,10 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
       router.push("/(auth)/(id_verification)/id_card_verification");
     } catch (error: any) {
       console.log("on passe ici et c'est logique", error);
-      showToast(
-        error.message || "Document invalide ou trop flou",
-        ToastType.ERROR
-      );
+      const message = error.message || "Document invalide ou trop flou";
+      showToast(message, ToastType.ERROR);
       setCapturedImage(null);
+      setErrorMessage(`${message}\nVeuillez réessayer.`);
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +85,7 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
   }, []);
 
   const takePicture = async () => {
+    setErrorMessage(null); // Réinitialiser le message d'erreur avant chaque nouvelle prise
     if (cameraRef.current) {
       try {
         const photo = await cameraRef.current.takePictureAsync({
@@ -83,12 +97,14 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
 
         if (!photo) {
           console.log("Aucune photo capturée.");
+          setErrorMessage("Impossible de capturer l'image");
           return;
         }
 
         setCapturedImage(photo.uri);
       } catch (error) {
         console.error("Erreur lors de la capture de la photo :", error);
+        setErrorMessage("Erreur lors de la capture de la photo");
       }
     }
   };
@@ -141,7 +157,10 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
             console.log("Image acceptée :", croppedUri);
             handleUdateDocId(capturedImage);
           }}
-          onReject={() => setCapturedImage(null)}
+          onReject={() => {
+            setCapturedImage(null);
+            setErrorMessage(null); // Réinitialiser l'erreur quand on rejette l'image
+          }}
         />
       ) : (
         <>
@@ -216,6 +235,68 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
             }}
           ></View>
 
+          {errorMessage && (
+            <View
+              style={[
+                styles.errorContainer,
+                { zIndex: 5 },
+                {
+                  backgroundColor: newInfo
+                    ? "rgba(52, 199, 89, 0.15)"
+                    : "rgba(255, 59, 48, 0.15)",
+                },
+              ]}
+            >
+              <View className="flex-row items-center">
+                <Feather
+                  name={newInfo ? "check-circle" : "alert-circle"}
+                  size={20}
+                  color={newInfo ? "#34C759" : "#FF3B30"}
+                  style={styles.errorIcon}
+                />
+                <Text
+                  style={[
+                    styles.errorText,
+                    { color: newInfo ? "#34C759" : "#FF3B30" },
+                  ]}
+                >
+                  {errorMessage}
+                </Text>
+              </View>
+              {newInfo ? (
+                <></>
+              ) : (
+                <View className="flex-1 items-center justify-center mt-2">
+                  <TouchableOpacity
+                    onPress={handleOpenModal}
+                    style={{
+                      backgroundColor: "#501f31",
+                      paddingHorizontal: 20,
+                      paddingVertical: 8,
+                      borderRadius: 10,
+                      paddingBottom: 5,
+                    }}
+                  >
+                    <Text className="text-white font-bold text-lg">
+                      Modifier mes infos
+                    </Text>
+                  </TouchableOpacity>
+
+                  <UpdateNameModal
+                    visible={isModalVisible}
+                    onClose={handleCloseModal}
+                    initialFirstName={user?.firstName || ""}
+                    initialLastName={user?.lastName || ""}
+                    onUpdateSuccess={() => {
+                      console.log("Infos mises à jour !");
+                      setNewInfo(true);
+                    }}
+                  />
+                </View>
+              )}
+            </View>
+          )}
+
           <TouchableOpacity
             onPress={toggleTorch}
             style={[styles.torchButtonRight, { zIndex: 5 }]}
@@ -228,7 +309,10 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
           </TouchableOpacity>
 
           <TouchableOpacity
-            onPress={takePicture}
+            onPress={() => {
+              takePicture();
+              setNewInfo(false);
+            }}
             style={[styles.bottomButton, { zIndex: 5 }]}
           >
             <Text className="font-bold text-xl">Prendre la photo</Text>
@@ -286,6 +370,26 @@ const styles = StyleSheet.create({
     borderRadius: 30,
     alignItems: "center",
     justifyContent: "center",
+  },
+  errorContainer: {
+    position: "absolute",
+    top: frameTop + frameHeight + 40,
+    alignSelf: "center",
+
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    gap: 8,
+    maxWidth: frameWidth,
+  },
+  errorIcon: {
+    marginRight: 8,
+  },
+  errorText: {
+    color: "#FF3B30",
+    fontSize: 14,
+    fontWeight: "600",
   },
   previewImage: {
     width: "100%",
@@ -346,7 +450,7 @@ const styles = StyleSheet.create({
   },
   imageWrapper: {
     width: "100%",
-    aspectRatio: 3 / 4, // adaptable à portrait
+    aspectRatio: 3 / 4,
     position: "relative",
     justifyContent: "center",
     alignItems: "center",
@@ -357,7 +461,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 0,
     width: "100%",
-    height: "30%", // proportionnelle à la zone visible
+    height: "30%",
     zIndex: 10,
   },
   previewImageResponsive: {
