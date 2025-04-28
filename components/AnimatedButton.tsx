@@ -26,21 +26,22 @@ interface AnimatedButtonProps {
   visible?: boolean;
   animationType?: AnimationType;
   style?: StyleProp<ViewStyle>;
+  color?: string; // <-- Ici
 }
 
 const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   text = "Cliquez ici",
   route = "/",
   visible = true,
-  animationType = AnimationType.SLIDE, // 'fade', 'slide', 'scale'
+  animationType = AnimationType.SLIDE,
   style = {},
+  color = "#3498db", // <-- Ici aussi
 }) => {
   const router = useRouter();
   const opacity = useSharedValue(0);
   const translateY = useSharedValue(50);
   const scale = useSharedValue(0.8);
 
-  // Gère l'apparition/disparition du bouton
   useEffect(() => {
     if (visible) {
       opacity.value = withTiming(1, { duration: 500 });
@@ -53,7 +54,6 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     }
   }, [visible]);
 
-  // Style animé basé sur le type d'animation choisi
   const animatedStyle = useAnimatedStyle(() => {
     switch (animationType) {
       case "fade":
@@ -76,7 +76,6 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
     }
   });
 
-  // Navigation vers la route spécifiée
   const handlePress = () => {
     router.replace(route as Href);
   };
@@ -84,7 +83,7 @@ const AnimatedButton: React.FC<AnimatedButtonProps> = ({
   return (
     <Animated.View style={[styles.container, animatedStyle]}>
       <Pressable
-        style={[styles.button, style]}
+        style={[styles.button, { backgroundColor: color }, style]}
         onPress={handlePress}
         android_ripple={{ color: "rgba(255,255,255,0.2)" }}
       >

@@ -1,63 +1,117 @@
-import { TouchableOpacity, View, Text, Pressable, Image } from "react-native";
+import {
+  TouchableOpacity,
+  View,
+  Text,
+  Pressable,
+  Image,
+  Dimensions,
+  useColorScheme,
+} from "react-native";
 import React from "react";
 import { useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const WelcomeIdVerif = () => {
   const router = useRouter();
+  const imageSize = Dimensions.get("window").width / 2;
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   return (
-    <View className=" flex-1 justify-start bg-fuchsia-50 relative px-4">
+    <SafeAreaView
+      className={`flex-1 justify-center relative px-4 ${
+        isDarkMode ? "bg-gray-900" : "bg-fuchsia-50"
+      }`}
+    >
       <View className="justify-center items-center">
-        <Pressable onPress={() => router.push("/settings/HomeSettings")}>
-          <Text className="text-xl font-bold">Parametres</Text>
-        </Pressable>
-        <Image
-          source={require("@/assets/icons/icon.png")}
-          style={{ width: 159, height: 159 }}
-        />
+        <View className="relative items-center justify-center">
+          <Image
+            source={require("@/assets/images/gradient.png")}
+            style={{
+              width: Dimensions.get("window").width,
+              position: "absolute",
+              top: imageSize / 2,
+              left: "25%",
+              transform: [
+                { translateX: -Dimensions.get("window").width / 2 },
+                { translateY: -Dimensions.get("window").width / 2 },
+              ],
+              zIndex: -10,
+              opacity: isDarkMode ? 0.5 : 1, // Réduire l'opacité en mode sombre
+            }}
+          />
+          <Image
+            source={require("@/assets/images/person-with-dog.png")}
+            style={{ width: imageSize, height: imageSize }}
+          />
+        </View>
 
-        <Text className="text-xl font-bold">Bienvenue sur Meow</Text>
+        <Text
+          className={`text-3xl font-bold ${
+            isDarkMode ? "text-white" : "text-black"
+          }`}
+        >
+          Bienvenue sur Meow
+        </Text>
         <Text className="text-sm text-gray-400 text-center">
           Simplifiez-vous la vie, meow après meow
         </Text>
       </View>
 
-      <View className="w-full h-48 bg-slate-300 rounded-3xl shadow-md mt-10 flex items-center justify-evenly px-4">
-        <Text className="font-bold text-xl mb-2 text-center">
-          Vérification d’identité obligatoire
+      <View
+        className={`w-full h-48 rounded-3xl shadow-md mt-10 flex items-center justify-evenly px-4 ${
+          isDarkMode ? "bg-gray-800" : "bg-slate-300"
+        }`}
+      >
+        <Text
+          className={`font-bold text-xl mb-2 text-center ${
+            isDarkMode ? "text-white" : "text-black"
+          }`}
+        >
+          Vérification d'identité obligatoire
         </Text>
 
-        <Text className="text-center text-sm leading-5">
+        <Text
+          className={`text-center text-sm leading-5 ${
+            isDarkMode ? "text-gray-300" : "text-gray-700"
+          }`}
+        >
           Documents requis pour la vérification de votre compte:{"\n"}• Carte
-          d’identité{"\n"}• Relevé d’identité bancaire (RIB){"\n"}• Certificat
-          d’assurance{"\n"}
+          d'identité{"\n"}• Relevé d'identité bancaire (RIB){"\n"}• Certificat
+          d'assurance{"\n"}
         </Text>
       </View>
 
-      <Text className="text-xs text-center mt-10 text-gray-600 dark:text-gray-300">
-        La vérification de l’identité peut prendre jusqu’à 7 jours ouvrés.
+      <Text className="text-xs text-center mt-10 text-gray-500 dark:text-gray-400">
+        La vérification de l'identité peut prendre jusqu'à 7 jours ouvrés.
       </Text>
 
       <TouchableOpacity
-        className="bg-black px-6 py-3 rounded-lg mb-1 mt-6 w-full"
+        className={`px-6 py-3 rounded-lg mb-1 mt-6 w-full ${
+          isDarkMode ? "bg-fuchsia-700" : "bg-black"
+        }`}
         onPress={() =>
           router.push("/(auth)/(id_verification)/id_card_verification")
-        } // ✅ Ici aussi
+        }
       >
         <Text className="text-white text-center">Continuer</Text>
       </TouchableOpacity>
 
       <Pressable onPress={() => router.push("/(home)/homeMainPetsitter")}>
-        <Text className="text-red-500 text-center mt-6">
+        <Text
+          className={`text-center mt-6 ${
+            isDarkMode ? "text-red-400" : "text-red-500"
+          }`}
+        >
           Ignorer cette étape pour le moment
         </Text>
       </Pressable>
 
-      <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
+      <Text className="text-xs text-center mt-6 text-gray-500 dark:text-gray-400">
         En cliquant sur continuer, vous acceptez la politique privée et les
         conditions générales.
       </Text>
-    </View>
+    </SafeAreaView>
   );
 };
 

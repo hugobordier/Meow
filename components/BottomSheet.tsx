@@ -1,12 +1,12 @@
-import type React from "react";
-import { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import {
-  StyleSheet,
   View,
   Animated,
   TouchableOpacity,
   Dimensions,
   PanResponder,
+  useColorScheme,
+  Text,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -17,7 +17,7 @@ interface BottomSheetProps {
 }
 
 const { height } = Dimensions.get("window");
-const SHEET_HEIGHT = 200;
+const SHEET_HEIGHT = 400;
 
 export const BottomSheet: React.FC<BottomSheetProps> = ({
   visible,
@@ -25,6 +25,8 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   children,
 }) => {
   const translateY = useRef(new Animated.Value(SHEET_HEIGHT)).current;
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   useEffect(() => {
     if (visible) {
@@ -67,75 +69,51 @@ export const BottomSheet: React.FC<BottomSheetProps> = ({
   if (!visible) return null;
 
   return (
-    <View style={styles.overlay}>
-      <TouchableOpacity style={styles.backdrop} onPress={onClose} />
+    <View className="absolute bottom-0 left-0 right-0 h-full justify-end z-50">
+      <TouchableOpacity
+        className="absolute top-0 left-0 right-0 bottom-0 bg-black/40"
+        onPress={onClose}
+      />
       <Animated.View
+        className={`rounded-t-3xl px-6 pb-8 shadow-xl ${
+          isDark ? "bg-neutral-800" : "bg-white"
+        }`}
         style={[
-          styles.container,
           {
+            height: SHEET_HEIGHT,
             transform: [{ translateY }],
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: -3 },
+            shadowOpacity: 0.2,
+            shadowRadius: 6,
+            elevation: 15,
           },
         ]}
         {...panResponder.panHandlers}
       >
-        <View style={styles.handle} />
-        <TouchableOpacity style={styles.closeButton} onPress={onClose}>
-          <Ionicons name="close" size={24} color="#666" />
+        <View
+          className={`h-2.5 w-20 rounded-full self-center mt-4 mb-5 ${
+            isDark ? "bg-neutral-500" : "bg-neutral-300"
+          }`}
+        />
+        <TouchableOpacity
+          className="absolute top-3 right-4 p-4"
+          onPress={onClose}
+        >
+          <Ionicons name="close" size={40} color={isDark ? "#aaa" : "#666"} />
         </TouchableOpacity>
-        <View style={styles.content}>{children}</View>
+        <View className="flex-1 mt-8">
+          <View className="flex-1 justify-center">
+            <Text
+              className={`text-xl font-bold ${
+                isDark ? "text-white" : "text-black"
+              }`}
+            >
+              {children}
+            </Text>
+          </View>
+        </View>
       </Animated.View>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  overlay: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: height,
-    justifyContent: "flex-end",
-    zIndex: 2000,
-  },
-  backdrop: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.3)",
-  },
-  container: {
-    backgroundColor: "white",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    height: SHEET_HEIGHT,
-    paddingHorizontal: 16,
-    paddingBottom: 24,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 5,
-    elevation: 10,
-  },
-  handle: {
-    width: 40,
-    height: 5,
-    backgroundColor: "#ddd",
-    borderRadius: 3,
-    alignSelf: "center",
-    marginTop: 8,
-    marginBottom: 8,
-  },
-  closeButton: {
-    position: "absolute",
-    top: 8,
-    right: 16,
-    padding: 8,
-  },
-  content: {
-    flex: 1,
-    marginTop: 16,
-  },
-});

@@ -54,6 +54,13 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
+      ],
+      [
+        "@stripe/stripe-react-native",
+        {
+          //"merchantIdentifier": "test", //A CHANGER mais relou il faut un compte apple dev
+          "enableGooglePay": true
+        }
       ]
     ],
     "experiments": {

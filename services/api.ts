@@ -82,26 +82,37 @@ api.interceptors.response.use(
   },
   async (error) => {
     if (error.isCached) {
+      console.log("cache hit  pas cool celle la: ", error.data);
       return Promise.resolve({ data: error.data });
     }
+
     const originalRequest = error.config;
 
-    // Si erreur 401 (non autorisé) et ce n'est pas déjà une requête de refresh token
-    if (
-      error.response &&
-      error.response.status === 401 &&
-      !originalRequest._retry &&
-      error.response.data.message === "No refresh token found"
-    ) {
+    const debug =
+      error.response.data.message === "No refresh token found" ||
+      error.response.data.error === "Accès interdit, pas de token" ||
+      error.response.data.error === "No refresh token found";
+
+    console.log("problement avec le token : ", debug);
+
+    if (error.response.status === 401 && !originalRequest._retry && debug) {
+      console.log("error 401 le token est surment plus valide");
       if (isRefreshing) {
+        console.log("isRefreshing");
+        // Si une requête de rafraîchissement est déjà en cours, on attend qu'elle se termine
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then((token) => {
+            console.log(
+              "token qui a ete ajouté avec les ancienne requete",
+              token
+            );
             originalRequest.headers["Authorization"] = `Bearer ${token}`;
             return api(originalRequest);
           })
           .catch((err) => {
+            console.log("erreur dans le refresh", err);
             return Promise.reject(err);
           });
       }
@@ -110,31 +121,53 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const response = await api.post("/authRoutes/refresh");
-        const { accessToken } = response.data;
+        console.log(
+          "on appelle la route pour rafraichir avec le refresh token depuis le storage"
+        );
+
+        const storedRefreshToken = await AsyncStorage.getItem("refreshToken");
+
+        console.log("stokenrefreshtoken : ", storedRefreshToken);
+
+        if (!storedRefreshToken) {
+          throw new Error("No refresh token available");
+        }
+
+        const response = await api.post("/authRoutes/refresh", {
+          refreshToken: storedRefreshToken,
+        });
+
+        const { accessToken, refreshToken: newRefreshToken } = response.data;
+        console.log(response.data);
 
         await AsyncStorage.setItem("accessToken", accessToken);
 
-        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+        if (newRefreshToken) {
+          await AsyncStorage.setItem("refreshToken", newRefreshToken);
+        }
 
+        api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
         processQueue(null, accessToken);
-
         isRefreshing = false;
 
         return api(originalRequest);
       } catch (refreshError) {
+        console.error("Erreur lors du rafraîchissement du token", refreshError);
         processQueue(refreshError, null);
         isRefreshing = false;
 
         await AsyncStorage.removeItem("accessToken");
+        await AsyncStorage.removeItem("refreshToken");
 
         router.replace("/(auth)/sign-in");
 
         return Promise.reject(refreshError);
       }
     }
+    console.log("test");
+    console.log("error", error.response.data);
     return Promise.reject(error);
   }
 );
@@ -156,15 +189,16 @@ export const login = async (email: string, mdp: string) => {
 export const logout = async () => {
   try {
     console.log("logout");
-    await AsyncStorage.removeItem("accessToken");
 
-    const res = await api.post("/authRoutes/logout");
+    await AsyncStorage.multiRemove(["accessToken", "refreshToken"]);
+
+    await api.post("/authRoutes/logout");
 
     cache.clear();
 
     router.replace("/(auth)/homePage");
 
-    return res.data.success;
+    return true;
   } catch (error) {
     console.error("Erreur lors de la déconnexion", error);
     return false;

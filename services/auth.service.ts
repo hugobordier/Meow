@@ -29,6 +29,9 @@ export const login = async (form: { email: string; password: string }) => {
     if (data.accessToken) {
       await AsyncStorage.setItem("accessToken", data.accessToken);
     }
+    if (data.refreshToken) {
+      await AsyncStorage.setItem("refreshToken", data.refreshToken);
+    }
     const userData = await api.get("/authRoutes/me");
     return userData.data;
   } catch (error: any) {

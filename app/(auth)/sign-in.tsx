@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View } from "react-native";
+import {
+  ActivityIndicator,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
 import { login } from "@/services/auth.service";
@@ -10,6 +17,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as Google from "expo-auth-session/providers/google";
 import { GoogleSVG } from "@/assets/svg/icons";
 import { ToastType, useToast } from "@/context/ToastContext";
+import { Ionicons } from "@expo/vector-icons"; // Ajout de Ionicons pour l'icône d'œil
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -25,6 +33,7 @@ const SignInScreen = () => {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false); // État pour gérer la visibilité du mot de passe
 
   const { setUser } = useAuthContext();
   const { showToast } = useToast();
@@ -125,103 +134,132 @@ const SignInScreen = () => {
     router.replace("/(auth)/home");
   };
 
+  // Fonction pour basculer la visibilité du mot de passe
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <SafeAreaView className="flex-1 justify-center items-center px-5 bg-white dark:bg-gray-700">
-      <Text className="text-3xl font-bold mb-5 text-black dark:text-white">
-        MEOW🐱
-      </Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <SafeAreaView className="flex-1 justify-center items-center px-5 bg-fushia-50 dark:bg-gray-900">
+        <Text className="text-3xl font-bold mb-5 text-black dark:text-white">
+          MEOW🐱
+        </Text>
 
-      <Text className="text-lg font-semibold mb-2 text-black dark:text-gray-300">
-        Se connecter
-      </Text>
-      <Text className="text-sm mb-6 text-center text-gray-600 dark:text-gray-400">
-        Entrez votre email pour vous connecter à votre compte
-      </Text>
+        <Text className="text-lg font-semibold mb-2 text-black dark:text-gray-300">
+          Se connecter
+        </Text>
+        <Text className="text-sm mb-6 text-center text-gray-600 dark:text-gray-400">
+          Entrez votre email pour vous connecter à votre compte
+        </Text>
 
-      <View className="w-full mb-3 relative">
-        <TextInput
-          placeholder="email@domain.com"
-          value={form.email}
-          onChangeText={(value) => {
-            handleChange("email", value.toLocaleLowerCase());
-            setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
+        <View className="w-full mb-3 relative">
+          <TextInput
+            placeholder="email@domain.com"
+            value={form.email}
+            onChangeText={(value) => {
+              handleChange("email", value.toLocaleLowerCase());
+              setSuggestions(suggestEmailDomains(value)); //it'll generate suggestions
+            }}
+            onFocus={() => setSuggestions(suggestEmailDomains(form.email))}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            className="w-full border rounded-lg p-3 mb-1 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
+          />
+
+          {suggestions.length > 0 && (
+            <View className="absolute top-full w-full bg-white shadow-md rounded-lg p-2 z-50">
+              {suggestions.map((suggestion, index) => (
+                <TouchableOpacity
+                  key={index}
+                  onPress={() => {
+                    handleChange("email", suggestion.toLocaleLowerCase()); // Autofill email when clicked
+                    setSuggestions([]);
+                  }}
+                  className="p-2 border-b border-gray-200"
+                >
+                  <Text className="text-black text-center">{suggestion}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          )}
+        </View>
+
+        <View className="w-full relative mb-4">
+          <TextInput
+            placeholder="Mot de passe"
+            value={form.password}
+            onChangeText={(value) => handleChange("password", value)}
+            secureTextEntry={!showPassword} // Utilise l'état pour déterminer si le mot de passe est visible
+            className="w-full border rounded-lg p-3 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white pr-10"
+          />
+          <TouchableOpacity
+            onPress={togglePasswordVisibility}
+            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+          >
+            <Ionicons
+              name={showPassword ? "eye-outline" : "eye-off-outline"}
+              size={24}
+              color="#888"
+            />
+          </TouchableOpacity>
+        </View>
+
+        <View className="flex-row pb-3 justify-between w-full ">
+          <Link
+            className="font-Jakarta text-lg text-blue-500"
+            href="/(auth)/sign-up"
+          >
+            Pas de compte ?
+          </Link>
+          <Link
+            className="font-Jakarta text-lg text-blue-500"
+            href="/(auth)/forgot-password"
+          >
+            Mot de passe oublié ?
+          </Link>
+        </View>
+
+        <TouchableOpacity
+          onPress={handleLogin}
+          className="w-full bg-black py-3 rounded-lg items-center dark:bg-indigo-900"
+          disabled={loading}
+        >
+          {loading ? (
+            <View className="flex-row items-center space-x-2">
+              <Text className="text-white text-base font-bold">
+                Connexion...
+              </Text>
+              <ActivityIndicator color="#fff" />
+            </View>
+          ) : (
+            <View className="flex-row items-center space-x-2">
+              <Text className="text-white text-base font-bold">Continuer</Text>
+            </View>
+          )}
+        </TouchableOpacity>
+
+        <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>
+
+        <TouchableOpacity
+          className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
+          onPress={() => {
+            console.log("Tentative de connexion avec Google");
+            promptAsync();
           }}
-          onFocus={() => setSuggestions(suggestEmailDomains(form.email))}
-          keyboardType="email-address"
-          autoCapitalize="none"
-          className="w-full border rounded-lg p-3 mb-1 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
-        />
-
-        {suggestions.length > 0 && (
-          <View className="absolute top-full w-full bg-white shadow-md rounded-lg p-2 z-50">
-            {suggestions.map((suggestion, index) => (
-              <TouchableOpacity
-                key={index}
-                onPress={() => {
-                  handleChange("email", suggestion.toLocaleLowerCase()); // Autofill email when clicked
-                  setSuggestions([]);
-                }}
-                className="p-2 border-b border-gray-200"
-              >
-                <Text className="text-black text-center">{suggestion}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-        )}
-      </View>
-
-      <TextInput
-        placeholder="Mot de passe"
-        value={form.password}
-        onChangeText={(value) => handleChange("password", value)}
-        secureTextEntry
-        className="w-full border rounded-lg p-3 mb-4 border-gray-300 bg-white text-black dark:border-gray-500 dark:bg-slate-600 dark:text-white"
-      />
-      <View className="flex-row pb-3 justify-between w-full ">
-        <Link
-          className="font-Jakarta text-lg text-blue-500"
-          href="/(auth)/home"
         >
-          Pas de compte ?
-        </Link>
-        <Link
-          className="font-Jakarta text-lg text-blue-500"
-          href="/(auth)/forgot-password"
-        >
-          Mot de passe oublié ?
-        </Link>
-      </View>
+          <GoogleSVG size={16} />
+          <Text className="text-base font-bold ml-3 text-black  dark:text-white">
+            Continuer avec Google
+          </Text>
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        onPress={handleLogin}
-        className="w-full bg-black py-3 rounded-lg items-center dark:bg-indigo-900"
-        disabled={loading}
-      >
-        <Text className="text-white text-base font-bold">
-          {loading ? "Connexion..." : "Continuer"}
+        <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
+          En cliquant sur continuer, vous acceptez la politique privée et les
+          conditions générales.
         </Text>
-      </TouchableOpacity>
-
-      <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>
-
-      <TouchableOpacity
-        className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
-        onPress={() => {
-          console.log("Tentative de connexion avec Google");
-          promptAsync();
-        }}
-      >
-        <GoogleSVG size={16} />
-        <Text className="text-base font-bold ml-3 text-black  dark:text-white">
-          Continuer avec Google
-        </Text>
-      </TouchableOpacity>
-
-      <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
-        En cliquant sur continuer, vous acceptez la politique privée et les
-        conditions générales.
-      </Text>
-    </SafeAreaView>
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 
