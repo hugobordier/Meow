@@ -84,31 +84,33 @@ const HomeSettings = () => {
             </View>
           </TouchableOpacity>
         ))}
+
+        {/* Options spéciales */}
         <TouchableOpacity
           onPress={toggleFantinMode}
-          className={`px-4 py-3 rounded-2xl ${
-            fantinMode ? "bg-purple-600" : "bg-gray-700"
-          }`}
+          className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
-          <Text className="text-white text-lg font-semibold">
+          <Text className="text-base text-black dark:text-white">
             {fantinMode ? "🎵 Mode Fantin Activé" : "😼 Activer le Mode Fantin"}
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={toggleNoAds}
-          className={`px-4 py-3 rounded-2xl ${
-            noAds ? "bg-green-600" : "bg-gray-700"
-          }`}
+          className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
-          <Text className="text-white text-lg font-semibold">
+          <Text className="text-base text-black dark:text-white">
             {noAds ? "✅ Mode Sans Pub Activé" : "🚫 Activer le Mode Sans Pub"}
           </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={async () => await logout()}
-          className={`px-4 py-3 rounded-2xl `}
+          className="flex-row items-center justify-between py-4"
         >
-          <Text className="text-white text-lg font-semibold"> se deco</Text>
+          <Text className="text-base text-red-500 dark:text-red-400 font-semibold">
+            Se déconnecter
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
