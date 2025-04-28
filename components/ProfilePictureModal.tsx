@@ -36,7 +36,7 @@ export default function ProfilePictureModal({
   const colorScheme = useColorScheme();
   const isDarkMode = colorScheme === "dark";
   const gradientColors = isDarkMode
-    ? ["#dc30f0", "#7c3aed", "#2f0952"]
+    ? ["#c7d2fe", "#818cf8", "#4f46e5"]
     : ["#c7d2fe", "#818cf8", "#4f46e5"];
   const opacityAnim = useRef(new Animated.Value(0)).current;
   const translateYAnim = useRef(new Animated.Value(50)).current;

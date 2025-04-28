@@ -100,7 +100,7 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView className="flex-1 bg-gray-100 dark:bg-slate-900">
+    <ScrollView className="flex-1 bg-fuchsia-50 dark:bg-gray-900">
       {/* User Profile */}
       <View className="flex-row items-center px-4 mt-4">
         <TouchableOpacity onPress={() => setModalVisible(true)}>
