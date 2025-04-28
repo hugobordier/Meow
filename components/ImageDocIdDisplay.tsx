@@ -195,11 +195,8 @@ const styles = StyleSheet.create({
     position: "relative",
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 16,
     overflow: "hidden",
     marginTop: 20, // Moved down a bit
-    borderWidth: 2,
-    borderColor: "#8A2BE2", // Futuristic purple border
     shadowColor: "#6A5ACD",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,

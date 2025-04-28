@@ -159,7 +159,7 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
           }}
           onReject={() => {
             setCapturedImage(null);
-            setErrorMessage(null); // Réinitialiser l'erreur quand on rejette l'image
+            setErrorMessage(null);
           }}
         />
       ) : (

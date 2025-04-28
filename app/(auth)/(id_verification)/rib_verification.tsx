@@ -17,12 +17,13 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MaterialIcons } from "@expo/vector-icons";
 import CountryFlag from "react-native-country-flag";
-import { initStripe, createToken } from "@stripe/stripe-react-native";
+//import { initStripe, createToken } from "@stripe/stripe-react-native";
 import { updateUser } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
+import AnimatedButton from "@/components/AnimatedButton";
 
-const STRIPE_PUBLISHABLE_KEY =
-  "pk_test_51O5JUvBqJF8hZBPkYOKB2Yx7Ot6Qz3XYRGcLQQIgwmYEEsBFHjhg2FMGQrc4EjwWLTKlzVwKHLCBG2FkfoRmSHvF00CpzKLmkP";
+// const STRIPE_PUBLISHABLE_KEY =
+//   "pk_test_51O5JUvBqJF8hZBPkYOKB2Yx7Ot6Qz3XYRGcLQQIgwmYEEsBFHjhg2FMGQrc4EjwWLTKlzVwKHLCBG2FkfoRmSHvF00CpzKLmkP";
 
 const countries = [
   {
@@ -208,7 +209,6 @@ const RibVerif = () => {
     );
   };
 
-  // Mettre à jour la fonction selectCountry pour réinitialiser aussi le nom du titulaire
   const selectCountry = (
     country: React.SetStateAction<{
       code: string;
@@ -222,7 +222,15 @@ const RibVerif = () => {
     setSelectedCountry(country);
     setShowCountryPicker(false);
     setIban("");
-    setAccountName(""); // Réinitialiser le nom du titulaire
+    setAccountName("");
+  };
+
+  const handlePress = () => {
+    if (isValidated) {
+      router.push("/(auth)/HandleCreateAccountPetSitter");
+    } else {
+      validateRib();
+    }
   };
 
   return (
@@ -234,7 +242,7 @@ const RibVerif = () => {
           <View className="relative items-center justify-center">
             <Image
               source={require("@/assets/images/person-with-dog.png")}
-              style={{ width: imageSize, height: imageSize * 1.2 }}
+              style={{ width: imageSize * 1.2, height: imageSize * 1.2 }}
             />
           </View>
 
@@ -250,7 +258,6 @@ const RibVerif = () => {
           </Text>
         </View>
 
-        {/* Country Selection - Animated */}
         {!isValidated && (
           <>
             <View className="mb-5">
@@ -291,11 +298,10 @@ const RibVerif = () => {
                 </Animated.View>
               </TouchableOpacity>
 
-              {/* Modifier cette partie pour que le menu soit invisible quand fermé */}
               {showCountryPicker && (
                 <Animated.View
                   style={{
-                    height: dropdownHeight, // This uses JS driver
+                    height: dropdownHeight,
                     overflow: "hidden",
                   }}
                   className={`border border-gray-300 rounded-lg mt-1 ${
@@ -304,7 +310,7 @@ const RibVerif = () => {
                 >
                   <Animated.View
                     style={{
-                      opacity: opacityAnimation, // These use native driver
+                      opacity: opacityAnimation,
                       transform: [{ translateY: translateYAnimation }],
                     }}
                   >
@@ -490,23 +496,29 @@ const RibVerif = () => {
               ? "bg-fuchsia-700"
               : "bg-black"
           }`}
-          onPress={validateRib}
-          disabled={isValidating || isValidated}
+          onPress={handlePress}
+          disabled={isValidating}
         >
           {isValidating ? (
             <ActivityIndicator color="#fff" />
           ) : isValidated ? (
-            <>
-              <MaterialIcons
-                name="check-circle"
-                size={24}
-                color="#fff"
-                style={{ marginRight: 8 }}
-              />
-              <Text className="text-white font-semibold text-center">
-                Vérifié avec succès
+            <View>
+              <View className="flex-row items-center justify-center mb-1">
+                <MaterialIcons
+                  name="check-circle"
+                  size={24}
+                  color="#fff"
+                  style={{ marginRight: 8 }}
+                />
+                <Text className="text-white font-semibold text-center">
+                  Vérifié avec succès
+                </Text>
+              </View>
+
+              <Text className="text-white font-semibold text-center mb-1">
+                Continuez pour finaliser la création de votre compte
               </Text>
-            </>
+            </View>
           ) : (
             <Text className="text-white font-semibold text-center">
               Vérifier mon compte
@@ -532,12 +544,10 @@ const RibVerif = () => {
           En validant ces informations, vous autorisez Meow à vérifier votre
           identité bancaire.
         </Text>
+        <View className="h-20" />
       </ScrollView>
     </SafeAreaView>
   );
 };
 
 export default RibVerif;
-function setStripeInitialized(arg0: boolean) {
-  throw new Error("Function not implemented.");
-}

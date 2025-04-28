@@ -12,6 +12,10 @@ const Layout = () => {
         <Stack.Screen name="forgot-password" options={{ headerShown: false }} />
         <Stack.Screen name="home" options={{ headerShown: false }} />
         <Stack.Screen
+          name="HandleCreateAccountPetSitter"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="(id_verification)"
           options={{ headerShown: false }}
         />

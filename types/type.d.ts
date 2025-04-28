@@ -1,16 +1,5 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
 
-declare interface InputFieldProps extends TextInputProps {
-  label: string;
-  icon?: any;
-  secureTextEntry?: boolean;
-  labelStyle?: string;
-  containerStyle?: string;
-  inputStyle?: string;
-  iconStyle?: string;
-  className?: string;
-}
-
 declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
   bgVariant?: "primary" | "secondary" | "danger" | "outline" | "success";
@@ -19,7 +8,7 @@ declare interface ButtonProps extends TouchableOpacityProps {
   IconRight?: React.ComponentType<any>;
   className?: string;
 }
-interface User {
+export interface User {
   id: string;
   username: string;
   lastName: string;
@@ -50,3 +39,40 @@ export interface LatLng {
   latitude: number;
   longitude: number;
 }
+
+export interface CreatePetSitterInput {
+  bio?: string;
+  hourly_rate: number;
+  experience?: number;
+  availability?: AvailabilityDay[];
+}
+
+export interface PetSitter {
+  id: string;
+  user_id: string;
+  bio?: string;
+  hourly_rate: number;
+  experience?: number;
+  availability?: AvailabilityDay[];
+  latitude: number | null;
+  longitude: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type TimeInterval = {
+  start_time: string;
+  end_time: string;
+};
+
+export type AvailabilityDay = {
+  day:
+    | "Monday"
+    | "Tuesday"
+    | "Wednesday"
+    | "Thursday"
+    | "Friday"
+    | "Saturday"
+    | "Sunday";
+  intervals: TimeInterval[];
+};
