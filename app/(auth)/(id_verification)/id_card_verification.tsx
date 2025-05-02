@@ -144,6 +144,18 @@ const idCardVerif = () => {
                 Ignorer cette étape pour le moment
               </Text>
             </Pressable>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              className="mt-4 mb-8"
+            >
+              <Text
+                className={`text-center ${
+                  isDarkMode ? "text-fuchsia-400" : "text-fuchsia-700"
+                }`}
+              >
+                Retour
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 
@@ -189,7 +201,7 @@ const idCardVerif = () => {
             </View>
           </BottomSheetView>
         </BottomSheet>
-      </View>{" "}
+      </View>
     </ScrollView>
   );
 };
