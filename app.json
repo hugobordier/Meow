@@ -1,11 +1,11 @@
 {
   "expo": {
     "name": "Meow",
-    "slug": "Meow",
+    "slug": "meow",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "meow",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -29,11 +29,11 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "package": "com.anonymous.Meow"
+      "package": "com.kikipaul.meow"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -58,10 +58,11 @@
       [
         "@stripe/stripe-react-native",
         {
-          //"merchantIdentifier": "test", //A CHANGER mais relou il faut un compte apple dev
           "enableGooglePay": true
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

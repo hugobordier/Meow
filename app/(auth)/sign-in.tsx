@@ -11,29 +11,100 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Text, TextInput, TouchableOpacity } from "react-native";
 import { login } from "@/services/auth.service";
 import { Link, router } from "expo-router";
-import { useAuthContext } from "@/context/AuthContext"; // Utilisation du contexte pour setUser
+import { useAuthContext } from "@/context/AuthContext";
 import { User } from "@/types/type";
 import * as WebBrowser from "expo-web-browser";
-import * as Google from "expo-auth-session/providers/google";
 import { GoogleSVG } from "@/assets/svg/icons";
 import { ToastType, useToast } from "@/context/ToastContext";
-import { Ionicons } from "@expo/vector-icons"; // Ajout de Ionicons pour l'icône d'œil
+import { Ionicons } from "@expo/vector-icons";
+import {
+  AuthRequestConfig,
+  DiscoveryDocument,
+  makeRedirectUri,
+  useAuthRequest,
+} from "expo-auth-session";
+import { BASE_URL } from "@/utils/constants";
 
 WebBrowser.maybeCompleteAuthSession();
 
-//TODO cacher les infos, si vous regarez ça depuis un comit précedent, vous etes vilain >:(
-const iosClientId =
-  "984005830165-9n5uacij1cho2vg1mn3fqvs2ti97v9e4.apps.googleusercontent.com";
-const androidClientId =
-  "984005830165-6qbciblgiaeeq73jhgvt2nadmmkvf2ht.apps.googleusercontent.com";
-const webClientId =
-  "984005830165-9oqh54f5rceb0rg7ipm74niuduv3lbpd.apps.googleusercontent.com";
-
 const SignInScreen = () => {
+  const config: AuthRequestConfig = {
+    clientId: "google",
+    scopes: ["openid", "profile", "email"],
+    redirectUri: makeRedirectUri(),
+  };
+
+  console.log(config.redirectUri);
+
+  const discovery: DiscoveryDocument = {
+    authorizationEndpoint: `${BASE_URL}/api/authorize`,
+    tokenEndpoint: `${BASE_URL}/api/token`,
+  };
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false); // État pour gérer la visibilité du mot de passe
+  const [showPassword, setShowPassword] = useState(false);
+  const [request, response, promptAsync] = useAuthRequest(config, discovery);
+  const [isLoading, setIsLoading] = useState(false);
+  const isWeb = Platform.OS === "web";
+
+  useEffect(() => {
+    handleResponse();
+  }, [response]);
+
+  async function handleResponse() {
+    if (response?.type === "success") {
+      try {
+        setIsLoading(true);
+        const { code } = response.params;
+
+        const formData = new FormData();
+        formData.append("code", code);
+
+        if (isWeb) {
+          formData.append("platform", "web");
+        }
+
+        if (request?.codeVerifier) {
+          formData.append("code_verifier", request.codeVerifier);
+        } else {
+          console.warn("No code verifier found in request object");
+        }
+        const userResponse = await fetch(`${BASE_URL}/api/google`, {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!userResponse.ok) {
+          throw new Error("Failed to fetch user info");
+        }
+        const userData = await userResponse.json();
+        console.log(userData);
+      } catch (e) {
+        console.error("Error handling auth response:", e);
+      } finally {
+        setIsLoading(false);
+      }
+    } else if (response?.type === "cancel") {
+      alert("Sign in cancelled");
+    } else if (response?.type === "error") {
+      console.log("lallalala eror");
+    }
+  }
+
+  const signIn = async () => {
+    console.log("signIn");
+    try {
+      if (!request) {
+        console.log("No request");
+        return;
+      }
+
+      await promptAsync();
+    } catch (e) {
+      console.log(e);
+    }
+  };
 
   const { setUser } = useAuthContext();
   const { showToast } = useToast();
@@ -41,7 +112,6 @@ const SignInScreen = () => {
   const emailDomains = [
     "gmail.com",
     "epfedu.fr",
-    "yahoo.com",
     "outlook.com",
     "hotmail.com",
     "aol.com",
@@ -93,41 +163,6 @@ const SignInScreen = () => {
       setLoading(false);
     }
   };
-
-  const config = {
-    webClientId,
-    iosClientId,
-    androidClientId,
-  };
-
-  const [request, response, promptAsync] = Google.useAuthRequest(config);
-
-  const getUserProfile = async (token: any) => {
-    if (!token) return;
-    try {
-      const response = await fetch("https://www.googleapi.com/userinfo/v2/me", {
-        //TODO url probablement mauvais, copié d'un tuto, à verifier/changer
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const user = await response.json();
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleToken = () => {
-    if (response?.type === "success") {
-      const { authentication } = response;
-      const token = authentication?.accessToken;
-      getUserProfile(token);
-    }
-  };
-
-  useEffect(() => {
-    //native function of react
-    handleToken();
-  }, [response]);
 
   const handleRedirect = () => {
     router.dismissAll();
@@ -245,7 +280,7 @@ const SignInScreen = () => {
           className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
           onPress={() => {
             console.log("Tentative de connexion avec Google");
-            promptAsync();
+            signIn();
           }}
         >
           <GoogleSVG size={16} />

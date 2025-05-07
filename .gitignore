@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 android/
+env
+./env
+.env
 
 # Expo
 .expo/
