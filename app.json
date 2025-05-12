@@ -1,15 +1,16 @@
 {
   "expo": {
     "name": "Meow",
-    "slug": "Meow",
+    "slug": "meow",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "myapp",
+    "scheme": "meow",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "kikipaul.meow",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
         "UIBackgroundModes": ["audio"],
@@ -29,11 +30,11 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "package": "com.anonymous.Meow"
+      "package": "kikipaul.meow"
     },
     "web": {
       "bundler": "metro",
-      "output": "static",
+      "output": "server",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
@@ -55,13 +56,8 @@
           "recordAudioAndroid": true
         }
       ],
-      [
-        "@stripe/stripe-react-native",
-        {
-          //"merchantIdentifier": "test", //A CHANGER mais relou il faut un compte apple dev
-          "enableGooglePay": true
-        }
-      ]
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true

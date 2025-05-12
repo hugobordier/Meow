@@ -84,3 +84,15 @@ export const updateUser = async (data: Partial<User>) => {
     );
   }
 };
+
+export const getUserById = async (userId: string) => {
+  try {
+    const response = await api.get(`/User/${userId}`);
+    return response.data;
+  } catch (error: any) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    throw (
+      error.response?.data || { message: "Une erreur inconnue est survenue" }
+    );
+  }
+};
