@@ -1,687 +1,398 @@
-// import { useState, useEffect, useRef } from "react";
-// import {
-//   StyleSheet,
-//   View,
-//   Text,
-//   TouchableOpacity,
-//   TextInput,
-//   ScrollView,
-//   ActivityIndicator,
-//   SafeAreaView,
-//   Platform,
-// } from "react-native";
-// import MapView, { Marker, Polyline } from "react-native-maps";
-// import * as Location from "expo-location";
-// import { Ionicons } from "@expo/vector-icons";
-// import { StatusBar } from "expo-status-bar";
+"use client";
 
-// // Types
-// type LocationType = {
-//   latitude: number;
-//   longitude: number;
-//   latitudeDelta: number;
-//   longitudeDelta: number;
-// };
+import type React from "react";
+import { useRef, useState, useEffect } from "react";
+import { View, StyleSheet, Alert, Text } from "react-native";
+import * as Location from "expo-location";
+import LeafletMap from "@/components/LeafletMap";
+import LocationButton from "@/components/LocationButton";
+import PriceFilterButton from "@/components/PriceFilterButton";
+import PriceRangeFilter from "@/components/PriceRangeFilter";
+import BottomSheetMap from "@/components/BottomSheetMap";
+import { Ionicons } from "@expo/vector-icons";
 
-// type RoutePoint = {
-//   latitude: number;
-//   longitude: number;
-// };
+// Sample data for markers
+const sampleMarkers = [
+  {
+    id: "1",
+    lat: 48.8566,
+    lng: 2.3522,
+    price: 120,
+    title: "Appartement Paris",
+  },
+  { id: "2", lat: 48.8606, lng: 2.3376, price: 95, title: "Studio Louvre" },
+  { id: "3", lat: 48.853, lng: 2.3499, price: 150, title: "Loft Saint-Michel" },
+  {
+    id: "4",
+    lat: 48.8738,
+    lng: 2.295,
+    price: 200,
+    title: "Duplex Champs-Élysées",
+  },
+  {
+    id: "5",
+    lat: 48.8417,
+    lng: 2.3197,
+    price: 180,
+    title: "Appartement Montparnasse",
+  },
+  {
+    id: "6",
+    lat: 48.8865,
+    lng: 2.3431,
+    price: 160,
+    title: "Studio Montmartre",
+  },
+  { id: "7", lat: 48.8584, lng: 2.2945, price: 250, title: "Loft Tour Eiffel" },
+  {
+    id: "8",
+    lat: 48.8697,
+    lng: 2.3075,
+    price: 220,
+    title: "Appartement Arc de Triomphe",
+  },
+];
 
-// type MarkerType = {
-//   id: string;
-//   coordinate: {
-//     latitude: number;
-//     longitude: number;
-//   };
-//   title: string;
-//   description: string;
-// };
+const Map: React.FC = () => {
+  const mapRef = useRef<any>(null);
+  const [selectedMarker, setSelectedMarker] = useState<any>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const [routeVisible, setRouteVisible] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [priceRange, setPriceRange] = useState({ min: 0, max: 300 });
+  const [filteredMarkers, setFilteredMarkers] = useState(sampleMarkers);
+  const [heading, setHeading] = useState(0);
 
-// const INITIAL_REGION = {
-//   latitude: 48.8566,
-//   longitude: 2.3522, // Paris
-//   latitudeDelta: 0.0922,
-//   longitudeDelta: 0.0421,
-// };
+  // Request location permissions and get user's location
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission denied",
+          "Location permission is required for this feature"
+        );
+        return;
+      }
 
-// const Map = () => {
-//   // Refs
-//   const mapRef = useRef<MapView | null>(null);
+      try {
+        // Variables pour garder en mémoire la dernière position mise à jour
+        let lastLat = 0;
+        let lastLng = 0;
+        let lastUpdateTime = 0;
 
-//   // State
-//   const [region, setRegion] = useState<LocationType>(INITIAL_REGION);
-//   const [currentLocation, setCurrentLocation] = useState<RoutePoint | null>(
-//     null
-//   );
-//   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-//   const [isLoading, setIsLoading] = useState(false);
+        // Seuils de mise à jour
+        const MIN_DISTANCE_CHANGE = 15; // en mètres
+        const MIN_TIME_INTERVAL = 3000; // 3 secondes minimum entre les mises à jour
 
-//   // Markers state
-//   const [markers, setMarkers] = useState<MarkerType[]>([
-//     {
-//       id: "1",
-//       coordinate: { latitude: 48.8584, longitude: 2.2945 },
-//       title: "Eiffel Tower",
-//       description: "Famous landmark in Paris",
-//     },
-//     {
-//       id: "2",
-//       coordinate: { latitude: 48.8606, longitude: 2.3376 },
-//       title: "Louvre Museum",
-//       description: "World's largest art museum",
-//     },
-//   ]);
-//   const [selectedMarker, setSelectedMarker] = useState<MarkerType | null>(null);
+        // Fonction pour calculer la distance entre deux points xœ(en mètres)
+        const calculateDistance = (
+          lat1: number,
+          lon1: number,
+          lat2: number,
+          lon2: number
+        ) => {
+          const R = 6371e3; // Rayon de la Terre en mètres
+          const φ1 = (lat1 * Math.PI) / 180;
+          const φ2 = (lat2 * Math.PI) / 180;
+          const Δφ = ((lat2 - lat1) * Math.PI) / 180;
+          const Δλ = ((lon2 - lon1) * Math.PI) / 180;
 
-//   // Route state
-//   const [startPoint, setStartPoint] = useState<RoutePoint | null>(null);
-//   const [endPoint, setEndPoint] = useState<RoutePoint | null>(null);
-//   const [routeCoordinates, setRouteCoordinates] = useState<RoutePoint[]>([]);
+          const a =
+            Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+            Math.cos(φ1) * Math.cos(φ2) * Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-//   // Search state
-//   const [searchText, setSearchText] = useState("");
-//   const [searchResults, setSearchResults] = useState<any[]>([]);
-//   const [isSearchingStart, setIsSearchingStart] = useState(true);
+          return R * c;
+        };
 
-//   // Get user location on mount
-//   useEffect(() => {
-//     (async () => {
-//       try {
-//         const { status } = await Location.requestForegroundPermissionsAsync();
-//         if (status !== "granted") {
-//           setErrorMsg("Permission to access location was denied");
-//           return;
-//         }
+        // Watch position to get updates
+        const locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            distanceInterval: MIN_DISTANCE_CHANGE, // Ne se déclenche que si la distance change d'au moins 15m
+            timeInterval: 10000,
+          },
+          (location) => {
+            const userLoc = {
+              lat: location.coords.latitude,
+              lng: location.coords.longitude,
+            };
 
-//         setIsLoading(true);
-//         const location = await Location.getCurrentPositionAsync({
-//           accuracy: Location.Accuracy.Balanced,
-//         });
+            const currentTime = Date.now();
+            const distance = calculateDistance(
+              lastLat,
+              lastLng,
+              userLoc.lat,
+              userLoc.lng
+            );
 
-//         const userLocation = {
-//           latitude: location.coords.latitude,
-//           longitude: location.coords.longitude,
-//         };
+            // Mettre à jour uniquement si suffisamment de temps s'est écoulé ET
+            // si la distance parcourue est significative (ou si c'est la première mise à jour)
+            if (
+              lastLat === 0 || // Première mise à jour
+              (distance > MIN_DISTANCE_CHANGE &&
+                currentTime - lastUpdateTime > MIN_TIME_INTERVAL)
+            ) {
+              setUserLocation(userLoc);
+              setHeading(location.coords.heading || 0);
 
-//         setCurrentLocation(userLocation);
-//         setStartPoint(userLocation);
+              // Mettre à jour le marqueur de position de l'utilisateur sur la carte
+              if (mapRef.current) {
+                // Si la méthode updateUserLocation existe, l'utiliser à la place de centerMap
+                if (mapRef.current.updateUserLocation) {
+                  mapRef.current.updateUserLocation(
+                    userLoc.lat,
+                    userLoc.lng,
+                    location.coords.accuracy,
+                    location.coords.heading || 0
+                  );
+                } else {
+                  // Sinon, utiliser centerMap mais sans changer le zoom
+                  mapRef.current.centerMap(
+                    userLoc.lat,
+                    userLoc.lng,
+                    undefined // Garder le même niveau de zoom
+                  );
+                }
+              }
 
-//         setRegion({
-//           latitude: userLocation.latitude,
-//           longitude: userLocation.longitude,
-//           latitudeDelta: 0.0922,
-//           longitudeDelta: 0.0421,
-//         });
-//       } catch (error) {
-//         console.log("Error getting location:", error);
-//         setErrorMsg("Could not get current location");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     })();
-//   }, []);
+              // Mettre à jour les variables de la dernière position
+              lastLat = userLoc.lat;
+              lastLng = userLoc.lng;
+              lastUpdateTime = currentTime;
+            }
+          }
+        );
 
-//   // Center map on user location
-//   const centerOnUserLocation = async () => {
-//     try {
-//       setIsLoading(true);
-//       const location = await Location.getCurrentPositionAsync({
-//         accuracy: Location.Accuracy.Balanced,
-//       });
+        // Initial center on user's location
+        const initialLocation = await Location.getCurrentPositionAsync({});
+        const initialUserLoc = {
+          lat: initialLocation.coords.latitude,
+          lng: initialLocation.coords.longitude,
+        };
+        setUserLocation(initialUserLoc);
 
-//       const userLocation = {
-//         latitude: location.coords.latitude,
-//         longitude: location.coords.longitude,
-//         latitudeDelta: 0.0922,
-//         longitudeDelta: 0.0421,
-//       };
+        // Initialiser les variables de dernière position
+        lastLat = initialUserLoc.lat;
+        lastLng = initialUserLoc.lng;
+        lastUpdateTime = Date.now();
 
-//       setCurrentLocation({
-//         latitude: location.coords.latitude,
-//         longitude: location.coords.longitude,
-//       });
+        if (mapRef.current) {
+          mapRef.current.centerMap(initialUserLoc.lat, initialUserLoc.lng, 15);
 
-//       if (mapRef.current) {
-//         mapRef.current.animateToRegion(userLocation, 1000);
-//       }
-//     } catch (error) {
-//       console.log("Error centering on location:", error);
-//       setErrorMsg("Could not get current location");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
+          // Si disponible, utiliser également updateUserLocation pour l'emplacement initial
+          if (mapRef.current.updateUserLocation) {
+            mapRef.current.updateUserLocation(
+              initialUserLoc.lat,
+              initialUserLoc.lng,
+              initialLocation.coords.accuracy,
+              initialLocation.coords.heading || 0
+            );
+          }
+        }
 
-//   // Create a custom marker
-//   const createCustomMarker = (latitude: number, longitude: number) => {
-//     const newMarker: MarkerType = {
-//       id: `custom-${Date.now()}`,
-//       coordinate: { latitude, longitude },
-//       title: `Custom Location ${markers.length + 1}`,
-//       description: "Custom marker location",
-//     };
+        return () => {
+          if (locationSubscription) {
+            locationSubscription.remove();
+          }
+        };
+      } catch (error) {
+        console.error("Error getting location:", error);
+        Alert.alert("Error", "Could not get your current location");
+      }
+    })();
+  }, []);
 
-//     setMarkers([...markers, newMarker]);
-//     setSelectedMarker(newMarker);
-//   };
+  // Filter markers when price range changes
+  useEffect(() => {
+    const filtered = sampleMarkers.filter(
+      (marker) =>
+        marker.price >= priceRange.min && marker.price <= priceRange.max
+    );
+    setFilteredMarkers(filtered);
+  }, [priceRange]);
 
-//   // Search for locations
-//   const searchAddress = (text: string) => {
-//     if (text.length < 3) {
-//       setSearchResults([]);
-//       return;
-//     }
+  // Handle marker click
+  const handleMarkerPress = (marker: any) => {
+    setSelectedMarker(marker);
+    setRouteVisible(false);
+  };
 
-//     setIsLoading(true);
+  // Center map on user's location
+  const centerOnUserLocation = async () => {
+    if (!userLocation) {
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const userLoc = {
+          lat: location.coords.latitude,
+          lng: location.coords.longitude,
+        };
+        setUserLocation(userLoc);
 
-//     // Mock search results
-//     setTimeout(() => {
-//       const mockResults = [
-//         {
-//           id: "1",
-//           name: "Paris, France",
-//           location: { latitude: 48.8566, longitude: 2.3522 },
-//         },
-//         {
-//           id: "2",
-//           name: "Marseille, France",
-//           location: { latitude: 43.2965, longitude: 5.3698 },
-//         },
-//         {
-//           id: "3",
-//           name: "Lyon, France",
-//           location: { latitude: 45.764, longitude: 4.8357 },
-//         },
-//         {
-//           id: "4",
-//           name: text + " Street, Paris",
-//           location: {
-//             latitude: 48.8566 + Math.random() * 0.02 - 0.01,
-//             longitude: 2.3522 + Math.random() * 0.02 - 0.01,
-//           },
-//         },
-//       ];
+        if (mapRef.current) {
+          mapRef.current.centerMap(userLoc.lat, userLoc.lng, 15);
+        }
+      } catch (error) {
+        console.error("Error getting location:", error);
+        Alert.alert("Error", "Could not get your current location");
+      }
+    } else if (mapRef.current) {
+      mapRef.current.centerMap(userLocation.lat, userLocation.lng, 15);
+    }
+  };
 
-//       setSearchResults(mockResults);
-//       setIsLoading(false);
-//     }, 500);
-//   };
+  // Show route from user location to selected marker
+  const showRoute = () => {
+    if (!userLocation || !selectedMarker) {
+      Alert.alert(
+        "Error",
+        "Both your location and a destination are required to show a route"
+      );
+      return;
+    }
 
-//   // Handle search result selection
-//   const handleSelectSearchResult = (result: any) => {
-//     const selectedLocation = result.location;
+    if (mapRef.current) {
+      mapRef.current.showRoute(userLocation, {
+        lat: selectedMarker.lat,
+        lng: selectedMarker.lng,
+      });
+      setRouteVisible(true);
+    }
+  };
 
-//     if (isSearchingStart) {
-//       setStartPoint(selectedLocation);
-//     } else {
-//       setEndPoint(selectedLocation);
-//     }
+  // Clear the current route
+  const clearRoute = () => {
+    if (mapRef.current) {
+      mapRef.current.clearRoute();
+      setRouteVisible(false);
+    }
+  };
 
-//     // Clear search
-//     setSearchText("");
-//     setSearchResults([]);
+  // Apply price filter
+  const applyPriceFilter = (min: number, max: number) => {
+    setPriceRange({ min, max });
+    setShowFilter(false);
+  };
 
-//     // Move map to the selected location
-//     if (mapRef.current) {
-//       mapRef.current.animateToRegion(
-//         {
-//           ...selectedLocation,
-//           latitudeDelta: 0.0922,
-//           longitudeDelta: 0.0421,
-//         },
-//         1000
-//       );
-//     }
+  // Close the bottom sheet
+  const closeBottomSheetMap = () => {
+    setSelectedMarker(null);
+    if (routeVisible) {
+      clearRoute();
+    }
+  };
 
-//     // Calculate route if both points are set
-//     if ((isSearchingStart && endPoint) || (!isSearchingStart && startPoint)) {
-//       const start = isSearchingStart ? selectedLocation : startPoint;
-//       const end = isSearchingStart ? endPoint : selectedLocation;
-//       calculateRoute(start!, end!);
-//     }
-//   };
+  return (
+    <View style={styles.container}>
+      <LeafletMap
+        ref={mapRef}
+        markers={filteredMarkers}
+        onMarkerPress={handleMarkerPress}
+        initialLocation={userLocation || { lat: 48.8566, lng: 2.3522 }}
+      />
 
-//   // Use current location as start or end point
-//   const useCurrentLocationAs = async (type: "start" | "end") => {
-//     if (!currentLocation) {
-//       setErrorMsg("Current location not available");
-//       return;
-//     }
+      <LocationButton onPress={centerOnUserLocation} />
 
-//     if (type === "start") {
-//       setStartPoint(currentLocation);
-//       if (endPoint) {
-//         calculateRoute(currentLocation, endPoint);
-//       }
-//     } else {
-//       setEndPoint(currentLocation);
-//       if (startPoint) {
-//         calculateRoute(startPoint, currentLocation);
-//       }
-//     }
-//   };
+      <PriceFilterButton
+        onPress={() => setShowFilter(!showFilter)}
+        isActive={showFilter}
+      />
 
-//   // Calculate route between two points
-//   const calculateRoute = (start: RoutePoint, end: RoutePoint) => {
-//     setIsLoading(true);
+      {showFilter && (
+        <View style={styles.filterContainer}>
+          <PriceRangeFilter
+            minPrice={0}
+            maxPrice={300}
+            currentMin={priceRange.min}
+            currentMax={priceRange.max}
+            onApply={applyPriceFilter}
+            onClose={() => setShowFilter(false)}
+          />
+        </View>
+      )}
 
-//     try {
-//       // Create a simple route with some intermediate points
-//       const numPoints = 10;
-//       const points: RoutePoint[] = [];
+      <BottomSheetMap
+        isVisible={!!selectedMarker}
+        onClose={closeBottomSheetMap}
+        title={selectedMarker?.title || ""}
+        price={selectedMarker?.price || 0}
+        onShowRoute={showRoute}
+        isRouteVisible={routeVisible}
+        onHideRoute={clearRoute}
+      >
+        <Text style={styles.detailText}>
+          Découvrez ce magnifique logement situé en plein cœur de Paris.
+          Idéalement placé pour explorer la ville.
+        </Text>
 
-//       for (let i = 0; i <= numPoints; i++) {
-//         const fraction = i / numPoints;
+        {userLocation && selectedMarker && (
+          <View style={styles.distanceContainer}>
+            <Ionicons name="navigate-outline" size={16} color="#666" />
+            <Text style={styles.distanceText}>
+              À environ{" "}
+              {calculateDistance(userLocation, selectedMarker).toFixed(1)} km de
+              votre position
+            </Text>
+          </View>
+        )}
+      </BottomSheetMap>
+    </View>
+  );
+};
 
-//         // Linear interpolation between start and end
-//         const lat = start.latitude + (end.latitude - start.latitude) * fraction;
-//         const lng =
-//           start.longitude + (end.longitude - start.longitude) * fraction;
+// Calculate distance between two points in km
+function calculateDistance(
+  point1: { lat: number; lng: number },
+  point2: { lat: number; lng: number }
+) {
+  const R = 6371; // Earth's radius in km
+  const dLat = deg2rad(point2.lat - point1.lat);
+  const dLng = deg2rad(point2.lng - point1.lng);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(deg2rad(point1.lat)) *
+      Math.cos(deg2rad(point2.lat)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
-//         // Add some randomness to make it look like a real route
-//         const jitter =
-//           i > 0 && i < numPoints ? (Math.random() - 0.5) * 0.005 : 0;
+function deg2rad(deg: number) {
+  return deg * (Math.PI / 180);
+}
 
-//         points.push({
-//           latitude: lat + jitter,
-//           longitude: lng + jitter,
-//         });
-//       }
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  filterContainer: {
+    position: "absolute",
+    top: 70,
+    left: 20,
+    right: 20,
+    zIndex: 1000,
+  },
+  detailText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 10,
+    lineHeight: 20,
+  },
+  distanceContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
+  },
+  distanceText: {
+    fontSize: 14,
+    color: "#666",
+    marginLeft: 5,
+  },
+});
 
-//       setRouteCoordinates(points);
-
-//       // Fit map to show the entire route
-//       if (points.length > 0 && mapRef.current) {
-//         setTimeout(() => {
-//           if (mapRef.current) {
-//             mapRef.current.fitToCoordinates(points, {
-//               edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-//               animated: true,
-//             });
-//           }
-//         }, 500);
-//       }
-//     } catch (error) {
-//       console.log("Error calculating route:", error);
-//       setErrorMsg("Could not calculate route");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
-
-//   const handleUseCurrentLocationAs = async (type: "start" | "end") => {
-//     if (!currentLocation) {
-//       setErrorMsg("Current location not available");
-//       return;
-//     }
-
-//     if (type === "start") {
-//       setStartPoint(currentLocation);
-//       if (endPoint) {
-//         calculateRoute(currentLocation, endPoint);
-//       }
-//     } else {
-//       setEndPoint(currentLocation);
-//       if (startPoint) {
-//         calculateRoute(startPoint, currentLocation);
-//       }
-//     }
-//   };
-
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <StatusBar style="auto" />
-
-//       {/* Map */}
-//       <View style={styles.mapContainer}>
-//         <MapView
-//           ref={mapRef}
-//           style={styles.map}
-//           initialRegion={region}
-//           showsUserLocation={true}
-//           showsMyLocationButton={false}
-//           onLongPress={(e) =>
-//             createCustomMarker(
-//               e.nativeEvent.coordinate.latitude,
-//               e.nativeEvent.coordinate.longitude
-//             )
-//           }
-//         >
-//           {/* Standard markers */}
-//           {markers.map((marker) => (
-//             <Marker
-//               key={marker.id}
-//               coordinate={marker.coordinate}
-//               title={marker.title}
-//               description={marker.description}
-//               onPress={() => setSelectedMarker(marker)}
-//             />
-//           ))}
-
-//           {/* Start point marker */}
-//           {startPoint && (
-//             <Marker coordinate={startPoint} pinColor="green" title="Start" />
-//           )}
-
-//           {/* End point marker */}
-//           {endPoint && (
-//             <Marker coordinate={endPoint} pinColor="red" title="Destination" />
-//           )}
-
-//           {/* Route line */}
-//           {routeCoordinates.length > 0 && (
-//             <Polyline
-//               coordinates={routeCoordinates}
-//               strokeWidth={4}
-//               strokeColor="#4285F4"
-//             />
-//           )}
-//         </MapView>
-//       </View>
-
-//       {/* Loading indicator */}
-//       {isLoading && (
-//         <View style={styles.loadingContainer}>
-//           <ActivityIndicator size="large" color="#0000ff" />
-//         </View>
-//       )}
-
-//       {/* Search bar */}
-//       <View style={styles.searchContainer}>
-//         <View style={styles.searchInputContainer}>
-//           <TextInput
-//             style={styles.searchInput}
-//             placeholder={
-//               isSearchingStart
-//                 ? "Search for starting point..."
-//                 : "Search for destination..."
-//             }
-//             value={searchText}
-//             onChangeText={(text) => {
-//               setSearchText(text);
-//               searchAddress(text);
-//             }}
-//           />
-//           <TouchableOpacity
-//             style={styles.searchTypeToggle}
-//             onPress={() => setIsSearchingStart(!isSearchingStart)}
-//           >
-//             <Text style={styles.searchTypeText}>
-//               {isSearchingStart ? "Start" : "Dest"}
-//             </Text>
-//           </TouchableOpacity>
-//         </View>
-
-//         {/* Search results */}
-//         {searchResults.length > 0 && (
-//           <ScrollView style={styles.searchResults}>
-//             {searchResults.map((result) => (
-//               <TouchableOpacity
-//                 key={result.id}
-//                 style={styles.searchResultItem}
-//                 onPress={() => handleSelectSearchResult(result)}
-//               >
-//                 <Text>{result.name}</Text>
-//               </TouchableOpacity>
-//             ))}
-//           </ScrollView>
-//         )}
-//       </View>
-
-//       {/* Current location button */}
-//       <TouchableOpacity
-//         style={styles.currentLocationButton}
-//         onPress={centerOnUserLocation}
-//       >
-//         <Ionicons name="locate" size={24} color="black" />
-//       </TouchableOpacity>
-
-//       {/* Route controls */}
-//       <View style={styles.routeControlsContainer}>
-//         <TouchableOpacity
-//           style={styles.routeButton}
-//           onPress={() => handleUseCurrentLocationAs("start")}
-//         >
-//           <Text style={styles.routeButtonText}>Start from my location</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={styles.routeButton}
-//           onPress={() => handleUseCurrentLocationAs("end")}
-//         >
-//           <Text style={styles.routeButtonText}>End at my location</Text>
-//         </TouchableOpacity>
-
-//         {startPoint && endPoint && (
-//           <TouchableOpacity
-//             style={styles.routeButton}
-//             onPress={() => calculateRoute(startPoint, endPoint)}
-//           >
-//             <Text style={styles.routeButtonText}>Calculate Route</Text>
-//           </TouchableOpacity>
-//         )}
-//       </View>
-
-//       {/* Selected marker info */}
-//       {selectedMarker && (
-//         <View style={styles.markerInfoContainer}>
-//           <View style={styles.markerInfo}>
-//             <View style={styles.markerInfoHeader}>
-//               <View style={styles.markerInfoTextContainer}>
-//                 <Text style={styles.markerTitle}>{selectedMarker.title}</Text>
-//                 <Text style={styles.markerDescription}>
-//                   {selectedMarker.description}
-//                 </Text>
-//               </View>
-//             </View>
-//             <TouchableOpacity
-//               style={styles.closeButton}
-//               onPress={() => setSelectedMarker(null)}
-//             >
-//               <Text style={styles.closeButtonText}>Close</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-//       )}
-
-//       {/* Error message */}
-//       {errorMsg && (
-//         <View style={styles.errorContainer}>
-//           <Text style={styles.errorText}>{errorMsg}</Text>
-//           <TouchableOpacity onPress={() => setErrorMsg(null)}>
-//             <Text style={styles.closeErrorText}>Dismiss</Text>
-//           </TouchableOpacity>
-//         </View>
-//       )}
-
-//       {/* Hint */}
-//       <View style={styles.hintContainer}>
-//         <Text style={styles.hintText}>Long press on map to add a marker</Text>
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#fff",
-//   },
-//   mapContainer: {
-//     flex: 1,
-//   },
-//   map: {
-//     width: "100%",
-//     height: "100%",
-//   },
-//   searchContainer: {
-//     position: "absolute",
-//     top: Platform.OS === "ios" ? 50 : 40,
-//     left: 10,
-//     right: 10,
-//     backgroundColor: "white",
-//     borderRadius: 8,
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//     zIndex: 1,
-//   },
-//   searchInputContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//   },
-//   searchInput: {
-//     flex: 1,
-//     height: 50,
-//     paddingHorizontal: 15,
-//     borderRadius: 8,
-//   },
-//   searchTypeToggle: {
-//     padding: 10,
-//     backgroundColor: "#e0e0e0",
-//     borderRadius: 8,
-//     marginRight: 5,
-//   },
-//   searchTypeText: {
-//     fontWeight: "bold",
-//   },
-//   searchResults: {
-//     maxHeight: 200,
-//     borderTopWidth: 1,
-//     borderTopColor: "#e0e0e0",
-//   },
-//   searchResultItem: {
-//     padding: 15,
-//     borderBottomWidth: 1,
-//     borderBottomColor: "#e0e0e0",
-//   },
-//   currentLocationButton: {
-//     position: "absolute",
-//     bottom: 200,
-//     right: 20,
-//     backgroundColor: "white",
-//     borderRadius: 30,
-//     width: 60,
-//     height: 60,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   routeControlsContainer: {
-//     position: "absolute",
-//     bottom: 20,
-//     left: 10,
-//     right: 10,
-//     backgroundColor: "white",
-//     borderRadius: 8,
-//     padding: 10,
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   routeButton: {
-//     backgroundColor: "#4285F4",
-//     padding: 12,
-//     borderRadius: 8,
-//     alignItems: "center",
-//     marginVertical: 5,
-//   },
-//   routeButtonText: {
-//     color: "white",
-//     fontWeight: "bold",
-//   },
-//   markerInfoContainer: {
-//     position: "absolute",
-//     bottom: 120,
-//     left: 10,
-//     right: 10,
-//     alignItems: "center",
-//   },
-//   markerInfo: {
-//     backgroundColor: "white",
-//     borderRadius: 8,
-//     padding: 15,
-//     width: "100%",
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   markerInfoHeader: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     marginBottom: 10,
-//   },
-//   markerInfoTextContainer: {
-//     flex: 1,
-//   },
-//   markerTitle: {
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     marginBottom: 5,
-//   },
-//   markerDescription: {
-//     fontSize: 14,
-//     marginBottom: 10,
-//   },
-//   closeButton: {
-//     alignSelf: "flex-end",
-//   },
-//   closeButtonText: {
-//     color: "#4285F4",
-//     fontWeight: "bold",
-//   },
-//   errorContainer: {
-//     position: "absolute",
-//     top: 120,
-//     left: 10,
-//     right: 10,
-//     backgroundColor: "#ffcccc",
-//     padding: 10,
-//     borderRadius: 8,
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//   },
-//   errorText: {
-//     color: "#cc0000",
-//   },
-//   closeErrorText: {
-//     color: "#cc0000",
-//     fontWeight: "bold",
-//   },
-//   loadingContainer: {
-//     position: "absolute",
-//     top: 0,
-//     left: 0,
-//     right: 0,
-//     bottom: 0,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "rgba(255, 255, 255, 0.5)",
-//   },
-//   hintContainer: {
-//     position: "absolute",
-//     top: 110,
-//     alignSelf: "center",
-//     backgroundColor: "rgba(0,0,0,0.7)",
-//     padding: 8,
-//     borderRadius: 20,
-//   },
-//   hintText: {
-//     color: "white",
-//     fontSize: 12,
-//   },
-// });
-
-// export default Map;
+export default Map;
