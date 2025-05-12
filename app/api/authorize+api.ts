@@ -22,15 +22,19 @@ export async function GET(request: Request) {
 
   let platform;
 
-  console.log("redierect", redirectUri);
-  console.log("appscheem", APP_SCHEME);
-
-  if (redirectUri === APP_SCHEME) {
+  if (
+    redirectUri === APP_SCHEME ||
+    redirectUri === "meow://" ||
+    redirectUri === "exp://7gjsi3u-kikipaul-8081.exp.direct"
+  ) {
     platform = "mobile";
   } else if (redirectUri === BASE_URL) {
     platform = "web";
   } else {
-    return Response.json({ error: "Invalid redirect_uri" }, { status: 400 });
+    return Response.json(
+      { error: "Invalid redirect_uri ayaya" },
+      { status: 400 }
+    );
   }
 
   let state = platform + "|" + url.searchParams.get("state");

@@ -10,6 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
+      "bundleIdentifier": "kikipaul.meow",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
         "UIBackgroundModes": ["audio"],
@@ -29,7 +30,7 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "package": "com.kikipaul.meow"
+      "package": "kikipaul.meow"
     },
     "web": {
       "bundler": "metro",
@@ -53,12 +54,6 @@
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
-        }
-      ],
-      [
-        "@stripe/stripe-react-native",
-        {
-          "enableGooglePay": true
         }
       ],
       "expo-font",

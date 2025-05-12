@@ -26,7 +26,7 @@
         "expo-image-manipulator": "~13.1.6",
         "expo-image-picker": "~16.1.4",
         "expo-linear-gradient": "~14.1.4",
-        "expo-linking": "~7.1.4",
+        "expo-linking": "^7.1.5",
         "expo-location": "~18.1.4",
         "expo-media-library": "~17.1.6",
         "expo-router": "~5.0.6",
@@ -923,7 +923,7 @@
 
     "expo-linear-gradient": ["expo-linear-gradient@14.1.4", "", { "peerDependencies": { "expo": "*", "react": "*", "react-native": "*" } }, "sha512-bImj2qqIjnl+VHYGnIwan9LxmGvb8e4hFqHpxsPzUiK7Ady7uERrXPhJcyTKTxRf4RL2sQRDpoOKzBYNdQDmuw=="],
 
-    "expo-linking": ["expo-linking@7.1.4", "", { "dependencies": { "expo-constants": "~17.1.4", "invariant": "^2.2.4" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-zLAbUzTB3+KGjqqLeIdhhkXayyN0qulHGjRI24X7W/0Mq/4oPbPZklKtCP0k7XOn/k4553m8OgJ7GPC03PlV9g=="],
+    "expo-linking": ["expo-linking@7.1.5", "", { "dependencies": { "expo-constants": "~17.1.6", "invariant": "^2.2.4" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-8g20zOpROW78bF+bLI4a3ZWj4ntLgM0rCewKycPL0jk9WGvBrBtFtwwADJgOiV1EurNp3lcquerXGlWS+SOQyA=="],
 
     "expo-location": ["expo-location@18.1.4", "", { "peerDependencies": { "expo": "*" } }, "sha512-oI3au3IsNR278FHJe57h5FYO/TgnKNeIKXWS5wZNC1OfOcdUNtsEM9MUzP6+yyfHn5ysvpxXSWoa59xHxdv0Tg=="],
 
@@ -1966,6 +1966,8 @@
     "eslint-scope/estraverse": ["estraverse@4.3.0", "", {}, "sha512-39nnKffWz8xN1BU/2c79n9nB9HDzo0niYUqx6xyqUnyoAnQyyWpOTdZEeiCch8BBu515t4wp9ZmgVfVhn9EBpw=="],
 
     "execa/get-stream": ["get-stream@6.0.1", "", {}, "sha512-ts6Wi+2j3jQjqi70w5AlN8DFnkSwC+MqmxEzdEALB2qXZYV3X/b1CTfgPLGJNMeAWxdPfU8FO1ms3NUfaHCPYg=="],
+
+    "expo-auth-session/expo-linking": ["expo-linking@7.1.4", "", { "dependencies": { "expo-constants": "~17.1.4", "invariant": "^2.2.4" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-zLAbUzTB3+KGjqqLeIdhhkXayyN0qulHGjRI24X7W/0Mq/4oPbPZklKtCP0k7XOn/k4553m8OgJ7GPC03PlV9g=="],
 
     "expo-modules-autolinking/commander": ["commander@7.2.0", "", {}, "sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw=="],
 

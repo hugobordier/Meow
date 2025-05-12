@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
   View,
@@ -17,94 +16,18 @@ import * as WebBrowser from "expo-web-browser";
 import { GoogleSVG } from "@/assets/svg/icons";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { Ionicons } from "@expo/vector-icons";
-import {
-  AuthRequestConfig,
-  DiscoveryDocument,
-  makeRedirectUri,
-  useAuthRequest,
-} from "expo-auth-session";
-import { BASE_URL } from "@/utils/constants";
+import * as Linking from "expo-linking";
+import { getUserById } from "@/services/user.service";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 WebBrowser.maybeCompleteAuthSession();
 
 const SignInScreen = () => {
-  const config: AuthRequestConfig = {
-    clientId: "google",
-    scopes: ["openid", "profile", "email"],
-    redirectUri: makeRedirectUri(),
-  };
-
-  console.log(config.redirectUri);
-
-  const discovery: DiscoveryDocument = {
-    authorizationEndpoint: `${BASE_URL}/api/authorize`,
-    tokenEndpoint: `${BASE_URL}/api/token`,
-  };
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [form, setForm] = useState({ email: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [request, response, promptAsync] = useAuthRequest(config, discovery);
-  const [isLoading, setIsLoading] = useState(false);
-  const isWeb = Platform.OS === "web";
-
-  useEffect(() => {
-    handleResponse();
-  }, [response]);
-
-  async function handleResponse() {
-    if (response?.type === "success") {
-      try {
-        setIsLoading(true);
-        const { code } = response.params;
-
-        const formData = new FormData();
-        formData.append("code", code);
-
-        if (isWeb) {
-          formData.append("platform", "web");
-        }
-
-        if (request?.codeVerifier) {
-          formData.append("code_verifier", request.codeVerifier);
-        } else {
-          console.warn("No code verifier found in request object");
-        }
-        const userResponse = await fetch(`${BASE_URL}/api/google`, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!userResponse.ok) {
-          throw new Error("Failed to fetch user info");
-        }
-        const userData = await userResponse.json();
-        console.log(userData);
-      } catch (e) {
-        console.error("Error handling auth response:", e);
-      } finally {
-        setIsLoading(false);
-      }
-    } else if (response?.type === "cancel") {
-      alert("Sign in cancelled");
-    } else if (response?.type === "error") {
-      console.log("lallalala eror");
-    }
-  }
-
-  const signIn = async () => {
-    console.log("signIn");
-    try {
-      if (!request) {
-        console.log("No request");
-        return;
-      }
-
-      await promptAsync();
-    } catch (e) {
-      console.log(e);
-    }
-  };
 
   const { setUser } = useAuthContext();
   const { showToast } = useToast();
@@ -172,6 +95,48 @@ const SignInScreen = () => {
   // Fonction pour basculer la visibilité du mot de passe
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
+  };
+
+  const handlePressButtonAsync = async () => {
+    setGoogleLoading(true);
+    try {
+      const callbackUrl = Linking.createURL("(auth)/home", { scheme: "exp" }); // a changer { scheme: "kikipaul.meow" } en prod
+
+      const result = await WebBrowser.openAuthSessionAsync(
+        "https://meowback-production.up.railway.app/authRoutes/google",
+        callbackUrl,
+        {
+          showInRecents: true,
+          createTask: true,
+          dismissButtonStyle: "cancel",
+          windowName: "MeowMeowMeow",
+        }
+      );
+
+      if (result.type === "success") {
+        const url = new URL(result.url);
+        const accessToken = url.searchParams.get("accessToken");
+        const refreshToken = url.searchParams.get("refreshToken");
+        const userId = url.searchParams.get("user_id");
+
+        if (accessToken && refreshToken && userId) {
+          await AsyncStorage.setItem("accessToken", accessToken!);
+          await AsyncStorage.setItem("refreshToken", refreshToken!);
+          const user = await getUserById(userId!);
+          if (user as User) {
+            setUser(user.data);
+          }
+        }
+        handleRedirect();
+      } else {
+        showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);
+      }
+    } catch (error: any) {
+      console.log(error);
+      showToast("Erreur lors de l'authentification", ToastType.ERROR);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -276,18 +241,26 @@ const SignInScreen = () => {
 
         <Text className="my-5 text-gray-600 dark:text-gray-300">ou</Text>
 
-        <TouchableOpacity
-          className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
-          onPress={() => {
-            console.log("Tentative de connexion avec Google");
-            signIn();
-          }}
-        >
-          <GoogleSVG size={16} />
-          <Text className="text-base font-bold ml-3 text-black  dark:text-white">
-            Continuer avec Google
-          </Text>
-        </TouchableOpacity>
+        {googleLoading ? (
+          <View className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center ">
+            <ActivityIndicator color="#fff" />
+            <Text className="text-base font-bold ml-3 text-black  dark:text-white">
+              Connexion ...
+            </Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
+            onPress={() => {
+              handlePressButtonAsync();
+            }}
+          >
+            <GoogleSVG size={16} />
+            <Text className="text-base font-bold ml-3 text-black  dark:text-white">
+              Continuer avec Google
+            </Text>
+          </TouchableOpacity>
+        )}
 
         <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
           En cliquant sur continuer, vous acceptez la politique privée et les

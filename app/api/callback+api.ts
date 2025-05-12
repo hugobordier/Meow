@@ -24,7 +24,6 @@ export async function GET(request: Request) {
   }
 
   try {
-    // 1️⃣ On échange le code contre un token
     const tokenRes = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: {
@@ -34,7 +33,7 @@ export async function GET(request: Request) {
         code,
         client_id: GOOGLE_CLIENT_ID,
         client_secret: GOOGLE_CLIENT_SECRET,
-        redirect_uri: `${BASE_URL}/api/callback`, // doit matcher exactement celui donné à Google
+        redirect_uri: `${BASE_URL}/api/callback`,
         grant_type: "authorization_code",
       }),
     });
@@ -58,7 +57,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // 2️⃣ Avec le token, on va chercher les infos du user
     const userRes = await fetch(
       "https://www.googleapis.com/oauth2/v3/userinfo",
       {
@@ -81,11 +79,10 @@ export async function GET(request: Request) {
 
     console.log("✅ Google user info:", userInfo);
 
-    // Tu peux soit les log, soit les renvoyer direct :
     return Response.json({
       success: true,
       user: userInfo,
-      state, // Si jamais tu veux garder ton state pour matcher le flux
+      state,
     });
   } catch (err) {
     console.error("Unexpected error in callback:", err);

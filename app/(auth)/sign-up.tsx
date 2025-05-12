@@ -14,14 +14,22 @@ import {
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { AntDesign } from "@expo/vector-icons";
+import * as Linking from "expo-linking";
+import * as WebBrowser from "expo-web-browser";
+import { ToastType, useToast } from "@/context/ToastContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getUserById } from "@/services/user.service";
+import { GoogleSVG } from "@/assets/svg/icons";
+import { useAuthContext } from "@/context/AuthContext";
 
 export default function SignUpScreen() {
+  const { showToast } = useToast();
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ [key in keyof User]?: string }>({});
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
-  const [user, setUser] = useState<User>({
+  const [user, setUserpage] = useState<User>({
     username: "",
     lastName: "",
     firstName: "",
@@ -31,11 +39,12 @@ export default function SignUpScreen() {
     birthDate: "",
     phoneNumber: "",
   });
+  const { setUser } = useAuthContext();
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
   const handleChange = (name: keyof User, value: string) => {
-    setUser((prevState) => ({
+    setUserpage((prevState) => ({
       ...prevState,
       [name]: value,
     }));
@@ -53,7 +62,7 @@ export default function SignUpScreen() {
     ) {
       age--; // Si la date d'anniversaire n'est pas encore passée cette année
     }
-    setUser((prevState) => ({
+    setUserpage((prevState) => ({
       ...prevState,
       birthDate: date.toISOString().split("T")[0],
       age,
@@ -130,6 +139,7 @@ export default function SignUpScreen() {
     }
 
     try {
+      //@ts-ignore
       await register(user);
       router.push("../(auth)/sign-in");
     } catch (error) {
@@ -137,6 +147,48 @@ export default function SignUpScreen() {
       setSubmitError("Erreur lors de l'inscription. Veuillez réessayer.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRedirect = () => {
+    router.dismissAll();
+    router.replace("/(auth)/home");
+  };
+
+  const handlePressButtonAsync = async () => {
+    console.log("dans la fonction");
+
+    const callbackUrl = Linking.createURL("(auth)/home", { scheme: "exp" }); // a changer { scheme: "kikipaul.meow" } en prod
+    console.log("callbackUrl:", callbackUrl);
+
+    const result = await WebBrowser.openAuthSessionAsync(
+      "https://meowback-production.up.railway.app/authRoutes/google",
+      callbackUrl,
+      {
+        showInRecents: true,
+        createTask: true,
+        dismissButtonStyle: "cancel",
+        windowName: "MeowMeowMeow",
+      }
+    );
+
+    console.log("Résultat de l'auth:", result);
+
+    if (result.type === "success") {
+      const url = new URL(result.url);
+      const accessToken = url.searchParams.get("accessToken");
+      const refreshToken = url.searchParams.get("refreshToken");
+      const userId = url.searchParams.get("user_id");
+
+      if (accessToken && refreshToken && userId) {
+        await AsyncStorage.setItem("accessToken", accessToken!);
+        await AsyncStorage.setItem("refreshToken", refreshToken!);
+        const user = await getUserById(userId!);
+        setUser(user);
+      }
+      handleRedirect();
+    } else {
+      showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);
     }
   };
 
@@ -195,7 +247,7 @@ export default function SignUpScreen() {
               />
 
               {errors.firstName && (
-                <Text className="text-red-500 text-left text-center">
+                <Text className="text-red-500 text-center">
                   {errors.firstName}
                 </Text>
               )}
@@ -328,11 +380,16 @@ export default function SignUpScreen() {
               <View className="flex-1 h-[1px] bg-gray-300" />
             </View>
 
-            <TouchableOpacity className="bg-gray-200 px-6 py-3 rounded-lg mb-1 w-full flex-row items-center justify-center ">
-              <AntDesign name="google" size={16} color="black" />
-              <Link href="/sign-in" className="text-black text-center ml-2">
+            <TouchableOpacity
+              className="bg-gray-200 px-6 py-3 rounded-lg mb-1 w-full flex-row items-center justify-center "
+              onPress={() => {
+                handlePressButtonAsync();
+              }}
+            >
+              <GoogleSVG size={16} />
+              <Text className="text-black text-center ml-2">
                 Continuer avec Google
-              </Link>
+              </Text>
             </TouchableOpacity>
           </View>
           <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
