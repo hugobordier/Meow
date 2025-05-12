@@ -10,4 +10,4 @@ export const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 
 // Environment Constants
 export const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
-export const APP_SCHEME = "meow://";
+export const APP_SCHEME = "meow"; //meow en prod et avec expo go exp

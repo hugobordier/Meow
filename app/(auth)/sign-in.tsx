@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import {
   ActivityIndicator,
   Keyboard,
-  Platform,
   TouchableWithoutFeedback,
   View,
 } from "react-native";
@@ -100,10 +99,14 @@ const SignInScreen = () => {
   const handlePressButtonAsync = async () => {
     setGoogleLoading(true);
     try {
-      const callbackUrl = Linking.createURL("(auth)/home", { scheme: "exp" }); // a changer { scheme: "kikipaul.meow" } en prod
+      const callbackUrl = Linking.createURL("(auth)/home", {
+        scheme: "meow",
+      }); // a changer { scheme: "kikipaul.meow" } en prod
+
+      console.log(callbackUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(
-        "https://meowback-production.up.railway.app/authRoutes/google",
+        `https://meowback-production.up.railway.app/authRoutes/google?scheme=${callbackUrl}`,
         callbackUrl,
         {
           showInRecents: true,
@@ -114,6 +117,7 @@ const SignInScreen = () => {
       );
 
       if (result.type === "success") {
+        console.log(result);
         const url = new URL(result.url);
         const accessToken = url.searchParams.get("accessToken");
         const refreshToken = url.searchParams.get("refreshToken");
@@ -123,6 +127,7 @@ const SignInScreen = () => {
           await AsyncStorage.setItem("accessToken", accessToken!);
           await AsyncStorage.setItem("refreshToken", refreshToken!);
           const user = await getUserById(userId!);
+          console.log(user);
           if (user as User) {
             setUser(user.data);
           }
@@ -132,7 +137,7 @@ const SignInScreen = () => {
         showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);
       }
     } catch (error: any) {
-      console.log(error);
+      console.log("error", error);
       showToast("Erreur lors de l'authentification", ToastType.ERROR);
     } finally {
       setLoading(false);
