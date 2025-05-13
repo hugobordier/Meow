@@ -11,6 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "kikipaul.meow",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDXXEFNdQjlAHEQfhvFQ0zRKcYmtLnlfYc"
+      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
         "UIBackgroundModes": ["audio"],
@@ -25,12 +28,15 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "package": "kikipaul.meow"
+      "package": "kikipaul.meow",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDXXEFNdQjlAHEQfhvFQ0zRKcYmtLnlfYc"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
@@ -61,6 +67,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "6ab4e923-47b7-47c7-b81e-fdc61a670f81"
+      }
     }
   }
 }
