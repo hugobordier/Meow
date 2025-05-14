@@ -66,7 +66,7 @@ export default function BottomNavBar() {
     },
     {
       name: "Menu",
-      path: "/(home)/(maps)/Maps2",
+      path: "/",
       icon: "menu-outline",
       activeIcon: "menu",
     },
