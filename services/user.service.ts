@@ -26,6 +26,16 @@ export const updateProfilePicture = async (image: string) => {
   }
 };
 
+export const deleteProfilePicture = async () => {
+  try {
+    const response = await api.delete("/User/profilePicture");
+    return response.data;
+  } catch (error: any) {
+    console.error("Erreur lors de l'upload:", error);
+    throw error;
+  }
+};
+
 export const updateDocId = async (image: string) => {
   try {
     const formData = new FormData();

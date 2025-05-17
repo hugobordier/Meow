@@ -1,161 +1,186 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
+  TouchableOpacity,
   Platform,
   Keyboard,
+  Alert,
 } from "react-native";
-import MapView, { Marker } from "react-native-maps";
-import { useRouter } from "expo-router";
-import SearchBarMap from "@/components/SearchBarMap"; // Importez le composant
-
-// Données enrichies des marqueurs avec plus d'informations
-const initialMarkers = [
-  {
-    id: 1,
-    price: "15€",
-    latitude: 48.8566,
-    longitude: 2.3522,
-    animal: "Chat",
-    services: ["Alimentation", "Jeux"],
-    city: "Paris",
-  },
-  {
-    id: 2,
-    price: "20€",
-    latitude: 48.857,
-    longitude: 2.353,
-    animal: "Chat",
-    services: ["Alimentation", "Promenade"],
-    city: "Paris",
-  },
-  {
-    id: 3,
-    price: "23€",
-    latitude: 48.855,
-    longitude: 2.351,
-    animal: "Chien",
-    services: ["Promenade", "Jeux", "Soins"],
-    city: "Paris",
-  },
-  {
-    id: 4,
-    price: "24€",
-    latitude: 48.858,
-    longitude: 2.354,
-    animal: "Chat",
-    services: ["Toilettage", "Soins"],
-    city: "Paris",
-  },
-  {
-    id: 5,
-    price: "25€",
-    latitude: 48.859,
-    longitude: 2.355,
-    animal: "Oiseau",
-    services: ["Alimentation"],
-    city: "Paris",
-  },
-  {
-    id: 6,
-    price: "30€",
-    latitude: 48.86,
-    longitude: 2.356,
-    animal: "Chien",
-    services: ["Promenade", "Jeux", "Alimentation"],
-    city: "Paris",
-  },
-  {
-    id: 7,
-    price: "18€",
-    latitude: 48.87,
-    longitude: 2.34,
-    animal: "Chat",
-    services: ["Jeux", "Soins"],
-    city: "Paris",
-  },
-  {
-    id: 8,
-    price: "22€",
-    latitude: 45.75,
-    longitude: 4.85,
-    animal: "Chat",
-    services: ["Alimentation", "Jeux"],
-    city: "Lyon",
-  },
-  {
-    id: 9,
-    price: "27€",
-    latitude: 43.296,
-    longitude: 5.37,
-    animal: "Chien",
-    services: ["Promenade", "Soins"],
-    city: "Marseille",
-  },
-];
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import * as Location from "expo-location";
+import { LocateFixed } from "lucide-react-native";
+import SearchBarMap from "@/components/SearchBarMap";
+import UserLocationMarker from "@/components/UserLocationMarker";
+import { Cat, Dog } from "lucide-react-native";
+import { useColorScheme } from "react-native";
+import { darkMapStyle, lightMapStyle } from "@/utils/constants";
+import { getPetSitters } from "@/services/petsitter.service";
+import { PaginationParams, PetSitterQueryParams } from "@/types/type";
+import { isLoaded, isLoading } from "expo-font";
 
 export default function MeowMapScreen() {
-  const router = useRouter();
-  const [markers, setMarkers] = useState(initialMarkers);
-  const [filteredMarkers, setFilteredMarkers] = useState(initialMarkers);
+  const mapRef = useRef<MapView | null>(null);
   const [mapRegion, setMapRegion] = useState({
     latitude: 48.8566,
     longitude: 2.3522,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
   });
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationPermission, setLocationPermission] = useState(false);
+  const [petType, setPetType] = useState<"cat" | "dog">("cat");
+  const [zoomLevel, setZoomLevel] = useState(0.01);
+  const [pagination] = useState<PaginationParams | null>({
+    page: 1,
+    limit: 100000,
+  });
+  const [filters, setFilters] = useState<PetSitterQueryParams | null>(null);
+  const [petsitter, setPetsitter] = useState<any | null>(null);
+  const [loading, setIsLoading] = useState(false);
+  const colorScheme = useColorScheme();
 
-  const handleSearch = (searchParams: {
-    city: any;
-    dates: any;
-    filters: any;
-  }) => {
-    const { city, dates, filters } = searchParams;
-
-    const filtered = markers.filter((marker) => {
-      if (
-        city &&
-        city.trim() !== "" &&
-        !marker.city.toLowerCase().includes(city.toLowerCase())
-      ) {
-        return false;
-      }
-
-      if (filters.animal && marker.animal !== filters.animal) {
-        return false;
-      }
-
-      const markerPrice = parseInt(marker.price.replace("€", ""));
-      if (markerPrice < filters.minPrice || markerPrice > filters.maxPrice) {
-        return false;
-      }
-
-      // Filtre par services
-      if (filters.services && filters.services.length > 0) {
-        const hasMatchingService = filters.services.some((service: string) =>
-          marker.services.includes(service)
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission refusée",
+          "Nous avons besoin de votre localisation pour cette fonctionnalité."
         );
-        if (!hasMatchingService) {
-          return false;
-        }
+        return;
       }
 
-      return true;
-    });
+      setLocationPermission(true);
 
-    setFilteredMarkers(filtered);
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
 
-    if (filtered.length > 0) {
-      setMapRegion({
-        latitude: filtered[0].latitude,
-        longitude: filtered[0].longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      });
+        setUserLocation({
+          latitude,
+          longitude,
+        });
+
+        setMapRegion({
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    })();
+  }, []);
+
+  useEffect(() => {
+    if (!locationPermission) return;
+
+    let locationSubscription: Location.LocationSubscription | null = null;
+
+    const startLocationTracking = async () => {
+      try {
+        locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            distanceInterval: 5, // Update every 5 meters
+          },
+          (location) => {
+            const { latitude, longitude } = location.coords;
+            setUserLocation({ latitude, longitude });
+          }
+        );
+      } catch (error) {
+        console.warn("Erreur lors de la géolocalisation :", error);
+      }
+    };
+
+    startLocationTracking();
+
+    return () => {
+      locationSubscription?.remove();
+    };
+  }, [locationPermission]);
+
+  const handleSearch = () => {};
+
+  const centerOnUserLocation = () => {
+    if (userLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    } else {
+      Alert.alert(
+        "Localisation non disponible",
+        "Nous ne pouvons pas accéder à votre position actuelle. "
+      );
     }
   };
+
+  // Toggle between cat and dog marker
+  const togglePetType = () => {
+    setPetType(petType === "cat" ? "dog" : "cat");
+  };
+
+  // Handle map region change to update zoom level
+  const onRegionChange = (region: any) => {
+    const { latitudeDelta, longitudeDelta } = region;
+    const MAX_DELTA = 0.1;
+    const MIN_DELTA = 0.001;
+
+    if (
+      latitudeDelta > MAX_DELTA ||
+      longitudeDelta > MAX_DELTA ||
+      latitudeDelta < MIN_DELTA ||
+      longitudeDelta < MIN_DELTA
+    ) {
+      return;
+    }
+
+    setZoomLevel(region.latitudeDelta);
+  };
+
+  const getPetSitter = async (
+    pagination?: PaginationParams | null,
+    filters?: PetSitterQueryParams | null
+  ) => {
+    try {
+      setIsLoading(true);
+      const res = await getPetSitters(filters, pagination);
+      setPetsitter(res.data || []);
+    } catch (e) {
+      setPetsitter([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const updateFilters = (newFilters: Partial<PetSitterQueryParams>) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      ...newFilters,
+    }));
+  };
+  useEffect(() => {
+    getPetSitter();
+    console.log(loading);
+    console.log("long", petsitter);
+  }, [isLoading]);
+  useEffect(() => {
+    getPetSitter(pagination, filters);
+  }, [filters]);
 
   return (
     <KeyboardAvoidingView
@@ -164,25 +189,82 @@ export default function MeowMapScreen() {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={{ flex: 1 }}>
-          <MapView style={{ flex: 1 }} region={mapRegion} provider="google">
-            {filteredMarkers.map((marker) => (
-              <Marker
-                key={marker.id}
-                coordinate={{
-                  latitude: marker.latitude,
-                  longitude: marker.longitude,
-                }}
-                title={marker.price}
-                description={`${marker.animal} - ${marker.services.join(", ")}`}
-              >
-                <View className="bg-white px-2 py-1 rounded-full border border-gray-300">
-                  <Text className="text-base font-bold">{marker.price}</Text>
-                </View>
-              </Marker>
-            ))}
+          <MapView
+            maxDelta={10}
+            ref={mapRef}
+            style={{ flex: 1 }}
+            region={mapRegion}
+            customMapStyle={
+              colorScheme === "dark" ? darkMapStyle : lightMapStyle
+            }
+            provider={PROVIDER_GOOGLE}
+            showsUserLocation={false}
+            followsUserLocation={false}
+            onRegionChange={onRegionChange}
+          >
+            {petsitter &&
+              petsitter.petsitters.map((ps: any) => (
+                <Marker
+                  key={ps.petsitter.id}
+                  coordinate={{
+                    latitude: ps.petsitter.latitude,
+                    longitude: ps.petsitter.longitude,
+                  }}
+                >
+                  <View className="bg-white px-2 py-1 rounded-full border border-gray-300">
+                    <Text className="text-base font-bold">
+                      {ps.petsitter.hourly_rate} €
+                    </Text>
+                  </View>
+                </Marker>
+              ))}
+
+            {userLocation && (
+              <UserLocationMarker
+                coordinate={userLocation}
+                heading={0}
+                zoomLevel={zoomLevel}
+                petType={petType}
+              />
+            )}
           </MapView>
 
           <SearchBarMap onSearch={handleSearch} initialCity="Paris" />
+
+          {/* Control buttons container */}
+          <View className="absolute bottom-6 right-6 flex flex-col space-y-3">
+            {/* Toggle pet type */}
+            <TouchableOpacity
+              onPress={togglePetType}
+              className="bg-white p-3 rounded-full shadow-md border border-gray-200"
+              style={{ elevation: 5 }}
+            >
+              {petType === "cat" ? (
+                <Cat size={24} color="#2563EB" />
+              ) : (
+                <Dog size={24} color="#2563EB" />
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                getPetSitter(pagination, filters);
+              }}
+              className="bg-white p-3 rounded-full shadow-md border border-gray-200"
+              style={{ elevation: 5 }}
+            >
+              <Dog size={24} color="#2563EB" />
+            </TouchableOpacity>
+
+            {/* Recenter button */}
+            <TouchableOpacity
+              onPress={centerOnUserLocation}
+              className="bg-white p-3 rounded-full shadow-md border border-gray-200"
+              style={{ elevation: 5 }}
+            >
+              <LocateFixed size={24} color="#2563EB" />
+            </TouchableOpacity>
+          </View>
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

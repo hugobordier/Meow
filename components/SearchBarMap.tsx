@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,8 +8,6 @@ import {
   Animated,
   Dimensions,
   ScrollView,
-  TouchableWithoutFeedback,
-  Modal,
   useColorScheme,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
@@ -21,6 +20,10 @@ type FilterOptions = {
   minPrice: number;
   maxPrice: number;
   services: string[];
+  availability: {
+    days: string[];
+    timeSlots: string[];
+  };
 };
 
 type SearchBarMapProps = {
@@ -41,12 +44,16 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [city, setCity] = useState<string>(initialCity);
   const [dates, setDates] = useState<string>("Lundi-Mercredi");
-  const [showFilterModal, setShowFilterModal] = useState<boolean>(false);
+  const [showFilters, setShowFilters] = useState<boolean>(false);
   const [filters, setFilters] = useState<FilterOptions>({
     animal: "Chat",
-    minPrice: 10,
-    maxPrice: 50,
+    minPrice: 0,
+    maxPrice: 100,
     services: [],
+    availability: {
+      days: [],
+      timeSlots: [],
+    },
   });
 
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -67,6 +74,36 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     outputRange: [0, 0, 1],
   });
 
+  const filterAnim = useRef(new Animated.Value(0)).current;
+  const filterHeight = filterAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 500], // Augmenté pour accommoder les nouveaux filtres
+  });
+
+  const filterOpacity = filterAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
+  const toggleFilters = () => {
+    if (!showFilters) {
+      setShowFilters(true);
+      Animated.timing(filterAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: false,
+      }).start();
+    } else {
+      Animated.timing(filterAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowFilters(false);
+      });
+    }
+  };
+
   const availableServices: string[] = [
     "Promenade",
     "Alimentation",
@@ -74,15 +111,42 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     "Soins",
     "Toilettage",
   ];
+  const availableDays: string[] = [
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+    "Dimanche",
+  ];
+  const availableTimeSlots: string[] = ["Matin", "Après-midi", "Soir", "Nuit"];
 
   const toggleSearchBar = () => {
     const toValue = isExpanded ? 0 : 1;
-    Animated.spring(animatedValue, {
-      toValue,
-      useNativeDriver: false,
-      friction: 8,
-    }).start();
-    setIsExpanded(!isExpanded);
+
+    if (isExpanded && showFilters) {
+      Animated.timing(filterAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: false,
+      }).start(() => {
+        Animated.spring(animatedValue, {
+          toValue,
+          useNativeDriver: false,
+          friction: 8,
+        }).start();
+        setIsExpanded(false);
+        setShowFilters(false);
+      });
+    } else {
+      Animated.spring(animatedValue, {
+        toValue,
+        useNativeDriver: false,
+        friction: 8,
+      }).start();
+      setIsExpanded(!isExpanded);
+    }
   };
 
   const handleSearch = () => {
@@ -93,10 +157,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         filters,
       });
     }
-  };
-
-  const toggleFilterModal = () => {
-    setShowFilterModal(!showFilterModal);
   };
 
   const toggleService = (service: string) => {
@@ -110,9 +170,68 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     setFilters({ ...filters, services: updatedServices });
   };
 
+  const toggleDay = (day: string) => {
+    const updatedDays = [...filters.availability.days];
+    if (updatedDays.includes(day)) {
+      const index = updatedDays.indexOf(day);
+      updatedDays.splice(index, 1);
+    } else {
+      updatedDays.push(day);
+    }
+    setFilters({
+      ...filters,
+      availability: {
+        ...filters.availability,
+        days: updatedDays,
+      },
+    });
+  };
+
+  const toggleTimeSlot = (timeSlot: string) => {
+    const updatedTimeSlots = [...filters.availability.timeSlots];
+    if (updatedTimeSlots.includes(timeSlot)) {
+      const index = updatedTimeSlots.indexOf(timeSlot);
+      updatedTimeSlots.splice(index, 1);
+    } else {
+      updatedTimeSlots.push(timeSlot);
+    }
+    setFilters({
+      ...filters,
+      availability: {
+        ...filters.availability,
+        timeSlots: updatedTimeSlots,
+      },
+    });
+  };
+
+  const handleMinPriceChange = (value: number) => {
+    // Assurer que minPrice ne dépasse pas maxPrice
+    const newMinPrice = Math.min(value, filters.maxPrice);
+    setFilters({ ...filters, minPrice: newMinPrice });
+  };
+
+  const handleMaxPriceChange = (value: number) => {
+    // Assurer que maxPrice n'est pas inférieur à minPrice
+    const newMaxPrice = Math.max(value, filters.minPrice);
+    setFilters({ ...filters, maxPrice: newMaxPrice });
+  };
+
   const applyFilters = () => {
     handleSearch();
-    setShowFilterModal(false);
+    toggleFilters();
+  };
+
+  const resetFilters = () => {
+    setFilters({
+      animal: "Chat",
+      minPrice: 0,
+      maxPrice: 100,
+      services: [],
+      availability: {
+        days: [],
+        timeSlots: [],
+      },
+    });
   };
 
   useEffect(() => {
@@ -120,6 +239,27 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
       handleSearch();
     }
   }, [filters.animal]);
+
+  // Determine colors based on filter state and dark mode
+  const getBgColor = () => {
+    return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
+  };
+
+  const getTextColor = () => {
+    return isDark ? "#f8fafc" : "#1a202c";
+  };
+
+  const getInputBgColor = () => {
+    return isDark ? "#2d3748" : "#f1f5f9";
+  };
+
+  const getAccentColor = () => {
+    return "#d946ef";
+  };
+
+  const getBorderColor = () => {
+    return isDark ? "#4a5568" : "#e2e8f0";
+  };
 
   return (
     <>
@@ -130,8 +270,11 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
           right: 16,
           width: searchBarWidth,
           height: searchBarHeight,
-          backgroundColor: isDark ? "#1f2937" : "rgba(253, 242, 255, 0.95)",
-          borderRadius: isExpanded ? 16 : 28,
+          backgroundColor: getBgColor(),
+          borderTopLeftRadius: 16,
+          borderTopRightRadius: 16,
+          borderBottomLeftRadius: isExpanded && showFilters ? 0 : 16,
+          borderBottomRightRadius: isExpanded && showFilters ? 0 : 16,
           padding: isExpanded ? 16 : 0,
           shadowColor: "#000",
           shadowOffset: { width: 0, height: 2 },
@@ -152,7 +295,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
             borderRadius: 28,
             justifyContent: "center",
             alignItems: "center",
-            backgroundColor: isDark ? "#1f2937" : "rgba(253, 242, 255, 0.95)",
+            backgroundColor: getBgColor(),
             opacity: buttonOpacity,
             zIndex: 101,
           }}
@@ -167,7 +310,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
               alignItems: "center",
             }}
           >
-            <Feather name="search" size={24} color="#d946ef" />
+            <Feather name="search" size={24} color={getAccentColor()} />
           </Pressable>
         </Animated.View>
 
@@ -183,7 +326,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                 flexDirection: "row",
                 flex: 1,
                 alignItems: "center",
-                backgroundColor: isDark ? "#374151" : "#f3f4f6",
+                backgroundColor: getInputBgColor(),
                 borderRadius: 12,
                 padding: 12,
               }}
@@ -202,14 +345,14 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                   placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
                   style={{
                     fontWeight: "500",
-                    color: isDark ? "#f3f4f6" : "#1f2937",
+                    color: getTextColor(),
                   }}
                   onSubmitEditing={handleSearch}
                 />
                 <Text
                   style={{
                     fontSize: 12,
-                    color: isDark ? "#f3f4f6" : "#1f2937",
+                    color: getTextColor(),
                   }}
                 >
                   {dates} · {filters.animal}
@@ -221,7 +364,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
               style={{
                 padding: 10,
                 marginLeft: 8,
-                backgroundColor: isDark ? "#374151" : "#f3f4f6",
+                backgroundColor: getInputBgColor(),
                 borderRadius: 50,
               }}
             >
@@ -239,15 +382,15 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
           >
             <View style={{ flexDirection: "row" }}>
               <Pressable
-                onPress={toggleFilterModal}
+                onPress={toggleFilters}
                 style={{
-                  backgroundColor: isDark ? "#374151" : "#f3f4f6",
+                  backgroundColor: getInputBgColor(),
                   paddingHorizontal: 16,
                   paddingVertical: 8,
                   borderRadius: 9999,
                   marginRight: 8,
                   borderWidth: 1,
-                  borderColor: isDark ? "#4b5563" : "#e5e7eb",
+                  borderColor: getBorderColor(),
                   flexDirection: "row",
                   alignItems: "center",
                 }}
@@ -256,240 +399,345 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                   style={{
                     fontSize: 14,
                     marginRight: 4,
-                    color: isDark ? "#fff" : "#1f2937",
+                    color: getTextColor(),
                   }}
                 >
                   Filtre
                 </Text>
-                <Feather
-                  name="sliders"
-                  size={14}
-                  color={isDark ? "#fff" : "#1f2937"}
-                />
+                <Feather name="sliders" size={14} color={getTextColor()} />
               </Pressable>
               <Pressable
                 style={{
-                  backgroundColor: isDark ? "#374151" : "#f3f4f6",
+                  backgroundColor: getInputBgColor(),
                   paddingHorizontal: 16,
                   paddingVertical: 8,
                   borderRadius: 9999,
                   borderWidth: 1,
-                  borderColor: isDark ? "#4b5563" : "#e5e7eb",
+                  borderColor: getBorderColor(),
                 }}
               >
-                <Text
-                  style={{ fontSize: 14, color: isDark ? "#fff" : "#1f2937" }}
-                >
+                <Text style={{ fontSize: 14, color: getTextColor() }}>
                   Trier
                 </Text>
               </Pressable>
             </View>
-            <Text style={{ color: isDark ? "#fff" : "#1f2937", fontSize: 14 }}>
+            <Text style={{ color: getTextColor(), fontSize: 14 }}>
               6 résultats
             </Text>
           </View>
         </Animated.View>
       </Animated.View>
 
-      {/* MODAL */}
-      <Modal visible={showFilterModal} transparent animationType="slide">
-        <TouchableWithoutFeedback onPress={toggleFilterModal}>
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: "rgba(0,0,0,0.5)",
-              justifyContent: "flex-end",
-            }}
-          >
-            <TouchableWithoutFeedback>
-              <View
-                style={{
-                  backgroundColor: "white",
-                  borderTopLeftRadius: 24,
-                  borderTopRightRadius: 24,
-                  padding: 20,
-                  maxHeight: "70%",
-                }}
-              >
-                <View style={{ alignItems: "center", marginBottom: 20 }}>
+      {/* Animated Filter Panel */}
+      {isExpanded && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 140,
+            right: 16,
+            left: 16,
+            backgroundColor: getBgColor(),
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomLeftRadius: 24,
+            borderBottomRightRadius: 24,
+            padding: 20,
+            opacity: filterOpacity,
+            height: filterHeight,
+            overflow: "hidden",
+            zIndex: 99,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+            marginTop: -1,
+          }}
+        >
+          {showFilters && (
+            <>
+              <ScrollView style={{ maxHeight: "80%" }}>
+                <View style={{ marginBottom: 24 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      marginBottom: 12,
+                      color: getTextColor(),
+                    }}
+                  >
+                    Type d'animal
+                  </Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                    {[
+                      "Chat",
+                      "Chien",
+                      "Oiseau",
+                      "Rongeur",
+                      "Reptile",
+                      "Poisson",
+                    ].map((animal) => (
+                      <Pressable
+                        key={animal}
+                        onPress={() => setFilters({ ...filters, animal })}
+                        style={{
+                          backgroundColor:
+                            filters.animal === animal
+                              ? getAccentColor()
+                              : getInputBgColor(),
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          borderRadius: 9999,
+                          marginRight: 8,
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color:
+                              filters.animal === animal
+                                ? "white"
+                                : getTextColor(),
+                            fontWeight:
+                              filters.animal === animal ? "500" : "normal",
+                          }}
+                        >
+                          {animal}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={{ marginBottom: 24 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      marginBottom: 12,
+                      color: getTextColor(),
+                    }}
+                  >
+                    Prix: {filters.minPrice}€ - {filters.maxPrice}€
+                  </Text>
                   <View
                     style={{
-                      width: 40,
-                      height: 4,
-                      backgroundColor: "#d1d5db",
-                      borderRadius: 2,
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: 10,
                     }}
-                  />
+                  >
+                    <Text style={{ color: getTextColor() }}>0€</Text>
+                    <Text style={{ color: getTextColor() }}>100€</Text>
+                  </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
+                    <Slider
+                      minimumValue={0}
+                      maximumValue={100}
+                      step={1}
+                      value={filters.minPrice}
+                      onValueChange={handleMinPriceChange}
+                      minimumTrackTintColor={getAccentColor()}
+                      thumbTintColor={getAccentColor()}
+                      style={{ width: "48%" }}
+                    />
+                    <Slider
+                      minimumValue={0}
+                      maximumValue={100}
+                      step={1}
+                      value={filters.maxPrice}
+                      onValueChange={handleMaxPriceChange}
+                      minimumTrackTintColor={getAccentColor()}
+                      thumbTintColor={getAccentColor()}
+                      style={{ width: "48%" }}
+                    />
+                  </View>
                 </View>
 
-                <Text
-                  style={{ fontSize: 20, fontWeight: "600", marginBottom: 16 }}
-                >
-                  Filtres
-                </Text>
-
-                <ScrollView style={{ maxHeight: "80%" }}>
-                  <View style={{ marginBottom: 24 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "500",
-                        marginBottom: 12,
-                      }}
-                    >
-                      Type d'animal
-                    </Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                      {[
-                        "Chat",
-                        "Chien",
-                        "Oiseau",
-                        "Rongeur",
-                        "Reptile",
-                        "Poisson",
-                      ].map((animal) => (
-                        <Pressable
-                          key={animal}
-                          onPress={() => setFilters({ ...filters, animal })}
+                <View style={{ marginBottom: 24 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      marginBottom: 12,
+                      color: getTextColor(),
+                    }}
+                  >
+                    Services
+                  </Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                    {availableServices.map((service) => (
+                      <Pressable
+                        key={service}
+                        onPress={() => toggleService(service)}
+                        style={{
+                          backgroundColor: filters.services.includes(service)
+                            ? getAccentColor()
+                            : getInputBgColor(),
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          borderRadius: 9999,
+                          marginRight: 8,
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Text
                           style={{
-                            backgroundColor:
-                              filters.animal === animal ? "#d946ef" : "#f3f4f6",
-                            paddingHorizontal: 16,
-                            paddingVertical: 8,
-                            borderRadius: 9999,
-                            marginRight: 8,
-                            marginBottom: 8,
+                            color: filters.services.includes(service)
+                              ? "white"
+                              : getTextColor(),
+                            fontWeight: filters.services.includes(service)
+                              ? "500"
+                              : "normal",
                           }}
                         >
-                          <Text
-                            style={{
-                              color:
-                                filters.animal === animal ? "white" : "#1f2937",
-                              fontWeight:
-                                filters.animal === animal ? "500" : "normal",
-                            }}
-                          >
-                            {animal}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
+                          {service}
+                        </Text>
+                      </Pressable>
+                    ))}
                   </View>
+                </View>
 
-                  <View style={{ marginBottom: 24 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "500",
-                        marginBottom: 12,
-                      }}
-                    >
-                      Prix: {filters.minPrice}€ - {filters.maxPrice}€
-                    </Text>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Slider
-                        minimumValue={10}
-                        maximumValue={50}
-                        step={1}
-                        value={filters.minPrice}
-                        onValueChange={(val) =>
-                          setFilters({ ...filters, minPrice: val })
-                        }
-                      />
-                    </View>
-                  </View>
-
-                  <View style={{ marginBottom: 24 }}>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: "500",
-                        marginBottom: 12,
-                      }}
-                    >
-                      Services
-                    </Text>
-                    <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                      {availableServices.map((service) => (
-                        <Pressable
-                          key={service}
-                          onPress={() => toggleService(service)}
+                {/* Disponibilités - Jours */}
+                <View style={{ marginBottom: 24 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      marginBottom: 12,
+                      color: getTextColor(),
+                    }}
+                  >
+                    Disponibilités - Jours
+                  </Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                    {availableDays.map((day) => (
+                      <Pressable
+                        key={day}
+                        onPress={() => toggleDay(day)}
+                        style={{
+                          backgroundColor: filters.availability.days.includes(
+                            day
+                          )
+                            ? getAccentColor()
+                            : getInputBgColor(),
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          borderRadius: 9999,
+                          marginRight: 8,
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Text
                           style={{
-                            backgroundColor: filters.services.includes(service)
-                              ? "#d946ef"
-                              : "#f3f4f6",
-                            paddingHorizontal: 16,
-                            paddingVertical: 8,
-                            borderRadius: 9999,
-                            marginRight: 8,
-                            marginBottom: 8,
+                            color: filters.availability.days.includes(day)
+                              ? "white"
+                              : getTextColor(),
+                            fontWeight: filters.availability.days.includes(day)
+                              ? "500"
+                              : "normal",
                           }}
                         >
-                          <Text
-                            style={{
-                              color: filters.services.includes(service)
-                                ? "white"
-                                : "#1f2937",
-                              fontWeight: filters.services.includes(service)
-                                ? "500"
-                                : "normal",
-                            }}
-                          >
-                            {service}
-                          </Text>
-                        </Pressable>
-                      ))}
-                    </View>
+                          {day}
+                        </Text>
+                      </Pressable>
+                    ))}
                   </View>
-                </ScrollView>
+                </View>
 
-                <View
+                {/* Disponibilités - Horaires */}
+                <View style={{ marginBottom: 24 }}>
+                  <Text
+                    style={{
+                      fontSize: 16,
+                      fontWeight: "500",
+                      marginBottom: 12,
+                      color: getTextColor(),
+                    }}
+                  >
+                    Disponibilités - Horaires
+                  </Text>
+                  <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+                    {availableTimeSlots.map((timeSlot) => (
+                      <Pressable
+                        key={timeSlot}
+                        onPress={() => toggleTimeSlot(timeSlot)}
+                        style={{
+                          backgroundColor:
+                            filters.availability.timeSlots.includes(timeSlot)
+                              ? getAccentColor()
+                              : getInputBgColor(),
+                          paddingHorizontal: 16,
+                          paddingVertical: 8,
+                          borderRadius: 9999,
+                          marginRight: 8,
+                          marginBottom: 8,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            color: filters.availability.timeSlots.includes(
+                              timeSlot
+                            )
+                              ? "white"
+                              : getTextColor(),
+                            fontWeight: filters.availability.timeSlots.includes(
+                              timeSlot
+                            )
+                              ? "500"
+                              : "normal",
+                          }}
+                        >
+                          {timeSlot}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+              </ScrollView>
+
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  marginTop: 16,
+                }}
+              >
+                <Pressable onPress={resetFilters} style={{ padding: 12 }}>
+                  <Text
+                    style={{
+                      color: "#6b7280",
+                      fontWeight: "500",
+                    }}
+                  >
+                    Réinitialiser
+                  </Text>
+                </Pressable>
+                <Pressable
+                  onPress={applyFilters}
                   style={{
-                    flexDirection: "row",
-                    justifyContent: "space-between",
-                    marginTop: 16,
+                    backgroundColor: getAccentColor(),
+                    paddingHorizontal: 24,
+                    paddingVertical: 12,
+                    borderRadius: 9999,
                   }}
                 >
-                  <Pressable
-                    onPress={() =>
-                      setFilters({
-                        animal: "Chat",
-                        minPrice: 10,
-                        maxPrice: 50,
-                        services: [],
-                      })
-                    }
-                    style={{ padding: 12 }}
-                  >
-                    <Text style={{ color: "#6b7280", fontWeight: "500" }}>
-                      Réinitialiser
-                    </Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={applyFilters}
-                    style={{
-                      backgroundColor: "#d946ef",
-                      paddingHorizontal: 24,
-                      paddingVertical: 12,
-                      borderRadius: 9999,
-                    }}
-                  >
-                    <Text style={{ color: "white", fontWeight: "500" }}>
-                      Appliquer
-                    </Text>
-                  </Pressable>
-                </View>
+                  <Text style={{ color: "white", fontWeight: "500" }}>
+                    Appliquer
+                  </Text>
+                </Pressable>
               </View>
-            </TouchableWithoutFeedback>
-          </View>
-        </TouchableWithoutFeedback>
-      </Modal>
+            </>
+          )}
+        </Animated.View>
+      )}
     </>
   );
 };

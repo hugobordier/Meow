@@ -8,17 +8,19 @@ import {
 } from "react-native";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
-import ProfilePictureModal from "@/components/ProfilePictureModal";
 import * as ImagePicker from "expo-image-picker";
 import { useState } from "react";
-import { updateProfilePicture } from "@/services/user.service";
+import {
+  deleteProfilePicture,
+  updateProfilePicture,
+} from "@/services/user.service";
 import { getRandomPlaceholderImage } from "@/utils/getRandomPlaceholderImage";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { User } from "@/types/type";
+import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
 
 export default function HomeScreen() {
   const { user, setUser } = useAuthContext();
-  const [modalVisible, setModalVisible] = useState(false);
   const { showToast } = useToast();
 
   const handleOpenPhotoLibrary = async () => {
@@ -40,12 +42,12 @@ export default function HomeScreen() {
       if (!result.canceled && result.assets.length > 0) {
         const selectedUri = result.assets[0].uri;
         const res = await updateProfilePicture(selectedUri);
-        setModalVisible(false);
         console.log(res);
         setUser({
           ...user,
           profilePicture: res.data.profilePicture,
         } as User);
+        showToast(res.message, ToastType.SUCCESS);
       } else {
         showToast(
           "Veuillez d'abord sélectionner une image.",
@@ -58,7 +60,6 @@ export default function HomeScreen() {
         error.message || "Erreur lors de la sélection d'image",
         ToastType.ERROR
       );
-      setModalVisible(false);
     }
   };
 
@@ -85,6 +86,7 @@ export default function HomeScreen() {
           ...user,
           profilePicture: res.data.profilePicture,
         } as User);
+        showToast(res.message, ToastType.SUCCESS);
       } else {
         showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
       }
@@ -95,7 +97,23 @@ export default function HomeScreen() {
         ToastType.ERROR
       );
     } finally {
-      setModalVisible(false);
+    }
+  };
+
+  const onDeletePhoto = async () => {
+    try {
+      const res = await deleteProfilePicture();
+      showToast(res.message, ToastType.SUCCESS);
+      setUser({
+        ...user,
+        profilePicture: res.data.profilePicture,
+      } as User);
+    } catch (error: any) {
+      showToast(
+        error.message || "Impossible de supprimer une photo.",
+        ToastType.ERROR
+      );
+      console.log(error);
     }
   };
 
@@ -103,19 +121,12 @@ export default function HomeScreen() {
     <ScrollView className="flex-1 bg-fuchsia-50 dark:bg-gray-900">
       {/* User Profile */}
       <View className="flex-row items-center px-4 mt-4">
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          {user?.profilePicture ? (
-            <Image
-              source={{ uri: user?.profilePicture }}
-              className="w-12 h-12 rounded-full bg-yellow-200 dark:bg-yellow-300"
-            />
-          ) : (
-            <Image
-              source={getRandomPlaceholderImage()}
-              className="w-12 h-12 rounded-full bg-yellow-200 dark:bg-yellow-300"
-            />
-          )}
-        </TouchableOpacity>
+        <ProfilePictureZoomable
+          onDeletePhoto={onDeletePhoto}
+          profilePicture={user?.profilePicture}
+          onChooseFromLibrary={handleOpenPhotoLibrary}
+          onTakePhoto={handleOpenCamera}
+        />
 
         <View className="ml-3">
           <Text className="text-lg font-semibold text-black dark:text-white">
@@ -131,15 +142,6 @@ export default function HomeScreen() {
           </Text>
         </View>
       </View>
-
-      <ProfilePictureModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        profilePicture={user?.profilePicture}
-        onChooseFromLibrary={handleOpenPhotoLibrary}
-        onTakePhoto={handleOpenCamera}
-        isUser={true}
-      />
 
       {/* Search Bar */}
       <View className="mx-4 mt-4">
