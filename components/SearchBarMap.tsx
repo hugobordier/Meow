@@ -169,6 +169,9 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const getBgColor = () => {
     return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
   };
+  const getBgColor2 = () => {
+    return isDark ? "#1a202c" : "#efb1ef";
+  };
 
   const getTextColor = () => {
     return isDark ? "#f8fafc" : "#1a202c";
@@ -263,13 +266,13 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
           borderBottomLeftRadius: isExpanded && showFilters ? 0 : 16,
           borderBottomRightRadius: isExpanded && showFilters ? 0 : 16,
           padding: isExpanded ? 16 : 0,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 4,
-          elevation: 3,
           zIndex: 100,
           overflow: "hidden",
+          shadowColor: "#000",
+          shadowOffset: { width: 0, height: 1 },
+          shadowOpacity: 0.2,
+          shadowRadius: 3.84,
+          elevation: 5,
         }}
       >
         <Animated.View
@@ -309,6 +312,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View
+              className="shadow-md"
               style={{
                 flexDirection: "row",
                 flex: 1,

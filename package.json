@@ -64,6 +64,7 @@
     "react-native-ico-flags": "^6.4.1",
     "react-native-leaflet-view": "^1.1.1",
     "react-native-maps": "1.20.1",
+    "react-native-maps-clustering": "^1.2.4",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-reanimated": "~3.17.4",
     "react-native-safe-area-context": "5.4.0",

@@ -24,6 +24,7 @@ import {
   PetSitterQueryParams,
   ResponsePetsitter,
 } from "@/types/type";
+import { AntDesign, Feather } from "@expo/vector-icons";
 
 const Maps = () => {
   const mapRef = useRef<MapView | null>(null);
@@ -48,6 +49,7 @@ const Maps = () => {
   const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>(null);
   const [loading, setIsLoading] = useState(false);
   const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   useEffect(() => {
     (async () => {
@@ -187,6 +189,10 @@ const Maps = () => {
     getPetSitter(pagination, filters);
   }, [filters]);
 
+  const getBgColor = () => {
+    return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
+  };
+
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
@@ -245,11 +251,18 @@ const Maps = () => {
             </View>
           )}
 
-          <View className="absolute bottom-6 right-6 flex flex-col space-y-3">
+          <View className="absolute bottom-6 right-6 flex gap-3 flex-col space-y-3">
             <TouchableOpacity
               onPress={togglePetType}
-              className="bg-white p-3 rounded-full shadow-md border border-gray-200"
-              style={{ elevation: 5 }}
+              className=" shadow-md "
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: getBgColor(),
+              }}
             >
               {petType === "cat" ? (
                 <Cat size={24} color="#2563EB" />
@@ -259,21 +272,18 @@ const Maps = () => {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => {
-                getPetSitter(pagination, filters);
-              }}
-              className="bg-white p-3 rounded-full shadow-md border border-gray-200"
-              style={{ elevation: 5 }}
-            >
-              <Dog size={24} color="#2563EB" />
-            </TouchableOpacity>
-
-            <TouchableOpacity
               onPress={centerOnUserLocation}
-              className="bg-white p-3 rounded-full shadow-md border border-gray-200"
-              style={{ elevation: 5 }}
+              className="shadow-md"
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: getBgColor(),
+              }}
             >
-              <LocateFixed size={24} color="#2563EB" />
+              <AntDesign name="enviromento" size={24} color="#d946ef" />
             </TouchableOpacity>
           </View>
         </View>
