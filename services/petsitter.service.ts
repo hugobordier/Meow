@@ -1,4 +1,9 @@
-import { PaginationParams, PetSitterQueryParams } from "@/types/type";
+import {
+  ApiResponsePetsitter,
+  PaginationParams,
+  PetSitterQueryParams,
+  ResponsePetsitter,
+} from "@/types/type";
 import { api } from "./api";
 
 export const createPetSitter = async (hourly_rate: number) => {
@@ -16,10 +21,9 @@ export const createPetSitter = async (hourly_rate: number) => {
 export const getPetSitters = async (
   filters?: PetSitterQueryParams | null,
   pagination?: PaginationParams | null
-) => {
+): Promise<ApiResponsePetsitter> => {
   try {
     const queryParams = new URLSearchParams();
-
     const combinedParams = { ...filters, ...pagination };
 
     Object.entries(combinedParams).forEach(([key, value]) => {
@@ -29,9 +33,10 @@ export const getPetSitters = async (
         queryParams.append(key, String(value));
       }
     });
-    console.log(`/Petsitter?${queryParams.toString()}`);
+
     const response = await api.get(`/Petsitter?${queryParams.toString()}`);
-    return response.data;
+    console.log(response.data);
+    return response.data.data;
   } catch (error: any) {
     throw (
       error.response?.data?.message ??

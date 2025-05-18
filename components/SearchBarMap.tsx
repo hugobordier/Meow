@@ -12,26 +12,18 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
+import {
+  AnimalType,
+  AvailabilityDay,
+  AvailabilityInterval,
+  PetSitterQueryParams,
+  ServiceType,
+} from "@/types/type";
 
 const { width } = Dimensions.get("window");
 
-type FilterOptions = {
-  animal: string;
-  minPrice: number;
-  maxPrice: number;
-  services: string[];
-  availability: {
-    days: string[];
-    timeSlots: string[];
-  };
-};
-
 type SearchBarMapProps = {
-  onSearch?: (params: {
-    city: string;
-    dates: string;
-    filters: FilterOptions;
-  }) => void;
+  onSearch?: (params: PetSitterQueryParams) => void;
   initialCity?: string;
 };
 
@@ -45,16 +37,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const [city, setCity] = useState<string>(initialCity);
   const [dates, setDates] = useState<string>("Lundi-Mercredi");
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [filters, setFilters] = useState<FilterOptions>({
-    animal: "Chat",
-    minPrice: 0,
-    maxPrice: 100,
-    services: [],
-    availability: {
-      days: [],
-      timeSlots: [],
-    },
-  });
+  const [filters, setFilters] = useState<PetSitterQueryParams>({});
 
   const animatedValue = useRef(new Animated.Value(0)).current;
   const searchBarWidth = animatedValue.interpolate({
@@ -77,7 +60,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const filterAnim = useRef(new Animated.Value(0)).current;
   const filterHeight = filterAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 500], // Augmenté pour accommoder les nouveaux filtres
+    outputRange: [0, 500],
   });
 
   const filterOpacity = filterAnim.interpolate({
@@ -104,23 +87,45 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     }
   };
 
-  const availableServices: string[] = [
+  const availableServices: ServiceType[] = [
     "Promenade",
     "Alimentation",
     "Jeux",
     "Soins",
     "Toilettage",
+    "Dressage",
+    "Garderie",
+    "Médication",
+    "Nettoyage",
+    "Transport",
   ];
-  const availableDays: string[] = [
-    "Lundi",
-    "Mardi",
-    "Mercredi",
-    "Jeudi",
-    "Vendredi",
-    "Samedi",
-    "Dimanche",
+  const availableDays: AvailabilityDay[] = [
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
   ];
-  const availableTimeSlots: string[] = ["Matin", "Après-midi", "Soir", "Nuit"];
+  const availableTimeSlots: AvailabilityInterval[] = [
+    "Matin",
+    "Après-midi",
+    "Soir",
+    "Nuit",
+  ];
+
+  const availaibleAnimal: AnimalType[] = [
+    "Chat",
+    "Chien",
+    "Oiseau",
+    "Rongeur",
+    "Reptile",
+    "Poisson",
+    "Furet",
+    "Cheval",
+    "Autre",
+  ];
 
   const toggleSearchBar = () => {
     const toValue = isExpanded ? 0 : 1;
@@ -151,96 +156,16 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
 
   const handleSearch = () => {
     if (onSearch) {
-      onSearch({
-        city,
-        dates,
-        filters,
-      });
+      onSearch({});
     }
   };
 
-  const toggleService = (service: string) => {
-    const updatedServices = [...filters.services];
-    if (updatedServices.includes(service)) {
-      const index = updatedServices.indexOf(service);
-      updatedServices.splice(index, 1);
-    } else {
-      updatedServices.push(service);
-    }
-    setFilters({ ...filters, services: updatedServices });
-  };
+  // useEffect(() => {
+  //   if (isExpanded) {
+  //     handleSearch();
+  //   }
+  // }, [filters]);
 
-  const toggleDay = (day: string) => {
-    const updatedDays = [...filters.availability.days];
-    if (updatedDays.includes(day)) {
-      const index = updatedDays.indexOf(day);
-      updatedDays.splice(index, 1);
-    } else {
-      updatedDays.push(day);
-    }
-    setFilters({
-      ...filters,
-      availability: {
-        ...filters.availability,
-        days: updatedDays,
-      },
-    });
-  };
-
-  const toggleTimeSlot = (timeSlot: string) => {
-    const updatedTimeSlots = [...filters.availability.timeSlots];
-    if (updatedTimeSlots.includes(timeSlot)) {
-      const index = updatedTimeSlots.indexOf(timeSlot);
-      updatedTimeSlots.splice(index, 1);
-    } else {
-      updatedTimeSlots.push(timeSlot);
-    }
-    setFilters({
-      ...filters,
-      availability: {
-        ...filters.availability,
-        timeSlots: updatedTimeSlots,
-      },
-    });
-  };
-
-  const handleMinPriceChange = (value: number) => {
-    // Assurer que minPrice ne dépasse pas maxPrice
-    const newMinPrice = Math.min(value, filters.maxPrice);
-    setFilters({ ...filters, minPrice: newMinPrice });
-  };
-
-  const handleMaxPriceChange = (value: number) => {
-    // Assurer que maxPrice n'est pas inférieur à minPrice
-    const newMaxPrice = Math.max(value, filters.minPrice);
-    setFilters({ ...filters, maxPrice: newMaxPrice });
-  };
-
-  const applyFilters = () => {
-    handleSearch();
-    toggleFilters();
-  };
-
-  const resetFilters = () => {
-    setFilters({
-      animal: "Chat",
-      minPrice: 0,
-      maxPrice: 100,
-      services: [],
-      availability: {
-        days: [],
-        timeSlots: [],
-      },
-    });
-  };
-
-  useEffect(() => {
-    if (isExpanded) {
-      handleSearch();
-    }
-  }, [filters.animal]);
-
-  // Determine colors based on filter state and dark mode
   const getBgColor = () => {
     return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
   };
@@ -260,6 +185,68 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const getBorderColor = () => {
     return isDark ? "#4a5568" : "#e2e8f0";
   };
+
+  const toggleAnimalType = (animal: AnimalType) => {
+    const current = filters.animal_types || [];
+    const isSelected = current.includes(animal);
+    const updated = isSelected
+      ? current.filter((a) => a !== animal)
+      : [...current, animal];
+
+    setFilters({ ...filters, animal_types: updated });
+  };
+
+  const toggleService = (service: ServiceType) => {
+    const current = filters.services || [];
+    const isSelected = current.includes(service);
+    const updated = isSelected
+      ? current.filter((s) => s !== service)
+      : [...current, service];
+
+    setFilters({ ...filters, services: updated });
+  };
+
+  const toggleDay = (day: AvailabilityDay) => {
+    const current = filters.availability_days || [];
+    const isSelected = current.includes(day);
+    const updated = isSelected
+      ? current.filter((s) => s !== day)
+      : [...current, day];
+
+    setFilters({ ...filters, availability_days: updated });
+  };
+
+  const toggleTimeSlot = (slot: AvailabilityInterval) => {
+    const current = filters.availability_intervals || [];
+    const isSelected = current.includes(slot);
+    const updated = isSelected
+      ? current.filter((s) => s !== slot)
+      : [...current, slot];
+
+    setFilters({ ...filters, availability_intervals: updated });
+  };
+
+  const resetFilters = () => {
+    setFilters({});
+  };
+
+  const applyFilters = () => {
+    toggleSearchBar();
+    handleSearch();
+  };
+  // const handleMinPriceChange = (value: number) => {
+  //   setFilters((prev) => ({
+  //     ...prev,
+  //     minPrice: Math.min(value, prev.maxPrice),
+  //   }));
+  // };
+
+  // const handleMaxPriceChange = (value: number) => {
+  //   setFilters((prev) => ({
+  //     ...prev,
+  //     maxPrice: Math.max(value, prev.minPrice),
+  //   }));
+  // };
 
   return (
     <>
@@ -355,7 +342,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                     color: getTextColor(),
                   }}
                 >
-                  {dates} · {filters.animal}
+                  {filters.availability_days} · {filters.animal_types}
                 </Text>
               </View>
             </View>
@@ -428,7 +415,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         </Animated.View>
       </Animated.View>
 
-      {/* Animated Filter Panel */}
       {isExpanded && (
         <Animated.View
           style={{
@@ -469,22 +455,16 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                     Type d'animal
                   </Text>
                   <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-                    {[
-                      "Chat",
-                      "Chien",
-                      "Oiseau",
-                      "Rongeur",
-                      "Reptile",
-                      "Poisson",
-                    ].map((animal) => (
+                    {availaibleAnimal.map((animal) => (
                       <Pressable
                         key={animal}
-                        onPress={() => setFilters({ ...filters, animal })}
+                        onPress={() => toggleAnimalType(animal)}
                         style={{
-                          backgroundColor:
-                            filters.animal === animal
-                              ? getAccentColor()
-                              : getInputBgColor(),
+                          backgroundColor: filters.animal_types?.includes(
+                            animal
+                          )
+                            ? getAccentColor()
+                            : getInputBgColor(),
                           paddingHorizontal: 16,
                           paddingVertical: 8,
                           borderRadius: 9999,
@@ -494,12 +474,12 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       >
                         <Text
                           style={{
-                            color:
-                              filters.animal === animal
-                                ? "white"
-                                : getTextColor(),
-                            fontWeight:
-                              filters.animal === animal ? "500" : "normal",
+                            color: filters.animal_types?.includes(animal)
+                              ? "white"
+                              : getTextColor(),
+                            fontWeight: filters.animal_types?.includes(animal)
+                              ? "500"
+                              : "normal",
                           }}
                         >
                           {animal}
@@ -509,7 +489,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                   </View>
                 </View>
 
-                <View style={{ marginBottom: 24 }}>
+                {/* <View style={{ marginBottom: 24 }}>
                   <Text
                     style={{
                       fontSize: 16,
@@ -559,7 +539,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       style={{ width: "48%" }}
                     />
                   </View>
-                </View>
+                </View> */}
 
                 <View style={{ marginBottom: 24 }}>
                   <Text
@@ -578,7 +558,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                         key={service}
                         onPress={() => toggleService(service)}
                         style={{
-                          backgroundColor: filters.services.includes(service)
+                          backgroundColor: filters.services?.includes(service)
                             ? getAccentColor()
                             : getInputBgColor(),
                           paddingHorizontal: 16,
@@ -590,10 +570,10 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       >
                         <Text
                           style={{
-                            color: filters.services.includes(service)
+                            color: filters.services?.includes(service)
                               ? "white"
                               : getTextColor(),
-                            fontWeight: filters.services.includes(service)
+                            fontWeight: filters.services?.includes(service)
                               ? "500"
                               : "normal",
                           }}
@@ -623,7 +603,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                         key={day}
                         onPress={() => toggleDay(day)}
                         style={{
-                          backgroundColor: filters.availability.days.includes(
+                          backgroundColor: filters.availability_days?.includes(
                             day
                           )
                             ? getAccentColor()
@@ -637,10 +617,10 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       >
                         <Text
                           style={{
-                            color: filters.availability.days.includes(day)
+                            color: filters.availability_days?.includes(day)
                               ? "white"
                               : getTextColor(),
-                            fontWeight: filters.availability.days.includes(day)
+                            fontWeight: filters.availability_days?.includes(day)
                               ? "500"
                               : "normal",
                           }}
@@ -671,7 +651,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                         onPress={() => toggleTimeSlot(timeSlot)}
                         style={{
                           backgroundColor:
-                            filters.availability.timeSlots.includes(timeSlot)
+                            filters.availability_intervals?.includes(timeSlot)
                               ? getAccentColor()
                               : getInputBgColor(),
                           paddingHorizontal: 16,
@@ -683,16 +663,15 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       >
                         <Text
                           style={{
-                            color: filters.availability.timeSlots.includes(
+                            color: filters.availability_intervals?.includes(
                               timeSlot
                             )
                               ? "white"
                               : getTextColor(),
-                            fontWeight: filters.availability.timeSlots.includes(
-                              timeSlot
-                            )
-                              ? "500"
-                              : "normal",
+                            fontWeight:
+                              filters.availability_intervals?.includes(timeSlot)
+                                ? "500"
+                                : "normal",
                           }}
                         >
                           {timeSlot}

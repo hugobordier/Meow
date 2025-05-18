@@ -47,18 +47,18 @@ export interface CreatePetSitterInput {
   availability?: AvailabilityDay[];
 }
 
-export interface PetSitter {
-  id: string;
-  user_id: string;
-  bio?: string;
-  hourly_rate: number;
-  experience?: number;
-  availability?: AvailabilityDay[];
-  latitude: number | null;
-  longitude: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface PetSitter {
+//   id: string;
+//   user_id: string;
+//   bio?: string;
+//   hourly_rate: number;
+//   experience?: number;
+//   availability?: AvailabilityDay[];
+//   latitude: number | null;
+//   longitude: number | null;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export type TimeInterval = {
   start_time: string;
@@ -76,17 +76,6 @@ export type AvailabilityDay =
 
 export type AvailabilityInterval = "Matin" | "Après-midi" | "Soir" | "Nuit";
 
-export type AnimalType =
-  | "Chat"
-  | "Chien"
-  | "Oiseau"
-  | "Rongeur"
-  | "Reptile"
-  | "Poisson"
-  | "Furet"
-  | "Cheval"
-  | "Autre";
-
 export type ServiceType =
   | "Promenade"
   | "Alimentation"
@@ -98,6 +87,17 @@ export type ServiceType =
   | "Médication"
   | "Nettoyage"
   | "Transport";
+
+export type AnimalType =
+  | "Chat"
+  | "Chien"
+  | "Oiseau"
+  | "Rongeur"
+  | "Reptile"
+  | "Poisson"
+  | "Furet"
+  | "Cheval"
+  | "Autre";
 
 export interface PaginationParams {
   page?: number;
@@ -116,4 +116,66 @@ export interface PetSitterQueryParams {
   latitude?: number;
   longitude?: number;
   radius?: number;
+}
+
+export interface PetSitter {
+  id: string;
+  user_id: string;
+  bio: string | null;
+  experience: number;
+  hourly_rate: string;
+  latitude: number;
+  longitude: number;
+  animal_types: string[] | null;
+  available_days: AvailabilityDay[] | null;
+  available_slots: AvailabilityInterval[] | null;
+  services: ServiceType[] | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserPetSitter {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  address: string;
+  phoneNumber: string;
+  profilePicture: string;
+  city: string;
+  country: string;
+  bankInfo: string;
+  identityDocument: string;
+  bio: string | null;
+  birthDate: string;
+  age: number;
+  rating: number | null;
+  gender: string | null;
+  googleId: string | null;
+  isAdmin: boolean | null;
+  resetcode: string | null;
+  resetcodeexpires: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResponsePetsitter {
+  petsitter: PetSitter;
+  user: UserPetSitter;
+}
+
+export interface Pagination {
+  currentPage: string;
+  itemsPerPage: string;
+  totalItems: string;
+  totalPages: string;
+}
+
+export interface ApiResponsePetsitter {
+  success: boolean;
+  petsitters: ResponsePetsitter[];
+  message: string;
+  pagination: Pagination;
 }

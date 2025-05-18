@@ -8,6 +8,7 @@ import {
   Platform,
   Keyboard,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
@@ -18,10 +19,13 @@ import { Cat, Dog } from "lucide-react-native";
 import { useColorScheme } from "react-native";
 import { darkMapStyle, lightMapStyle } from "@/utils/constants";
 import { getPetSitters } from "@/services/petsitter.service";
-import { PaginationParams, PetSitterQueryParams } from "@/types/type";
-import { isLoaded, isLoading } from "expo-font";
+import {
+  PaginationParams,
+  PetSitterQueryParams,
+  ResponsePetsitter,
+} from "@/types/type";
 
-export default function MeowMapScreen() {
+const Maps = () => {
   const mapRef = useRef<MapView | null>(null);
   const [mapRegion, setMapRegion] = useState({
     latitude: 48.8566,
@@ -41,7 +45,7 @@ export default function MeowMapScreen() {
     limit: 100000,
   });
   const [filters, setFilters] = useState<PetSitterQueryParams | null>(null);
-  const [petsitter, setPetsitter] = useState<any | null>(null);
+  const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>(null);
   const [loading, setIsLoading] = useState(false);
   const colorScheme = useColorScheme();
 
@@ -108,8 +112,6 @@ export default function MeowMapScreen() {
     };
   }, [locationPermission]);
 
-  const handleSearch = () => {};
-
   const centerOnUserLocation = () => {
     if (userLocation && mapRef.current) {
       mapRef.current.animateToRegion(
@@ -129,12 +131,10 @@ export default function MeowMapScreen() {
     }
   };
 
-  // Toggle between cat and dog marker
   const togglePetType = () => {
     setPetType(petType === "cat" ? "dog" : "cat");
   };
 
-  // Handle map region change to update zoom level
   const onRegionChange = (region: any) => {
     const { latitudeDelta, longitudeDelta } = region;
     const MAX_DELTA = 0.1;
@@ -158,26 +158,31 @@ export default function MeowMapScreen() {
   ) => {
     try {
       setIsLoading(true);
+
       const res = await getPetSitters(filters, pagination);
-      setPetsitter(res.data || []);
+
+      console.log("petsitters ici :", res.petsitters);
+
+      setPetsitter(res.petsitters);
     } catch (e) {
+      console.error("Erreur getPetSitter :", e);
       setPetsitter([]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const updateFilters = (newFilters: Partial<PetSitterQueryParams>) => {
+  const updateFilters = (newFilters: PetSitterQueryParams) => {
     setFilters((prevFilters) => ({
       ...prevFilters,
       ...newFilters,
     }));
   };
+
   useEffect(() => {
     getPetSitter();
-    console.log(loading);
-    console.log("long", petsitter);
-  }, [isLoading]);
+  }, []);
+
   useEffect(() => {
     getPetSitter(pagination, filters);
   }, [filters]);
@@ -203,7 +208,7 @@ export default function MeowMapScreen() {
             onRegionChange={onRegionChange}
           >
             {petsitter &&
-              petsitter.petsitters.map((ps: any) => (
+              petsitter.map((ps) => (
                 <Marker
                   key={ps.petsitter.id}
                   coordinate={{
@@ -229,11 +234,18 @@ export default function MeowMapScreen() {
             )}
           </MapView>
 
-          <SearchBarMap onSearch={handleSearch} initialCity="Paris" />
+          <SearchBarMap onSearch={updateFilters} initialCity="Paris" />
 
-          {/* Control buttons container */}
+          {loading && (
+            <View className="absolute top-3/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 p-4 rounded-lg">
+              <ActivityIndicator size="large" color="#2563EB" />
+              <Text className="text-white mt-2 font-semibold text-center">
+                Chargement des pet sitters...
+              </Text>
+            </View>
+          )}
+
           <View className="absolute bottom-6 right-6 flex flex-col space-y-3">
-            {/* Toggle pet type */}
             <TouchableOpacity
               onPress={togglePetType}
               className="bg-white p-3 rounded-full shadow-md border border-gray-200"
@@ -256,7 +268,6 @@ export default function MeowMapScreen() {
               <Dog size={24} color="#2563EB" />
             </TouchableOpacity>
 
-            {/* Recenter button */}
             <TouchableOpacity
               onPress={centerOnUserLocation}
               className="bg-white p-3 rounded-full shadow-md border border-gray-200"
@@ -269,4 +280,6 @@ export default function MeowMapScreen() {
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
-}
+};
+
+export default Maps;
