@@ -37,7 +37,10 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const [city, setCity] = useState<string>(initialCity);
   const [dates, setDates] = useState<string>("Lundi-Mercredi");
   const [showFilters, setShowFilters] = useState<boolean>(false);
-  const [filters, setFilters] = useState<PetSitterQueryParams>({});
+  const [filters, setFilters] = useState<PetSitterQueryParams>({
+    minRate: 0,
+    maxRate: 100,
+  });
 
   const animatedValue = useRef(new Animated.Value(0)).current;
   const searchBarWidth = animatedValue.interpolate({
@@ -156,7 +159,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
 
   const handleSearch = () => {
     if (onSearch) {
-      onSearch({});
+      onSearch(filters);
     }
   };
 
@@ -168,9 +171,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
 
   const getBgColor = () => {
     return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
-  };
-  const getBgColor2 = () => {
-    return isDark ? "#1a202c" : "#efb1ef";
   };
 
   const getTextColor = () => {
@@ -230,26 +230,29 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   };
 
   const resetFilters = () => {
-    setFilters({});
+    setFilters({ minRate: 0, maxRate: 100 });
   };
 
   const applyFilters = () => {
     toggleSearchBar();
     handleSearch();
   };
-  // const handleMinPriceChange = (value: number) => {
-  //   setFilters((prev) => ({
-  //     ...prev,
-  //     minPrice: Math.min(value, prev.maxPrice),
-  //   }));
-  // };
 
-  // const handleMaxPriceChange = (value: number) => {
-  //   setFilters((prev) => ({
-  //     ...prev,
-  //     maxPrice: Math.max(value, prev.minPrice),
-  //   }));
-  // };
+  const handleMinPriceChange = (value: number) => {
+    console.log(value);
+    setFilters((prev) => ({
+      ...prev,
+      minRate: isNaN(prev.minRate!) ? value : Math.min(value, prev.maxRate!),
+    }));
+    console.log(filters);
+  };
+
+  const handleMaxPriceChange = (value: number) => {
+    setFilters((prev) => ({
+      ...prev,
+      maxRate: isNaN(prev.maxRate!) ? value : Math.max(value, prev.minRate!),
+    }));
+  };
 
   return (
     <>
@@ -346,7 +349,17 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                     color: getTextColor(),
                   }}
                 >
-                  {filters.availability_days} · {filters.animal_types}
+                  {filters.availability_days &&
+                  filters.availability_days.length > 0
+                    ? filters.availability_days
+                        .map((day: string) =>
+                          //@ts-ignore
+                          filters.availability_days.length > 3
+                            ? day.slice(0, 2)
+                            : day
+                        )
+                        .join(" - ")
+                    : ""}
                 </Text>
               </View>
             </View>
@@ -493,7 +506,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                   </View>
                 </View>
 
-                {/* <View style={{ marginBottom: 24 }}>
+                <View style={{ marginBottom: 24 }}>
                   <Text
                     style={{
                       fontSize: 16,
@@ -502,7 +515,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       color: getTextColor(),
                     }}
                   >
-                    Prix: {filters.minPrice}€ - {filters.maxPrice}€
+                    Prix: {filters.minRate}€ - {filters.maxRate}€
                   </Text>
                   <View
                     style={{
@@ -512,8 +525,12 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       marginBottom: 10,
                     }}
                   >
-                    <Text style={{ color: getTextColor() }}>0€</Text>
-                    <Text style={{ color: getTextColor() }}>100€</Text>
+                    <Text style={{ color: getTextColor() }}>
+                      {filters.minRate}€
+                    </Text>
+                    <Text style={{ color: getTextColor() }}>
+                      {filters.maxRate}€
+                    </Text>
                   </View>
                   <View
                     style={{
@@ -526,7 +543,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       minimumValue={0}
                       maximumValue={100}
                       step={1}
-                      value={filters.minPrice}
+                      value={filters.minRate}
                       onValueChange={handleMinPriceChange}
                       minimumTrackTintColor={getAccentColor()}
                       thumbTintColor={getAccentColor()}
@@ -536,14 +553,14 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                       minimumValue={0}
                       maximumValue={100}
                       step={1}
-                      value={filters.maxPrice}
+                      value={filters.maxRate}
                       onValueChange={handleMaxPriceChange}
                       minimumTrackTintColor={getAccentColor()}
                       thumbTintColor={getAccentColor()}
                       style={{ width: "48%" }}
                     />
                   </View>
-                </View> */}
+                </View>
 
                 <View style={{ marginBottom: 24 }}>
                   <Text

@@ -175,10 +175,12 @@ const Maps = () => {
   };
 
   const updateFilters = (newFilters: PetSitterQueryParams) => {
+    console.log("update fileter", newFilters);
     setFilters((prevFilters) => ({
       ...prevFilters,
       ...newFilters,
     }));
+    console.log("filter dans maps : ", filters);
   };
 
   useEffect(() => {

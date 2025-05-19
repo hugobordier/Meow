@@ -34,6 +34,8 @@ export const getPetSitters = async (
       }
     });
 
+    console.log(queryParams.toString());
+
     const response = await api.get(`/Petsitter?${queryParams.toString()}`);
     console.log(response.data);
     return response.data.data;
