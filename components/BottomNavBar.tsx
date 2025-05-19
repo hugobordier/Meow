@@ -11,6 +11,7 @@ import { useRouter, usePathname, type Href } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { type ComponentProps, useEffect, useState } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { getSocket } from "@/services/socket";
 
 type IconName = ComponentProps<typeof Ionicons>["name"];
 
@@ -102,7 +103,23 @@ export default function BottomNavBar() {
         return (
           <Pressable
             key={route.name}
-            onPress={() => router.push(route.path as Href)}
+            onPress={() => {
+              if (route.name === "Chat") {
+                const socket = getSocket();
+                if (socket) {
+                  console.log("🔌 Socket connecté ?", socket.connected);
+                  if (socket.connected) {
+                    console.log("✅ Le socket est bien connecté !");
+                  } else {
+                    console.log("❌ Le socket est PAS connecté !");
+                  }
+                } else {
+                  console.log("⚠️ Aucun socket actif (null)");
+                }
+              }
+
+  router.push(route.path as Href);
+}}
             style={[styles.tab]}
           >
             <Ionicons
