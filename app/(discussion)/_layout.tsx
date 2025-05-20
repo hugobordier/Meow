@@ -1,10 +1,16 @@
 import { Stack } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import BottomNavBar from "@/components/BottomNavBar";
 
 const Layout = () => {
   return (
-    <Stack>
-      <Stack.Screen name="chatScreen" options={{ headerShown: false }} />
-    </Stack>
+    <SafeAreaProvider>
+      <Stack >
+        <Stack.Screen name="chatScreen" options={{ headerShown: false }} />
+      </Stack>
+      <BottomNavBar/>
+    </SafeAreaProvider>
+    
   );
 };
 

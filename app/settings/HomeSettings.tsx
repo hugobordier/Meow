@@ -11,7 +11,9 @@ import { useRouter } from "expo-router";
 import { ArrowLeft, ChevronRight } from "lucide-react-native";
 import { usePreferencesStore } from "@/store/preferences";
 import { logout } from "@/services/api";
+import { getSocket } from "@/services/socket";
 
+const socket = getSocket();
 const settingsOptions = [
   {
     title: "Mode sombre",
@@ -105,7 +107,17 @@ const HomeSettings = () => {
         </TouchableOpacity>
 
         <TouchableOpacity
-          onPress={async () => await logout()}
+          onPress={async () => {
+            const socket = getSocket();
+            if (socket) {
+              socket.disconnect();
+              console.log("✅ Socket déconnecté !");
+            } else {
+              console.log("❌ Aucun socket actif");
+            }
+          
+            await logout()
+        }}
           className="flex-row items-center justify-between py-4"
         >
           <Text className="text-base text-red-500 dark:text-red-400 font-semibold">
