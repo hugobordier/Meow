@@ -9,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
   useColorScheme,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
@@ -19,24 +20,56 @@ import {
   PetSitterQueryParams,
   ServiceType,
 } from "@/types/type";
+import { searchCityByName } from "@/utils/serrchCityByName";
 
 const { width } = Dimensions.get("window");
 
+// Données fictives pour simuler les résultats de recherche de villes
+const MOCK_CITIES = [
+  "Paris",
+  "Marseille",
+  "Lyon",
+  "Toulouse",
+  "Nice",
+  "Nantes",
+  "Strasbourg",
+  "Montpellier",
+  "Bordeaux",
+  "Lille",
+  "Rennes",
+  "Reims",
+  "Le Havre",
+  "Saint-Étienne",
+  "Toulon",
+  "Grenoble",
+  "Dijon",
+  "Angers",
+  "Nîmes",
+  "Villeurbanne",
+];
+
 type SearchBarMapProps = {
   onSearch?: (params: PetSitterQueryParams) => void;
+  onSearchCity?: (longitude: number, latitude: number) => void;
   initialCity?: string;
+  count?: number;
 };
 
 const SearchBarMap: React.FC<SearchBarMapProps> = ({
   onSearch,
+  onSearchCity,
   initialCity = "Paris",
+  count = 0,
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [city, setCity] = useState<string>(initialCity);
-  const [dates, setDates] = useState<string>("Lundi-Mercredi");
   const [showFilters, setShowFilters] = useState<boolean>(false);
+  const [showCitySuggestions, setShowCitySuggestions] =
+    useState<boolean>(false);
+  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+  const [isSearching, setIsSearching] = useState<boolean>(false);
   const [filters, setFilters] = useState<PetSitterQueryParams>({
     minRate: 0,
     maxRate: 100,
@@ -71,7 +104,22 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     outputRange: [0, 1],
   });
 
+  const suggestionAnim = useRef(new Animated.Value(0)).current;
+  const suggestionHeight = suggestionAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 300],
+  });
+
+  const suggestionOpacity = suggestionAnim.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 1],
+  });
+
   const toggleFilters = () => {
+    if (showCitySuggestions) {
+      hideCitySuggestions();
+    }
+
     if (!showFilters) {
       setShowFilters(true);
       Animated.timing(filterAnim, {
@@ -88,6 +136,40 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         setShowFilters(false);
       });
     }
+  };
+
+  const showCityResults = () => {
+    if (showFilters) {
+      Animated.timing(filterAnim, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: false,
+      }).start(() => {
+        setShowFilters(false);
+        displayCitySuggestions();
+      });
+    } else {
+      displayCitySuggestions();
+    }
+  };
+
+  const displayCitySuggestions = () => {
+    setShowCitySuggestions(true);
+    Animated.timing(suggestionAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: false,
+    }).start();
+  };
+
+  const hideCitySuggestions = () => {
+    Animated.timing(suggestionAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: false,
+    }).start(() => {
+      setShowCitySuggestions(false);
+    });
   };
 
   const availableServices: ServiceType[] = [
@@ -133,20 +215,26 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const toggleSearchBar = () => {
     const toValue = isExpanded ? 0 : 1;
 
-    if (isExpanded && showFilters) {
-      Animated.timing(filterAnim, {
-        toValue: 0,
-        duration: 200,
-        useNativeDriver: false,
-      }).start(() => {
-        Animated.spring(animatedValue, {
-          toValue,
+    if (isExpanded && (showFilters || showCitySuggestions)) {
+      if (showFilters) {
+        Animated.timing(filterAnim, {
+          toValue: 0,
+          duration: 200,
           useNativeDriver: false,
-          friction: 8,
-        }).start();
-        setIsExpanded(false);
-        setShowFilters(false);
-      });
+        }).start(() => {
+          setShowFilters(false);
+          collapseSearchBar();
+        });
+      } else if (showCitySuggestions) {
+        Animated.timing(suggestionAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: false,
+        }).start(() => {
+          setShowCitySuggestions(false);
+          collapseSearchBar();
+        });
+      }
     } else {
       Animated.spring(animatedValue, {
         toValue,
@@ -157,36 +245,83 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     }
   };
 
+  const collapseSearchBar = () => {
+    Animated.spring(animatedValue, {
+      toValue: 0,
+      useNativeDriver: false,
+      friction: 8,
+    }).start();
+    setIsExpanded(false);
+  };
+
   const handleSearch = () => {
     if (onSearch) {
-      onSearch(filters);
+      onSearch({ ...filters }); //;onSearch({ ...filters, city });
     }
   };
 
-  // useEffect(() => {
-  //   if (isExpanded) {
-  //     handleSearch();
-  //   }
-  // }, [filters]);
+  const searchCities = async (text: string) => {
+    setCity(text);
+
+    if (text.length > 1) {
+      setIsSearching(true);
+
+      const result = await searchCityByName(text);
+
+      if (result) {
+        setCitySuggestions([result.city]);
+        console.log(citySuggestions);
+        if (!showCitySuggestions && isExpanded) {
+          showCityResults();
+        }
+      } else {
+        setCitySuggestions([]);
+        if (showCitySuggestions) {
+          hideCitySuggestions();
+        }
+      }
+
+      setIsSearching(false);
+    } else {
+      setCitySuggestions([]);
+      if (showCitySuggestions) {
+        hideCitySuggestions();
+      }
+    }
+  };
+
+  const selectCity = (selectedCity: string) => {
+    setCity(selectedCity);
+    hideCitySuggestions();
+  };
+
+  const useCurrentLocation = () => {
+    setIsSearching(true);
+    setTimeout(() => {
+      setCity("Votre position");
+      setIsSearching(false);
+      hideCitySuggestions();
+    }, 1000);
+  };
 
   const getBgColor = () => {
-    return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
+    return isDark ? "#1a202c" : "#fff";
   };
 
   const getTextColor = () => {
-    return isDark ? "#f8fafc" : "#1a202c";
+    return isDark ? "#f8fafc" : "#2d3748";
   };
 
   const getInputBgColor = () => {
-    return isDark ? "#2d3748" : "#f1f5f9";
+    return isDark ? "#2d3748" : "#f9fafb";
   };
 
   const getAccentColor = () => {
-    return "#d946ef";
+    return isDark ? "#d946ef" : "#3849d6";
   };
 
   const getBorderColor = () => {
-    return isDark ? "#4a5568" : "#e2e8f0";
+    return isDark ? "#4a5568" : "#cbd5e0";
   };
 
   const toggleAnimalType = (animal: AnimalType) => {
@@ -239,12 +374,10 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   };
 
   const handleMinPriceChange = (value: number) => {
-    console.log(value);
     setFilters((prev) => ({
       ...prev,
       minRate: isNaN(prev.minRate!) ? value : Math.min(value, prev.maxRate!),
     }));
-    console.log(filters);
   };
 
   const handleMaxPriceChange = (value: number) => {
@@ -266,8 +399,10 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
           backgroundColor: getBgColor(),
           borderTopLeftRadius: 16,
           borderTopRightRadius: 16,
-          borderBottomLeftRadius: isExpanded && showFilters ? 0 : 16,
-          borderBottomRightRadius: isExpanded && showFilters ? 0 : 16,
+          borderBottomLeftRadius:
+            isExpanded && (showFilters || showCitySuggestions) ? 0 : 16,
+          borderBottomRightRadius:
+            isExpanded && (showFilters || showCitySuggestions) ? 0 : 16,
           padding: isExpanded ? 16 : 0,
           zIndex: 100,
           overflow: "hidden",
@@ -315,7 +450,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         >
           <View style={{ flexDirection: "row", alignItems: "center" }}>
             <View
-              className="shadow-md"
               style={{
                 flexDirection: "row",
                 flex: 1,
@@ -334,34 +468,48 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
               <View style={{ flex: 1 }}>
                 <TextInput
                   value={city}
-                  onChangeText={setCity}
+                  onChangeText={searchCities}
                   placeholder="Ville"
                   placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
                   style={{
                     fontWeight: "500",
                     color: getTextColor(),
                   }}
-                  onSubmitEditing={handleSearch}
-                />
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: getTextColor(),
+                  onFocus={() => {
+                    if (city.length > 1) {
+                      showCityResults();
+                    }
                   }}
-                >
-                  {filters.availability_days &&
-                  filters.availability_days.length > 0
-                    ? filters.availability_days
-                        .map((day: string) =>
-                          //@ts-ignore
-                          filters.availability_days.length > 3
-                            ? day.slice(0, 2)
-                            : day
-                        )
-                        .join(" - ")
-                    : ""}
-                </Text>
+                />
+                {filters.availability_days &&
+                  filters.availability_days?.length > 0 && (
+                    <Text
+                      style={{
+                        fontSize: 12,
+                        color: getTextColor(),
+                      }}
+                    >
+                      {filters.availability_days &&
+                      filters.availability_days.length > 0
+                        ? filters.availability_days
+                            .map((day: string) =>
+                              //@ts-ignore
+                              filters.availability_days.length > 3
+                                ? day.slice(0, 2)
+                                : day
+                            )
+                            .join(" - ")
+                        : ""}
+                    </Text>
+                  )}
               </View>
+              {isSearching && (
+                <ActivityIndicator
+                  size="small"
+                  color={getAccentColor()}
+                  style={{ marginLeft: 4 }}
+                />
+              )}
             </View>
             <Pressable
               onPress={toggleSearchBar}
@@ -410,28 +558,91 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                 </Text>
                 <Feather name="sliders" size={14} color={getTextColor()} />
               </Pressable>
-              <Pressable
-                style={{
-                  backgroundColor: getInputBgColor(),
-                  paddingHorizontal: 16,
-                  paddingVertical: 8,
-                  borderRadius: 9999,
-                  borderWidth: 1,
-                  borderColor: getBorderColor(),
-                }}
-              >
-                <Text style={{ fontSize: 14, color: getTextColor() }}>
-                  Trier
-                </Text>
-              </Pressable>
             </View>
             <Text style={{ color: getTextColor(), fontSize: 14 }}>
-              6 résultats
+              {count} résultats
             </Text>
           </View>
         </Animated.View>
       </Animated.View>
 
+      {/* Suggestions de villes */}
+      {isExpanded && (
+        <Animated.View
+          style={{
+            position: "absolute",
+            top: 140,
+            right: 16,
+            left: 16,
+            backgroundColor: getBgColor(),
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: 0,
+            borderBottomLeftRadius: 24,
+            borderBottomRightRadius: 24,
+            padding: 16,
+            opacity: suggestionOpacity,
+            height: suggestionHeight,
+            overflow: "hidden",
+            zIndex: 99,
+            shadowColor: "#000",
+            shadowOffset: { width: 0, height: 2 },
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+            marginTop: -1,
+            display: showCitySuggestions ? "flex" : "none",
+          }}
+        >
+          {showCitySuggestions && (
+            <ScrollView style={{ maxHeight: "100%" }}>
+              <Pressable
+                onPress={useCurrentLocation}
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  paddingVertical: 14,
+                  borderBottomWidth: 1,
+                  borderBottomColor: getBorderColor(),
+                }}
+              >
+                <Feather
+                  name="map-pin"
+                  size={18}
+                  color={getAccentColor()}
+                  style={{ marginRight: 12 }}
+                />
+                <Text style={{ color: getAccentColor(), fontWeight: "500" }}>
+                  Utiliser votre position actuelle
+                </Text>
+              </Pressable>
+
+              {citySuggestions.map((suggestion) => (
+                <Pressable
+                  key={suggestion}
+                  onPress={() => selectCity(suggestion)}
+                  style={{
+                    paddingVertical: 14,
+                    borderBottomWidth: 1,
+                    borderBottomColor: getBorderColor(),
+                  }}
+                >
+                  <Text style={{ color: getTextColor() }}>{suggestion}</Text>
+                </Pressable>
+              ))}
+
+              {citySuggestions.length === 0 && !isSearching && (
+                <View style={{ paddingVertical: 20, alignItems: "center" }}>
+                  <Text style={{ color: getTextColor(), opacity: 0.6 }}>
+                    Aucun résultat trouvé
+                  </Text>
+                </View>
+              )}
+            </ScrollView>
+          )}
+        </Animated.View>
+      )}
+
+      {/* Panneau des filtres */}
       {isExpanded && (
         <Animated.View
           style={{
@@ -455,6 +666,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
             shadowRadius: 4,
             elevation: 3,
             marginTop: -1,
+            display: showFilters ? "flex" : "none",
           }}
         >
           {showFilters && (

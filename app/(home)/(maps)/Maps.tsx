@@ -9,6 +9,7 @@ import {
   Keyboard,
   Alert,
   ActivityIndicator,
+  SectionList,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
@@ -46,7 +47,7 @@ const Maps = () => {
     limit: 100000,
   });
   const [filters, setFilters] = useState<PetSitterQueryParams | null>(null);
-  const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>(null);
+  const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>([]);
   const [loading, setIsLoading] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -163,8 +164,6 @@ const Maps = () => {
 
       const res = await getPetSitters(filters, pagination);
 
-      console.log("petsitters ici :", res.petsitters);
-
       setPetsitter(res.petsitters);
     } catch (e) {
       console.error("Erreur getPetSitter :", e);
@@ -180,7 +179,25 @@ const Maps = () => {
       ...prevFilters,
       ...newFilters,
     }));
-    console.log("filter dans maps : ", filters);
+  };
+
+  const onSearchCity = (longitude: number, latitude: number) => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: latitude,
+          longitude: longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    } else {
+      Alert.alert(
+        "Localisation non disponible",
+        "Nous ne pouvons pas accéder à votre position actuelle. "
+      );
+    }
   };
 
   useEffect(() => {
@@ -216,6 +233,7 @@ const Maps = () => {
             onRegionChange={onRegionChange}
           >
             {petsitter &&
+              petsitter.length > 0 &&
               petsitter.map((ps) => (
                 <Marker
                   key={ps.petsitter.id}
@@ -242,7 +260,12 @@ const Maps = () => {
             )}
           </MapView>
 
-          <SearchBarMap onSearch={updateFilters} initialCity="Paris" />
+          <SearchBarMap
+            onSearch={updateFilters}
+            initialCity="Paris"
+            count={petsitter?.length}
+            onSearchCity={onSearchCity}
+          />
 
           {loading && (
             <View className="absolute top-3/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 p-4 rounded-lg">

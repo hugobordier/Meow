@@ -19,13 +19,10 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
   zoomLevel,
   petType = "cat",
 }) => {
-  // Calculate size based on zoom level (0.001 is very zoomed in, 0.1 is zoomed out)
   const getMarkerSize = () => {
-    // Base size
+    console.log(heading);
     const baseSize = 40;
 
-    // Adjust size based on zoom level
-    // zoomLevel is latitudeDelta from the map
     if (zoomLevel <= 0.005) return baseSize * 1.5; // Very zoomed in
     if (zoomLevel <= 0.01) return baseSize * 1.2; // Zoomed in
     if (zoomLevel <= 0.05) return baseSize; // Normal zoom
@@ -35,11 +32,7 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
   const size = getMarkerSize();
 
   return (
-    <Marker
-      coordinate={coordinate}
-      anchor={{ x: 0.5, y: 0.5 }}
-      title="Votre position"
-    >
+    <Marker coordinate={coordinate} anchor={{ x: 0.5, y: 0.5 }}>
       <View
         style={[styles.container, { transform: [{ rotate: `${heading}deg` }] }]}
       >
