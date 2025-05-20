@@ -1,6 +1,16 @@
 import { api } from "./api";
 import { User } from "@/types/type";
 
+export const getAllUsers = async () => {
+  try{
+    const response = await api.get("/User");
+    return response.data.data;
+  }catch (error:any){
+    console.error("err recup users", error);
+    throw(error.response?.data || {message: "erreur recup uses"});
+  }
+};
+
 export const updateProfilePicture = async (image: string) => {
   try {
     const formData = new FormData();
