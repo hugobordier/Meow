@@ -20,11 +20,10 @@ const UserLocationMarker: React.FC<UserLocationMarkerProps> = ({
   petType = "cat",
 }) => {
   const getMarkerSize = () => {
-    console.log(heading);
     const baseSize = 40;
 
-    if (zoomLevel <= 0.005) return baseSize * 1.5; // Very zoomed in
-    if (zoomLevel <= 0.01) return baseSize * 1.2; // Zoomed in
+    if (zoomLevel <= 0.005) return baseSize * 1; // Very zoomed in
+    if (zoomLevel <= 0.01) return baseSize * 1; // Zoomed in
     if (zoomLevel <= 0.05) return baseSize; // Normal zoom
     return baseSize * 0.8; // Zoomed out
   };
@@ -62,6 +61,7 @@ const styles = StyleSheet.create({
   container: {
     alignItems: "center",
     justifyContent: "center",
+    zIndex: -10,
   },
   markerOuter: {
     backgroundColor: "rgba(37, 99, 235, 0.3)",
@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    elevation: 5,
   },
   direction: {
     position: "absolute",

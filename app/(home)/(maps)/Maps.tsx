@@ -13,7 +13,6 @@ import {
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
-import { LocateFixed } from "lucide-react-native";
 import SearchBarMap from "@/components/SearchBarMap";
 import UserLocationMarker from "@/components/UserLocationMarker";
 import { Cat, Dog } from "lucide-react-native";
@@ -181,8 +180,8 @@ const Maps = () => {
     }));
   };
 
-  const onSearchCity = (longitude: number, latitude: number) => {
-    if (mapRef.current) {
+  const onSearchCity = (longitude?: number, latitude?: number) => {
+    if (mapRef.current && longitude && latitude) {
       mapRef.current.animateToRegion(
         {
           latitude: latitude,
@@ -193,10 +192,7 @@ const Maps = () => {
         1000
       );
     } else {
-      Alert.alert(
-        "Localisation non disponible",
-        "Nous ne pouvons pas accéder à votre position actuelle. "
-      );
+      centerOnUserLocation();
     }
   };
 
@@ -234,21 +230,36 @@ const Maps = () => {
           >
             {petsitter &&
               petsitter.length > 0 &&
-              petsitter.map((ps) => (
-                <Marker
-                  key={ps.petsitter.id}
-                  coordinate={{
-                    latitude: ps.petsitter.latitude,
-                    longitude: ps.petsitter.longitude,
-                  }}
-                >
-                  <View className="bg-white px-2 py-1 rounded-full border border-gray-300">
-                    <Text className="text-base font-bold">
-                      {ps.petsitter.hourly_rate} €
-                    </Text>
-                  </View>
-                </Marker>
-              ))}
+              petsitter.map((ps) => {
+                return (
+                  <Marker
+                    key={ps.petsitter.id}
+                    coordinate={{
+                      latitude: ps.petsitter.latitude,
+                      longitude: ps.petsitter.longitude,
+                    }}
+                    onPress={() => {
+                      console.log(ps);
+                    }}
+                  >
+                    <View
+                      className={`px-2 py-1 rounded-full border ${
+                        isDark
+                          ? "bg-gray-800 border-gray-600"
+                          : "bg-white border-gray-300"
+                      } z`}
+                    >
+                      <Text
+                        className={`text-base font-bold ${
+                          isDark ? "text-white" : "text-black"
+                        }`}
+                      >
+                        {ps.petsitter.hourly_rate} €
+                      </Text>
+                    </View>
+                  </Marker>
+                );
+              })}
 
             {userLocation && (
               <UserLocationMarker

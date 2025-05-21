@@ -1,5 +1,6 @@
 import type React from "react";
-import { useState, useRef, useEffect } from "react";
+import debounce from "lodash/debounce";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -20,7 +21,7 @@ import {
   PetSitterQueryParams,
   ServiceType,
 } from "@/types/type";
-import { searchCityByName } from "@/utils/serrchCityByName";
+import { CityResult, searchCityByName } from "@/utils/serrchCityByName";
 
 const { width } = Dimensions.get("window");
 
@@ -29,28 +30,12 @@ const MOCK_CITIES = [
   "Paris",
   "Marseille",
   "Lyon",
-  "Toulouse",
-  "Nice",
-  "Nantes",
-  "Strasbourg",
-  "Montpellier",
-  "Bordeaux",
-  "Lille",
-  "Rennes",
-  "Reims",
-  "Le Havre",
-  "Saint-Étienne",
-  "Toulon",
-  "Grenoble",
-  "Dijon",
-  "Angers",
-  "Nîmes",
-  "Villeurbanne",
+  // ...autres villes
 ];
 
 type SearchBarMapProps = {
   onSearch?: (params: PetSitterQueryParams) => void;
-  onSearchCity?: (longitude: number, latitude: number) => void;
+  onSearchCity?: (longitude?: number, latitude?: number) => void;
   initialCity?: string;
   count?: number;
 };
@@ -68,11 +53,11 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const [showFilters, setShowFilters] = useState<boolean>(false);
   const [showCitySuggestions, setShowCitySuggestions] =
     useState<boolean>(false);
-  const [citySuggestions, setCitySuggestions] = useState<string[]>([]);
+  const [citySuggestions, setCitySuggestions] = useState<CityResult[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [filters, setFilters] = useState<PetSitterQueryParams>({
     minRate: 0,
-    maxRate: 100,
+    maxRate: 100, //intial state for price filter
   });
 
   const animatedValue = useRef(new Animated.Value(0)).current;
@@ -260,19 +245,35 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
     }
   };
 
-  const searchCities = async (text: string) => {
-    setCity(text);
+  // Création d'une seule fonction debounced pour rechercher les villes
+  const debouncedCitySearch = useCallback(
+    debounce(async (text: string) => {
+      console.log("Debounced search city call: ", text);
 
-    if (text.length > 1) {
-      setIsSearching(true);
+      if (text.length > 1) {
+        setIsSearching(true);
 
-      const result = await searchCityByName(text);
+        try {
+          const results = await searchCityByName(text);
+          console.log("API results:", results);
 
-      if (result) {
-        setCitySuggestions([result.city]);
-        console.log(citySuggestions);
-        if (!showCitySuggestions && isExpanded) {
-          showCityResults();
+          if (results.length > 0) {
+            setCitySuggestions(results);
+
+            if (!showCitySuggestions && isExpanded) {
+              showCityResults();
+            }
+          } else {
+            setCitySuggestions([]);
+            if (showCitySuggestions) {
+              hideCitySuggestions();
+            }
+          }
+        } catch (error) {
+          console.error("Error searching cities:", error);
+          setCitySuggestions([]);
+        } finally {
+          setIsSearching(false);
         }
       } else {
         setCitySuggestions([]);
@@ -280,28 +281,28 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
           hideCitySuggestions();
         }
       }
+    }, 500),
+    [isExpanded, showCitySuggestions]
+  );
 
-      setIsSearching(false);
-    } else {
-      setCitySuggestions([]);
-      if (showCitySuggestions) {
-        hideCitySuggestions();
-      }
+  const handleCityInputChange = (text: string) => {
+    setCity(text);
+    debouncedCitySearch(text);
+  };
+
+  const selectCity = (selectedCity: CityResult) => {
+    setCity(selectedCity.city!);
+    hideCitySuggestions();
+    if (selectedCity && onSearchCity) {
+      onSearchCity(selectedCity.longitude, selectedCity.latitude);
     }
   };
 
-  const selectCity = (selectedCity: string) => {
-    setCity(selectedCity);
-    hideCitySuggestions();
-  };
-
   const useCurrentLocation = () => {
-    setIsSearching(true);
-    setTimeout(() => {
-      setCity("Votre position");
-      setIsSearching(false);
+    if (onSearchCity) {
+      onSearchCity();
       hideCitySuggestions();
-    }, 1000);
+    }
   };
 
   const getBgColor = () => {
@@ -468,7 +469,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
               <View style={{ flex: 1 }}>
                 <TextInput
                   value={city}
-                  onChangeText={searchCities}
+                  onChangeText={handleCityInputChange}
                   placeholder="Ville"
                   placeholderTextColor={isDark ? "#9ca3af" : "#6b7280"}
                   style={{
@@ -566,7 +567,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         </Animated.View>
       </Animated.View>
 
-      {/* Suggestions de villes */}
       {isExpanded && (
         <Animated.View
           style={{
@@ -618,7 +618,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
 
               {citySuggestions.map((suggestion) => (
                 <Pressable
-                  key={suggestion}
+                  key={suggestion.formattedAddress}
                   onPress={() => selectCity(suggestion)}
                   style={{
                     paddingVertical: 14,
@@ -626,7 +626,15 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                     borderBottomColor: getBorderColor(),
                   }}
                 >
-                  <Text style={{ color: getTextColor() }}>{suggestion}</Text>
+                  <Text style={{ color: getTextColor(), fontWeight: "bold" }}>
+                    {suggestion.city || suggestion.formattedAddress}
+                  </Text>
+                  <Text style={{ color: getTextColor(), fontSize: 12 }}>
+                    {suggestion.formattedAddress}
+                  </Text>
+                  <Text style={{ color: getTextColor(), fontSize: 12 }}>
+                    {suggestion.country}
+                  </Text>
                 </Pressable>
               ))}
 
@@ -642,7 +650,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
         </Animated.View>
       )}
 
-      {/* Panneau des filtres */}
       {isExpanded && (
         <Animated.View
           style={{
@@ -818,7 +825,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                   </View>
                 </View>
 
-                {/* Disponibilités - Jours */}
                 <View style={{ marginBottom: 24 }}>
                   <Text
                     style={{
@@ -865,7 +871,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                   </View>
                 </View>
 
-                {/* Disponibilités - Horaires */}
                 <View style={{ marginBottom: 24 }}>
                   <Text
                     style={{

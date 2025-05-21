@@ -2,8 +2,18 @@ import axios from "axios";
 
 const OPENCAGE_API_KEY = "d8e3bf2ecc1c45f6a0056e61add9d65e";
 
-export const searchCityByName = async (cityName: string) => {
-  if (!cityName) return null;
+export type CityResult = {
+  latitude: number;
+  longitude: number;
+  city: string | null;
+  country: string;
+  formattedAddress: string;
+};
+
+export const searchCityByName = async (
+  cityName: string
+): Promise<CityResult[]> => {
+  if (!cityName) return [];
 
   try {
     const res = await axios.get(
@@ -12,32 +22,35 @@ export const searchCityByName = async (cityName: string) => {
         params: {
           key: OPENCAGE_API_KEY,
           q: cityName,
-          limit: 1,
+          limit: 8,
           language: "fr",
           pretty: 1,
+          countrycode: "fr",
         },
       }
     );
 
-    const result = res.data.results[0];
+    const results = res.data.results;
 
-    if (!result) return null;
+    if (!results || results.length === 0) return [];
 
-    const {
-      geometry: { lat, lng },
-      components,
-      formatted,
-    } = result;
+    return results.map((result: any): CityResult => {
+      const {
+        geometry: { lat, lng },
+        components,
+        formatted,
+      } = result;
 
-    return {
-      latitude: lat,
-      longitude: lng,
-      city: components.city || components.town || components.village || null,
-      country: components.country,
-      formattedAddress: formatted,
-    };
+      return {
+        latitude: lat,
+        longitude: lng,
+        city: components.city || components.town || components.village || null,
+        country: components.country,
+        formattedAddress: formatted,
+      };
+    });
   } catch (error) {
     console.error("Erreur recherche ville OpenCage:", error);
-    return null;
+    return [];
   }
 };

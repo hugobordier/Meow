@@ -10,6 +10,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -35,23 +36,28 @@ export default function RootLayout() {
   }
   return (
     <BottomSheetModalProvider>
-      <AuthProvider>
-        <ToastProvider>
-          <Stack
-            screenOptions={{
-              animation: "none",
-            }}
-          >
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(home)" options={{ headerShown: false }} />
-            <Stack.Screen name="(settings)" options={{ headerShown: false }} />
-            <Stack.Screen name="settings" options={{ headerShown: false }} />
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="+not-found" />
-          </Stack>
-          <StatusBar style="auto" />
-        </ToastProvider>
-      </AuthProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <ToastProvider>
+            <Stack
+              screenOptions={{
+                animation: "none",
+              }}
+            >
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(home)" options={{ headerShown: false }} />
+              <Stack.Screen
+                name="(settings)"
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen name="settings" options={{ headerShown: false }} />
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="+not-found" />
+            </Stack>
+            <StatusBar style="auto" />
+          </ToastProvider>
+        </AuthProvider>
+      </GestureHandlerRootView>
     </BottomSheetModalProvider>
   );
 }
