@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   SectionList,
+  Animated,
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
@@ -59,6 +60,32 @@ const Maps = () => {
 
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  const [tooltipVisible, setTooltipVisible] = useState<string | null>(null);
+  const tooltipOpacity = useRef(new Animated.Value(0)).current;
+
+  const showTooltip = (petSitterId: string) => {
+    setTooltipVisible(petSitterId);
+    Animated.timing(tooltipOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
+
+    setTimeout(() => {
+      hideTooltip();
+    }, 10000);
+  };
+
+  const hideTooltip = () => {
+    Animated.timing(tooltipOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setTooltipVisible(null);
+    });
+  };
 
   useEffect(() => {
     (async () => {
@@ -142,6 +169,20 @@ const Maps = () => {
     }
   };
 
+  const centerOnMarker = (latitude: number, longitude: number) => {
+    if (mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: latitude - 0.0001,
+          longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    }
+  };
+
   const togglePetType = () => {
     setPetType(petType === "cat" ? "dog" : "cat");
   };
@@ -202,10 +243,10 @@ const Maps = () => {
     }
   };
 
-  // Fonction pour ouvrir le BottomSheet
   const openPetSitterDetails = (ps: ResponsePetsitter) => {
     setSelectedPetSitter(ps);
     bottomSheetRef.current?.snapToIndex(0);
+    showTooltip(ps.petsitter.id);
   };
 
   useEffect(() => {
@@ -253,22 +294,64 @@ const Maps = () => {
                     }}
                     onPress={() => {
                       openPetSitterDetails(ps);
+                      centerOnMarker(
+                        ps.petsitter.latitude,
+                        ps.petsitter.longitude
+                      );
                     }}
                   >
-                    <View
-                      className={`px-2 py-1 rounded-full border ${
-                        isDark
-                          ? "bg-gray-800 border-gray-600"
-                          : "bg-white border-gray-300"
-                      } z`}
-                    >
-                      <Text
-                        className={`text-base font-bold ${
-                          isDark ? "text-white" : "text-black"
+                    <View style={{ alignItems: "center" }}>
+                      {/* Tooltip */}
+                      {tooltipVisible === ps.petsitter.id && (
+                        <Animated.View
+                          style={{
+                            opacity: tooltipOpacity,
+                            marginBottom: 5,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            backgroundColor: isDark ? "#374151" : "#ffffff",
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor: isDark ? "#4B5563" : "#D1D5DB",
+                            shadowColor: "#000",
+                            shadowOffset: {
+                              width: 0,
+                              height: 2,
+                            },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: "600",
+                              color: isDark ? "#ffffff" : "#000000",
+                              textAlign: "center",
+                            }}
+                          >
+                            {ps.user.firstName} {ps.user.lastName}
+                          </Text>
+                        </Animated.View>
+                      )}
+
+                      {/* Marqueur existant */}
+                      <View
+                        className={`px-2 py-1 rounded-full border ${
+                          isDark
+                            ? "bg-gray-800 border-gray-600"
+                            : "bg-white border-gray-300"
                         }`}
                       >
-                        {ps.petsitter.hourly_rate} €
-                      </Text>
+                        <Text
+                          className={`text-base font-bold ${
+                            isDark ? "text-white" : "text-black"
+                          }`}
+                        >
+                          {ps.petsitter.hourly_rate} €
+                        </Text>
+                      </View>
                     </View>
                   </Marker>
                 );
