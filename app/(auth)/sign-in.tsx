@@ -18,6 +18,8 @@ import { Ionicons } from "@expo/vector-icons";
 import * as Linking from "expo-linking";
 import { getUserById } from "@/services/user.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { createSocket } from "@/services/socket";
+
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -74,9 +76,16 @@ const SignInScreen = () => {
       const user = await login(form);
       if (user as User) {
         setUser(user.data);
+        const socket = createSocket();
+
+        socket.on("connect", () => {
+          console.log("✅ Socket maintenant connecté");
+          socket.emit("register", user.data.username);
+        });
+
+        handleRedirect();
+        showToast("Connexion réussie avec succès", ToastType.SUCCESS);
       }
-      handleRedirect();
-      showToast("Connexion réussie avec succès", ToastType.SUCCESS);
     } catch (error: any) {
       console.error(error);
 

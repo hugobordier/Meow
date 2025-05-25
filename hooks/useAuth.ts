@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { api } from "@/services/api";
 import { User } from "@/types/type";
+import { createSocket } from "@/services/socket";
 
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(null);
@@ -22,6 +23,13 @@ export const useAuth = () => {
         if (data) {
           setUser(data.data);
           setIsAuthenticated(true);
+
+          //Créer socket erouverture app
+          const socket = createSocket();
+          socket.on("connect", () => {
+            console.log("🔌 Reconnexion socket automatique");
+            socket.emit("register", data.data.username); 
+          });
         }
       } catch (error: any) {
         console.error("Auth check failed", error);
