@@ -13,8 +13,10 @@ import {
 } from "react-native";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import * as Location from "expo-location";
+import BottomSheet from "@gorhom/bottom-sheet";
 import SearchBarMap from "@/components/SearchBarMap";
 import UserLocationMarker from "@/components/UserLocationMarker";
+import PetSitterBottomSheet from "@/components/PetSitterBottomSheet";
 import { Cat, Dog } from "lucide-react-native";
 import { useColorScheme } from "react-native";
 import { darkMapStyle, lightMapStyle } from "@/utils/constants";
@@ -28,6 +30,8 @@ import { AntDesign, Feather } from "@expo/vector-icons";
 
 const Maps = () => {
   const mapRef = useRef<MapView | null>(null);
+  const bottomSheetRef = useRef<BottomSheet | null>(null);
+
   const [mapRegion, setMapRegion] = useState({
     latitude: 48.8566,
     longitude: 2.3522,
@@ -48,6 +52,11 @@ const Maps = () => {
   const [filters, setFilters] = useState<PetSitterQueryParams | null>(null);
   const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>([]);
   const [loading, setIsLoading] = useState(false);
+
+  // État pour le BottomSheet
+  const [selectedPetSitter, setSelectedPetSitter] =
+    useState<ResponsePetsitter | null>(null);
+
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -174,10 +183,7 @@ const Maps = () => {
 
   const updateFilters = (newFilters: PetSitterQueryParams) => {
     console.log("update fileter", newFilters);
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      ...newFilters,
-    }));
+    setFilters(newFilters);
   };
 
   const onSearchCity = (longitude?: number, latitude?: number) => {
@@ -196,11 +202,18 @@ const Maps = () => {
     }
   };
 
+  // Fonction pour ouvrir le BottomSheet
+  const openPetSitterDetails = (ps: ResponsePetsitter) => {
+    setSelectedPetSitter(ps);
+    bottomSheetRef.current?.snapToIndex(0);
+  };
+
   useEffect(() => {
     getPetSitter();
   }, []);
 
   useEffect(() => {
+    console.log("filter : ", filters);
     getPetSitter(pagination, filters);
   }, [filters]);
 
@@ -239,7 +252,7 @@ const Maps = () => {
                       longitude: ps.petsitter.longitude,
                     }}
                     onPress={() => {
-                      console.log(ps);
+                      openPetSitterDetails(ps);
                     }}
                   >
                     <View
@@ -273,7 +286,7 @@ const Maps = () => {
 
           <SearchBarMap
             onSearch={updateFilters}
-            initialCity="Paris"
+            initialCity=""
             count={petsitter?.length}
             onSearchCity={onSearchCity}
           />
@@ -322,6 +335,12 @@ const Maps = () => {
               <AntDesign name="enviromento" size={24} color="#d946ef" />
             </TouchableOpacity>
           </View>
+
+          {/* BottomSheet Gorhom */}
+          <PetSitterBottomSheet
+            petSitter={selectedPetSitter}
+            bottomSheetRef={bottomSheetRef}
+          />
         </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>

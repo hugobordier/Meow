@@ -1,6 +1,6 @@
 import type React from "react";
 import debounce from "lodash/debounce";
-import { useState, useRef, useCallback, useEffect } from "react";
+import { useState, useRef, useCallback } from "react";
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TextInput,
   Animated,
   Dimensions,
-  ScrollView,
   useColorScheme,
   ActivityIndicator,
 } from "react-native";
@@ -22,16 +21,9 @@ import {
   ServiceType,
 } from "@/types/type";
 import { CityResult, searchCityByName } from "@/utils/serrchCityByName";
+import { ScrollView } from "react-native-gesture-handler";
 
 const { width } = Dimensions.get("window");
-
-// Données fictives pour simuler les résultats de recherche de villes
-const MOCK_CITIES = [
-  "Paris",
-  "Marseille",
-  "Lyon",
-  // ...autres villes
-];
 
 type SearchBarMapProps = {
   onSearch?: (params: PetSitterQueryParams) => void;
@@ -43,7 +35,7 @@ type SearchBarMapProps = {
 const SearchBarMap: React.FC<SearchBarMapProps> = ({
   onSearch,
   onSearchCity,
-  initialCity = "Paris",
+  initialCity = "",
   count = 0,
 }) => {
   const colorScheme = useColorScheme();
@@ -240,8 +232,9 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   };
 
   const handleSearch = () => {
+    console.log("FILTRE :", filters);
     if (onSearch) {
-      onSearch({ ...filters }); //;onSearch({ ...filters, city });
+      onSearch(filters);
     }
   };
 

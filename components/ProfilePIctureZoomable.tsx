@@ -21,8 +21,8 @@ export default function ProfilePictureZoomable({
   onDeletePhoto,
 }: {
   profilePicture?: string;
-  onChooseFromLibrary: () => void;
-  onTakePhoto: () => void;
+  onChooseFromLibrary?: () => void;
+  onTakePhoto?: () => void;
   onDeletePhoto?: () => void;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -199,7 +199,7 @@ export default function ProfilePictureZoomable({
                   <TouchableOpacity
                     onPress={(e) => {
                       e.stopPropagation();
-                      onChooseFromLibrary();
+                      if (onChooseFromLibrary) onChooseFromLibrary();
                     }}
                     className="bg-yellow-500 py-3 px-5 rounded-full flex-row items-center justify-center"
                   >
@@ -212,7 +212,7 @@ export default function ProfilePictureZoomable({
                   <TouchableOpacity
                     onPress={(e) => {
                       e.stopPropagation();
-                      onTakePhoto();
+                      if (onTakePhoto) onTakePhoto();
                     }}
                     className="bg-yellow-500 py-3 px-5 rounded-full flex-row items-center justify-center"
                   >
