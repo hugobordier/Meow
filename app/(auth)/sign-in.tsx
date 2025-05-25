@@ -107,12 +107,13 @@ const SignInScreen = () => {
 
   const handlePressButtonAsync = async () => {
     setGoogleLoading(true);
+    console.log("on entre dans le button google");
     try {
       const callbackUrl = Linking.createURL("(auth)/home", {
         scheme: "meow",
-      }); // a changer { scheme: "kikipaul.meow" } en prod
-
-      console.log(callbackUrl);
+      });
+      // a changer { scheme: "kikipaul.meow" } en prod
+      console.log("callback : ", callbackUrl);
 
       const result = await WebBrowser.openAuthSessionAsync(
         `https://meowback-production.up.railway.app/authRoutes/google?scheme=${callbackUrl}`,
@@ -149,7 +150,7 @@ const SignInScreen = () => {
       console.log("error", error);
       showToast("Erreur lors de l'authentification", ToastType.ERROR);
     } finally {
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
 
