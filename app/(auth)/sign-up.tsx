@@ -11,6 +11,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { AntDesign } from "@expo/vector-icons";
@@ -39,6 +40,8 @@ export default function SignUpScreen() {
     birthDate: "",
     phoneNumber: "",
   });
+  const [googleLoading, setGoogleLoading] = useState(false);
+
   const { setUser } = useAuthContext();
 
   const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -156,39 +159,51 @@ export default function SignUpScreen() {
   };
 
   const handlePressButtonAsync = async () => {
-    console.log("dans la fonction");
+    setGoogleLoading(true);
+    console.log("on entre dans le button google");
+    try {
+      const callbackUrl = Linking.createURL("(auth)/home", {
+        scheme: "meow",
+      });
+      // a changer { scheme: "kikipaul.meow" } en prod
+      console.log("callback : ", callbackUrl);
 
-    const callbackUrl = Linking.createURL("(auth)/home", { scheme: "exp" }); // a changer { scheme: "kikipaul.meow" } en prod
-    console.log("callbackUrl:", callbackUrl);
+      const result = await WebBrowser.openAuthSessionAsync(
+        `https://meowback-production.up.railway.app/authRoutes/google?scheme=${callbackUrl}`,
+        callbackUrl,
+        {
+          showInRecents: true,
+          createTask: true,
+          dismissButtonStyle: "cancel",
+          windowName: "MeowMeowMeow",
+        }
+      );
 
-    const result = await WebBrowser.openAuthSessionAsync(
-      "https://meowback-production.up.railway.app/authRoutes/google",
-      callbackUrl,
-      {
-        showInRecents: true,
-        createTask: true,
-        dismissButtonStyle: "cancel",
-        windowName: "MeowMeowMeow",
+      if (result.type === "success") {
+        console.log(result);
+        const url = new URL(result.url);
+        const accessToken = url.searchParams.get("accessToken");
+        const refreshToken = url.searchParams.get("refreshToken");
+        const userId = url.searchParams.get("user_id");
+
+        if (accessToken && refreshToken && userId) {
+          await AsyncStorage.setItem("accessToken", accessToken!);
+          await AsyncStorage.setItem("refreshToken", refreshToken!);
+          const user = await getUserById(userId!);
+          console.log(user);
+          if (user as User) {
+            setUser(user.data);
+          }
+        }
+        handleRedirect();
+      } else {
+        showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);
       }
-    );
-
-    console.log("Résultat de l'auth:", result);
-
-    if (result.type === "success") {
-      const url = new URL(result.url);
-      const accessToken = url.searchParams.get("accessToken");
-      const refreshToken = url.searchParams.get("refreshToken");
-      const userId = url.searchParams.get("user_id");
-
-      if (accessToken && refreshToken && userId) {
-        await AsyncStorage.setItem("accessToken", accessToken!);
-        await AsyncStorage.setItem("refreshToken", refreshToken!);
-        const user = await getUserById(userId!);
-        setUser(user);
-      }
-      handleRedirect();
-    } else {
-      showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);
+    } catch (error: any) {
+      console.log("error", error);
+      showToast("Erreur lors de l'authentification", ToastType.ERROR);
+    } finally {
+      setGoogleLoading(false);
     }
   };
 
@@ -380,17 +395,26 @@ export default function SignUpScreen() {
               <View className="flex-1 h-[1px] bg-gray-300" />
             </View>
 
-            <TouchableOpacity
-              className="bg-gray-200 px-6 py-3 rounded-lg mb-1 w-full flex-row items-center justify-center "
-              onPress={() => {
-                handlePressButtonAsync();
-              }}
-            >
-              <GoogleSVG size={16} />
-              <Text className="text-black text-center ml-2">
-                Continuer avec Google
-              </Text>
-            </TouchableOpacity>
+            {googleLoading ? (
+              <View className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center ">
+                <ActivityIndicator color="#fff" />
+                <Text className="text-base font-bold ml-3 text-black  dark:text-white">
+                  Connexion ...
+                </Text>
+              </View>
+            ) : (
+              <TouchableOpacity
+                className="bg-gray-200 px-6 py-3 rounded-lg dark:bg-blue-600 mb-1 w-full flex-row items-center justify-center "
+                onPress={() => {
+                  handlePressButtonAsync();
+                }}
+              >
+                <GoogleSVG size={16} />
+                <Text className="text-base font-bold ml-3 text-black  dark:text-white">
+                  Continuer avec Google
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
           <Text className="text-xs text-center mt-6 text-gray-600 dark:text-gray-300">
             En cliquant sur continuer, vous acceptez la politique privée et les

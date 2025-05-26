@@ -16,8 +16,9 @@
       },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
-        "UIBackgroundModes": ["audio"],
-        "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe."
+        "UIBackgroundModes": ["audio", "audio"],
+        "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -40,7 +41,7 @@
     },
     "web": {
       "bundler": "metro",
-      "output": "server",
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
