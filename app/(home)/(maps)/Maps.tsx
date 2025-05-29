@@ -285,19 +285,24 @@ const Maps = () => {
             {petsitter &&
               petsitter.length > 0 &&
               petsitter.map((ps) => {
+                const { latitude, longitude } = ps.petsitter || {};
+
+                if (
+                  typeof latitude !== "number" ||
+                  typeof longitude !== "number" ||
+                  isNaN(latitude) ||
+                  isNaN(longitude)
+                ) {
+                  return null;
+                }
+
                 return (
                   <Marker
                     key={ps.petsitter.id}
-                    coordinate={{
-                      latitude: ps.petsitter.latitude,
-                      longitude: ps.petsitter.longitude,
-                    }}
+                    coordinate={{ latitude, longitude }}
                     onPress={() => {
                       openPetSitterDetails(ps);
-                      centerOnMarker(
-                        ps.petsitter.latitude,
-                        ps.petsitter.longitude
-                      );
+                      centerOnMarker(latitude, longitude);
                     }}
                   >
                     <View style={{ alignItems: "center" }}>
@@ -314,10 +319,7 @@ const Maps = () => {
                             borderWidth: 1,
                             borderColor: isDark ? "#4B5563" : "#D1D5DB",
                             shadowColor: "#000",
-                            shadowOffset: {
-                              width: 0,
-                              height: 2,
-                            },
+                            shadowOffset: { width: 0, height: 2 },
                             shadowOpacity: 0.25,
                             shadowRadius: 3.84,
                             elevation: 5,
@@ -336,7 +338,7 @@ const Maps = () => {
                         </Animated.View>
                       )}
 
-                      {/* Marqueur existant */}
+                      {/* Marqueur avec le tarif */}
                       <View
                         className={`px-2 py-1 rounded-full border ${
                           isDark
