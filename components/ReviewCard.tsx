@@ -1,22 +1,56 @@
 import React from "react";
 import { View, Text, Image, useColorScheme } from "react-native";
 
-type Review = {
-  clientName: string;
-  clientAvatar: string;
-  date: string;
-  rating: number;
-  comment: string;
+type PetSitterReviewResponse = {
+  id: string;
+  pet_sitter_id: string;
+  user_id: string;
+  user_first_name: string;
+  user_last_name: string;
+  user_username: string;
+  user_picture: string;
+  pet_sitter_rating: number;
+  message: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type ReviewCardProps = {
-  review: Review;
+  review: PetSitterReviewResponse;
   renderStars: (rating: number) => React.ReactNode;
 };
 
 const ReviewCard = ({ review, renderStars }: ReviewCardProps) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+
+  const formatDate = (date: Date) => {
+    const reviewDate = new Date(date);
+    const now = new Date();
+    const diffInMs = now.getTime() - reviewDate.getTime();
+    const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
+
+    if (diffInDays === 0) {
+      return "Aujourd'hui";
+    } else if (diffInDays === 1) {
+      return "Hier";
+    } else if (diffInDays < 7) {
+      return `Il y a ${diffInDays} jours`;
+    } else if (diffInDays < 30) {
+      const weeks = Math.floor(diffInDays / 7);
+      return `Il y a ${weeks} semaine${weeks > 1 ? "s" : ""}`;
+    } else {
+      return reviewDate.toLocaleDateString("fr-FR", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      });
+    }
+  };
+
+  const fullName =
+    `${review.user_first_name} ${review.user_last_name}`.trim() ||
+    review.user_username;
 
   return (
     <View
@@ -42,7 +76,11 @@ const ReviewCard = ({ review, renderStars }: ReviewCardProps) => {
         }}
       >
         <Image
-          source={{ uri: review.clientAvatar }}
+          source={{
+            uri:
+              review.user_picture ||
+              "https://www.canbind.ca/wp-content/uploads/2025/01/placeholder-image-person-jpg.jpg",
+          }}
           style={{
             width: 44,
             height: 44,
@@ -68,7 +106,7 @@ const ReviewCard = ({ review, renderStars }: ReviewCardProps) => {
                 color: isDark ? "#ffffff" : "#111827",
               }}
             >
-              {review.clientName}
+              {fullName}
             </Text>
             <Text
               style={{
@@ -76,11 +114,11 @@ const ReviewCard = ({ review, renderStars }: ReviewCardProps) => {
                 color: isDark ? "#9ca3af" : "#6b7280",
               }}
             >
-              {review.date}
+              {formatDate(review.createdAt)}
             </Text>
           </View>
           <View style={{ flexDirection: "row", marginBottom: 8 }}>
-            {renderStars(review.rating)}
+            {renderStars(review.pet_sitter_rating)}
           </View>
           <Text
             style={{
@@ -89,7 +127,7 @@ const ReviewCard = ({ review, renderStars }: ReviewCardProps) => {
               color: isDark ? "#d1d5db" : "#4b5563",
             }}
           >
-            {review.comment}
+            {review.message}
           </Text>
         </View>
       </View>

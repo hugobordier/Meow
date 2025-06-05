@@ -242,7 +242,6 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
   const debouncedCitySearch = useCallback(
     debounce(async (text: string) => {
       console.log("Debounced search city call: ", text);
-
       if (text.length > 1) {
         setIsSearching(true);
 
@@ -470,7 +469,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
                     color: getTextColor(),
                   }}
                   onFocus={() => {
-                    if (city.length > 1) {
+                    if (city.length >= 0) {
                       showCityResults();
                     }
                   }}

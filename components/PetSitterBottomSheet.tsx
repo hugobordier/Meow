@@ -1,10 +1,10 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, Image, Pressable } from "react-native";
 import BottomSheet, {
   BottomSheetView,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
-import { ResponsePetsitter } from "@/types/type";
+import { PetSitterReviewResponse, ResponsePetsitter } from "@/types/type";
 import { useColorScheme } from "react-native";
 import {
   FontAwesome,
@@ -15,41 +15,20 @@ import {
 import { ScrollView } from "react-native-gesture-handler";
 import SectionCard from "./SectionCard";
 import ReviewCard from "./ReviewCard";
+import {
+  getReviewsByPetSitterId,
+  postRatingForPetSitter,
+  postReviewForPetSitter,
+} from "@/services/petsitterRating.service";
+import { Modal, TextInput, Alert, Dimensions } from "react-native";
+import RatingModal from "@/components/RatingModal";
+import CommentModal from "@/components/CommentModal";
+import { ToastType, useToast } from "@/context/ToastContext";
 
 interface PetSitterBottomSheetProps {
   petSitter: ResponsePetsitter | null;
   bottomSheetRef: React.RefObject<BottomSheet | null>;
 }
-
-const mockReviews = [
-  {
-    id: 1,
-    clientName: "Marie D.",
-    clientAvatar: "https://randomuser.me/api/portraits/women/1.jpg",
-    rating: 5,
-    date: "15 mars 2024",
-    comment:
-      "Excellente petsitter ! Ma chienne Luna était très bien gardée. Je recommande vivement !",
-  },
-  {
-    id: 2,
-    clientName: "Thomas L.",
-    clientAvatar: "https://randomuser.me/api/portraits/men/1.jpg",
-    rating: 4,
-    date: "28 février 2024",
-    comment:
-      "Très professionnel et attentionné avec mon chat. Quelques photos envoyées pendant la garde, c'est rassurant.",
-  },
-  {
-    id: 3,
-    clientName: "Sophie M.",
-    clientAvatar: "https://randomuser.me/api/portraits/women/2.jpg",
-    rating: 5,
-    date: "10 février 2024",
-    comment:
-      "Parfait ! Mon chien était ravi de passer du temps avec elle. Communication excellente.",
-  },
-];
 
 const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
   petSitter,
@@ -57,10 +36,95 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const snapPoints = useMemo(() => ["50%", "90%"], []);
+  const snapPoints = useMemo(() => ["40%", "90%"], []);
+  const [petSitterReviews, setPetsitterReviews] = useState<
+    PetSitterReviewResponse[]
+  >([]);
+  const [loading, setLoading] = useState(false);
+  const [TotalReviews, setTotalReviews] = useState(0);
+  const [ratingModalVisible, setRatingModalVisible] = useState(false);
+  const [commentModalVisible, setCommentModalVisible] = useState(false);
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(2);
+
+  const { showToast } = useToast();
+  const loadReviews = async () => {
+    try {
+      setLoading(true);
+      const response = await getReviewsByPetSitterId(petSitter!.petsitter.id, {
+        page: 1,
+        limit: 10,
+      });
+      console.log("REVIEW :", response.reviews);
+      setPetsitterReviews(response.reviews);
+      setTotalReviews(response.reviews.length);
+    } catch (error) {
+      console.error("Erreur lors du chargement des avis:", error);
+      setPetsitterReviews([]);
+      setTotalReviews(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (petSitter) {
+      loadReviews();
+    }
+    setVisibleReviewsCount(2);
+  }, [petSitter]);
 
   const expandBottomSheet = () => {
     bottomSheetRef.current?.snapToIndex(1);
+  };
+
+  const handleRatingSubmit = async (rating: number) => {
+    console.log("Note soumise:", rating);
+    Alert.alert(
+      "Merci !",
+      `Vous avez donné ${rating} étoile${rating > 1 ? "s" : ""}`
+    );
+    try {
+      await postRatingForPetSitter(petSitter!.petsitter.id, rating);
+      console.log("Avis soumis:", { rating });
+      showToast(
+        `Merci ,Vous avez donné ${rating} étoile${rating > 1 ? "s" : ""}`,
+        ToastType.SUCCESS
+      );
+      loadReviews();
+    } catch (error: any) {
+      console.log(error);
+      showToast(
+        error.message || "erreur lors de l'envoie du commentaire",
+        ToastType.ERROR
+      );
+    }
+  };
+
+  const handleCommentSubmit = async ({
+    comment,
+    rating,
+  }: {
+    comment: string;
+    rating: number;
+  }) => {
+    try {
+      rating > 0
+        ? await postRatingForPetSitter(petSitter!.petsitter.id, rating)
+        : null;
+      await postReviewForPetSitter(petSitter!.petsitter.id, comment);
+      console.log("Avis soumis:", { comment, rating });
+      showToast(
+        "Merci !  \n Votre avis a été publié avec succès",
+        ToastType.SUCCESS
+      );
+      loadReviews();
+    } catch (error: any) {
+      console.log(error);
+      showToast(
+        error.message || "erreur lors de l'envoie du commentaire",
+        ToastType.ERROR
+      );
+    }
   };
 
   if (!petSitter) return null;
@@ -245,7 +309,7 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
                       }}
                     >
                       {user.rating ? `${user.rating}/5` : "Non noté"} •{" "}
-                      {mockReviews.length} avis
+                      {TotalReviews} avis
                     </Text>
                   </View>
 
@@ -562,7 +626,7 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
                       color: isDark ? "#ffffff" : "#111827",
                     }}
                   >
-                    Avis clients ({mockReviews.length})
+                    Avis clients ({TotalReviews})
                   </Text>
                 </View>
                 <TouchableOpacity
@@ -601,7 +665,7 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
                     alignItems: "center",
                     justifyContent: "center",
                   }}
-                  onPress={() => console.log("Laisser une note")}
+                  onPress={() => setRatingModalVisible(true)}
                 >
                   <FontAwesome
                     name="star"
@@ -632,7 +696,7 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
                     alignItems: "center",
                     justifyContent: "center",
                   }}
-                  onPress={() => console.log("Laisser un message")}
+                  onPress={() => setCommentModalVisible(true)}
                 >
                   <Ionicons
                     name="chatbubble-outline"
@@ -651,13 +715,49 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
                 </TouchableOpacity>
               </View>
 
-              {mockReviews.slice(0, 2).map((review) => (
-                <ReviewCard
-                  key={review.id}
-                  review={review}
-                  renderStars={renderStars}
-                />
-              ))}
+              {loading ? (
+                <View style={{ padding: 20, alignItems: "center" }}>
+                  <Text style={{ color: isDark ? "#ffffff" : "#111827" }}>
+                    Chargement des avis...
+                  </Text>
+                </View>
+              ) : TotalReviews > 0 ? (
+                <>
+                  {petSitterReviews
+                    .slice(0, visibleReviewsCount)
+                    .map((review) => (
+                      <ReviewCard
+                        key={review.id}
+                        review={review}
+                        renderStars={renderStars}
+                      />
+                    ))}
+
+                  {visibleReviewsCount < TotalReviews && (
+                    <TouchableOpacity
+                      onPress={() => setVisibleReviewsCount((prev) => prev + 3)}
+                      style={{
+                        alignSelf: "center",
+                        marginVertical: 12,
+                        paddingHorizontal: 16,
+                        paddingVertical: 8,
+                        backgroundColor: "#fbbf24",
+                        borderRadius: 12,
+                      }}
+                    >
+                      <Text style={{ color: "#fff", fontWeight: "600" }}>
+                        Voir plus
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              ) : (
+                <View style={{ padding: 20, alignItems: "center" }}>
+                  <Text style={{ color: isDark ? "#ffffff" : "#111827" }}>
+                    Aucun avis pour le moment
+                  </Text>
+                </View>
+              )}
             </SectionCard>
           </Pressable>
         </ScrollView>
@@ -739,6 +839,18 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+        {/* Modals */}
+        <RatingModal
+          visible={ratingModalVisible}
+          onClose={() => setRatingModalVisible(false)}
+          onSubmit={handleRatingSubmit}
+        />
+
+        <CommentModal
+          visible={commentModalVisible}
+          onClose={() => setCommentModalVisible(false)}
+          onSubmit={handleCommentSubmit}
+        />
       </BottomSheetView>
     </BottomSheet>
   );
