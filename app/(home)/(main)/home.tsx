@@ -14,7 +14,6 @@ import {
   deleteProfilePicture,
   updateProfilePicture,
 } from "@/services/user.service";
-import { getRandomPlaceholderImage } from "@/utils/getRandomPlaceholderImage";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { User } from "@/types/type";
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";

@@ -34,7 +34,7 @@ export const getReviewsByPetSitterId = async (
       total: response.data.data.totalItems,
     };
   } catch (error) {
-    console.error("Error fetching pet sitter reviews:", error);
+    console.log("Error fetching pet sitter reviews:", error);
     return { reviews: [], total: 0 };
   }
 };
