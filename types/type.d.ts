@@ -206,9 +206,9 @@ export interface PetQueryParams {
   color?: string;
 }
 
-export interface ApiResponsePet {
+interface ApiResponsePet {
   success: boolean;
-  pets: ResponsePets[];
   message: string;
+  data: Pet[];
   pagination: Pagination;
 }

@@ -18,8 +18,13 @@ import { getRandomPlaceholderImage } from "@/utils/getRandomPlaceholderImage";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { User } from "@/types/type";
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
+import { useRouter } from 'expo-router';
+
+
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const { user, setUser } = useAuthContext();
   const { showToast } = useToast();
 
@@ -116,6 +121,18 @@ export default function HomeScreen() {
       console.log(error);
     }
   };
+
+  const handleNavigationListePets = async () => {
+  try {
+    setLoading(true);
+  
+    router.push("/(home)/(main)/ListePets");
+  } catch (error) {
+    console.error("Erreur de navigation :", error);
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <ScrollView className="flex-1 bg-fuchsia-50 dark:bg-gray-900">
@@ -280,6 +297,7 @@ export default function HomeScreen() {
               icon: <FontAwesome5 name="paw" size={20} color="white" />,
               bg: "bg-blue-500",
               label: "Mes animaux",
+              navigateTo: "/ListePets",
             },
             {
               icon: (
@@ -322,6 +340,7 @@ export default function HomeScreen() {
               key={index}
               className="items-center mb-6"
               style={{ width: "25%" }} // 4 colonnes = 100 / 4
+              onPress={() => handleNavigationListePets()}
             >
               <View
                 className={`w-14 h-14 rounded-full items-center justify-center ${item.bg}`}
