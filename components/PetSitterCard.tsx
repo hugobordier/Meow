@@ -6,18 +6,21 @@ import {
   TouchableOpacity,
   useColorScheme,
 } from "react-native";
+import type { ResponsePetsitter } from "@/types/type";
 
 export default function PetSitterCard({
   item,
   onSelect,
 }: {
-  item: any;
-  onSelect: (item: any) => void;
+  item: ResponsePetsitter;
+  onSelect: (item: ResponsePetsitter) => void;
 }) {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
   if (!item) return null;
+
+  const { petsitter, user } = item;
 
   return (
     <View
@@ -31,7 +34,7 @@ export default function PetSitterCard({
       }}
     >
       <Image
-        source={{ uri: item.image }}
+        source={{ uri: user.profilePicture ? user.profilePicture : "https://www.canbind.ca/wp-content/uploads/2025/01/placeholder-image-person-jpg.jpg" }}
         style={{
           width: 50,
           height: 50,
@@ -47,15 +50,27 @@ export default function PetSitterCard({
             color: isDark ? "#FFFFFF" : "#000000",
           }}
         >
-          {item.title} {item.price} €/h
+          {user.firstName} {user.lastName} - {petsitter.hourly_rate}€/h
         </Text>
-        <Text
+        {user.city && user.country && <Text
           style={{
             color: isDark ? "#8E8E93" : "gray",
+            fontSize: 12,
           }}
         >
-          {item.time}
-        </Text>
+          {user.city}, {user.country}
+        </Text>}
+        {petsitter.animal_types && petsitter.animal_types.length > 0 && (
+          <Text
+            style={{
+              color: isDark ? "#8E8E93" : "gray",
+              fontSize: 12,
+              marginTop: 2,
+            }}
+          >
+            {petsitter.animal_types.join(", ")}
+          </Text>
+        )}
       </View>
 
       <TouchableOpacity
@@ -67,9 +82,9 @@ export default function PetSitterCard({
         }}
         onPress={() => onSelect(item)}
       >
-        <Text style={{ color: "white" }}> Faire une </Text>
-        <Text style={{ color: "white" }}> demande</Text>
+        <Text style={{ color: "white" }}>Demander</Text>
       </TouchableOpacity>
     </View>
   );
 }
+

@@ -27,7 +27,7 @@ import {
   PetSitterQueryParams,
   ResponsePetsitter,
 } from "@/types/type";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const Maps = () => {
@@ -308,8 +308,14 @@ const Maps = () => {
                       centerOnMarker(latitude, longitude);
                       openPetSitterDetails(ps);
                     }}
+                    
+                   
                   >
-                    <View style={{ alignItems: "center" }}>
+                    
+                    <View style={{ 
+                      alignItems: Platform.OS === "android" ? "flex-start" : "center",
+                      justifyContent: "center",
+                    }}>
                       {/* Tooltip */}
                       {tooltipVisible === ps.petsitter.id && (
                         <Animated.View
