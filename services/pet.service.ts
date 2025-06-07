@@ -14,10 +14,10 @@ export const createPet =async (data:Partial<Pet>)=>{
   }
 }
 
-export const getPetsForAUser = async (userID:string
+export const getPetsForAUser = async (
 ): Promise<ApiResponsePet> => {
   try{
-    const response = await api.get(`/PetsRoutes/user/${userID}`);
+    const response = await api.get(`/PetsRoutes/user`);
     return response.data;
   }catch (error:any){
     console.error("erreur lors de la récupération des pets", error);
