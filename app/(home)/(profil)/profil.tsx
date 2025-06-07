@@ -77,16 +77,7 @@ const Profil: React.FC = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
-            <AntDesign name="arrowleft" size={24} color="#374151" />
-          </Pressable>
-          <Text style={styles.headerTitle}>MEOW</Text>
-          <Pressable onPress={() => router.push("/settings/HomeSettings")}>
-            <AntDesign name="setting" size={24} color="#374151" />
-          </Pressable>
-        </View>
+          
 
         {/* Photo de profil */}
         <View style={styles.profilePicContainer}>
@@ -152,10 +143,18 @@ const Profil: React.FC = () => {
             label="Adresse" 
             value={user.address} 
           />
+          <InfoRow 
+            label="Genre" 
+            value={user.gender} 
+          />
+          <InfoRow 
+            label="Bio" 
+            value={user.bio} 
+          />
           {user.rating && (
             <InfoRow 
               label="Note moyenne" 
-              value={user.rating.toString()} 
+              value={`${user.rating.toFixed(1)}/5`} 
             />
           )}
         </View>

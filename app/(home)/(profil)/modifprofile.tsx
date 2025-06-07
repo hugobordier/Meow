@@ -12,15 +12,23 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { AntDesign } from "@expo/vector-icons";
-import { CheckSquare, Square } from "lucide-react-native";
+import { AntDesign, Feather } from "@expo/vector-icons"; // Ajouter Feather
 import { useAuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import {updateUser} from "@/services/user.service";
 
+
 // Import de vos services (à adapter selon votre structure)
 // import { updateUser, updateProfilePicture, updateDocId, getCurrentUser } from "@/services/user.service";
 // import { User } from "@/types/type";
+
+const GENDER_OPTIONS = [
+  { label: 'Sélectionnez votre genre', value: '' },
+  { label: 'Homme', value: 'Male' },
+  { label: 'Femme', value: 'Female' },
+  { label: 'Hélicoptère', value: 'Helicopter' },
+  { label: 'Autre', value: 'Other' }
+];
 
 const ModifProfile: React.FC = () => {
   const router = useRouter();
@@ -122,34 +130,40 @@ const ModifProfile: React.FC = () => {
 
     try {
       setIsLoading(true);
-
-      const updatedData = {
+      
+      const cleanedData = {
         id: user.id,
         username: username.trim(),
         lastName: lastName.trim(),
         firstName: firstName.trim(),
         email: email.trim(),
-        age: parseInt(age) || undefined,
-        birthDate: birthDate.trim(),
-        gender: gender.trim(),
-        city: city.trim(),
-        country: country.trim(),
-        bio: bio.trim(),
-        bankInfo: bankInfo.trim(),
-        address: address.trim(),
-        phoneNumber: phone.trim(),
         ...(password && { password: password.trim() }),
+        ...(age && { age: parseInt(age) }),
+        ...(birthDate && { birthDate: birthDate.trim() }),
+        ...(gender && { gender : gender}),
+        ...(city && { city: city.trim() }),
+        ...(country && { country: country.trim() }),
+        ...(bio && { bio: bio.trim() }),
+        ...(bankInfo && { bankInfo: bankInfo.trim() }),
+        ...(address && { address: address.trim() }),
+        ...(phone && { phoneNumber: phone.trim() }),
         ...(profilePic && { profilePicture: profilePic }),
         ...(identityDoc && { identityDocument: identityDoc }),
-        ...(insuranceCertificate && { insuranceCertificate }),
+        ...(insuranceCertificate && { insuranceCertificate })
       };
 
-      const response = await updateUser(updatedData);
-      
+      console.log("Données envoyées:", cleanedData);
+      const response = await updateUser(cleanedData);
+      console.log("Réponse du serveur:", response);
+
+      if (!response || response.success === false) {
+        throw new Error(response.message || "Échec de la mise à jour");
+      }
+
       // Mise à jour du contexte avec les nouvelles données
       setUser({
         ...user,
-        ...response
+        ...cleanedData // Assurez-vous que la réponse contient les données dans .data
       });
 
       Alert.alert(
@@ -158,8 +172,11 @@ const ModifProfile: React.FC = () => {
         [{ text: "OK", onPress: () => router.back() }]
       );
     } catch (error: any) {
-      console.error("Erreur mise à jour:", error);
-      Alert.alert("Erreur", error.message || "Échec de la mise à jour du profil");
+      console.error("Erreur complète:", error);
+      Alert.alert(
+        "Erreur", 
+        error.message || "Échec de la mise à jour du profil"
+      );
     } finally {
       setIsLoading(false);
     }
@@ -209,15 +226,71 @@ const ModifProfile: React.FC = () => {
               required: true 
             },
             {
-              label: "Âge",
-              value: age,
-              setter: setAge,
-              keyboardType: "numeric"
+              label: "Mot de passe",
+              value: password,
+              setter: setPassword,
+              secureTextEntry: true,
+              hint: (
+                <Text style={styles.passwordHint}>
+                  Le mot de passe doit contenir au minimum :{"\n"}
+                  8 caractères{"\n"}
+                  1 lettre minuscule{"\n"}
+                  1 lettre majuscule{"\n"}
+                  1 chiffre{"\n"}
+                  1 caractère spécial (@$!%*?&)
+                </Text>
+              )
             },
             {
               label: "Genre",
               value: gender,
-              setter: setGender
+              customInput: (
+                <View style={styles.genderContainer}>
+                  {GENDER_OPTIONS.map((option) => (
+                    option.value && (
+                      <Pressable
+                        key={option.value}
+                        style={[
+                          styles.genderButton,
+                          gender === option.value && styles.genderButtonSelected
+                        ]}
+                        onPress={() => setGender(option.value)}
+                      >
+                        <Text style={[
+                          styles.genderButtonText,
+                          gender === option.value && styles.genderButtonTextSelected
+                        ]}>
+                          {option.label}
+                        </Text>
+                      </Pressable>
+                    )
+                  ))}
+                </View>
+              )
+            },
+            { 
+              label: "Date de naissance (JJ/MM/AAAA)", 
+              value: birthDate, 
+              setter: setBirthDate 
+            },
+            { 
+              label: "Email", 
+              value: email, 
+              setter: setEmail,
+              keyboardType: "email-address",
+              autoCapitalize: "none",
+              required: true 
+            },
+            { 
+              label: "Numéro de téléphone", 
+              value: phone, 
+              setter: setPhone,
+              keyboardType: "phone-pad" 
+            },
+            {
+              label: "Adresse",
+              value: address,
+              setter: setAddress
             },
             {
               label: "Ville",
@@ -228,11 +301,6 @@ const ModifProfile: React.FC = () => {
               label: "Pays",
               value: country,
               setter: setCountry
-            },
-            {
-              label: "Adresse",
-              value: address,
-              setter: setAddress
             },
             {
               label: "Bio",
@@ -247,55 +315,32 @@ const ModifProfile: React.FC = () => {
               setter: setBankInfo,
               secureTextEntry: true
             },
-            { 
-              label: "Email", 
-              value: email, 
-              setter: setEmail,
-              keyboardType: "email-address",
-              autoCapitalize: "none",
-              required: true 
-            },
-            { 
-              label: "Date de naissance (JJ/MM/AAAA)", 
-              value: birthDate, 
-              setter: setBirthDate 
-            },
-            { 
-              label: "Numéro de téléphone", 
-              value: phone, 
-              setter: setPhone,
-              keyboardType: "phone-pad" 
-            },
-          ].map(({ label, value, setter, secureTextEntry, keyboardType, multiline, numberOfLines, required }, idx) => (
-            <View key={idx} style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>
-                {label} {required && <Text style={styles.required}>*</Text>}
-              </Text>
-              <TextInput
-                placeholder={label}
-                value={value}
-                onChangeText={setter}
-                secureTextEntry={secureTextEntry}
-                keyboardType={keyboardType as import('react-native').KeyboardTypeOptions}
-                multiline={multiline}
-                numberOfLines={numberOfLines}
-                style={[
-                  styles.textInput,
-                  multiline && { height: 100, textAlignVertical: 'top' }
-                ]}
-              />
+          
+          ].map(({ label, value, setter, secureTextEntry, keyboardType, multiline, numberOfLines, required, customInput, hint }, idx) => (
+            <View key={idx}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>
+                  {label} {required && <Text style={styles.required}>*</Text>}
+                </Text>
+                {customInput || (
+                  <TextInput
+                    placeholder={label}
+                    value={value}
+                    onChangeText={setter}
+                    secureTextEntry={secureTextEntry}
+                    keyboardType={keyboardType as import('react-native').KeyboardTypeOptions}
+                    multiline={multiline}
+                    numberOfLines={numberOfLines}
+                    style={[
+                      styles.textInput,
+                      multiline && { height: 100, textAlignVertical: 'top' }
+                    ]}
+                  />
+                )}
+              </View>
+              {hint && hint}
             </View>
           ))}
-
-        {/* Indications mot de passe */}
-        <Text style={styles.passwordHint}>
-          Le mot de passe doit contenir au minimum :{"\n"}
-          • 8 caractères{"\n"}
-          • lettre minuscule{"\n"}
-          • lettre majuscule{"\n"}
-          • chiffre{"\n"}
-          • caractère spécial (@$!%*?&)
-        </Text>
 
         {/* Vérification d'identité */}
         <View style={styles.verificationContainer}>
@@ -304,9 +349,15 @@ const ModifProfile: React.FC = () => {
           </Text>
           <View style={styles.verificationStatus}>
             {isIdentityVerified ? (
-              <Text style={styles.verifiedText}>✓ Documents vérifiés</Text>
+              <View style={styles.verificationStatusContainer}>
+                <Feather name="check-square" size={20} color="#059669" />
+                <Text style={styles.verifiedText}> Documents vérifiés</Text>
+              </View>
             ) : (
-              <Text style={styles.unverifiedText}>Documents manquants</Text>
+              <View style={styles.verificationStatusContainer}>
+                <Feather name="square" size={20} color="#DC2626" />
+                <Text style={styles.unverifiedText}> Documents manquants</Text>
+              </View>
             )}
           </View>
         </View>
@@ -457,6 +508,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
+  verificationStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   verifiedText: {
     color: '#059669',
     fontSize: 14,
@@ -517,6 +572,40 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     color: '#6B7280',
     lineHeight: 16,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    borderRadius: 8,
+    backgroundColor: 'white',
+  },
+  picker: {
+    height: 50,
+    width: '100%',
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  genderButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#D1D5DB',
+    backgroundColor: 'white',
+  },
+  genderButtonSelected: {
+    backgroundColor: '#111827',
+    borderColor: '#111827',
+  },
+  genderButtonText: {
+    color: '#374151',
+    fontSize: 14,
+  },
+  genderButtonTextSelected: {
+    color: 'white',
   },
 });
 
