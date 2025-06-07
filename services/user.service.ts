@@ -1,5 +1,8 @@
 import { api } from "./api";
 import { User } from "@/types/type";
+import axios from 'axios';
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const getAllUsers = async () => {
   try{
@@ -114,5 +117,15 @@ export const getUserById = async (userId: string) => {
     throw (
       error.response?.data || { message: "Une erreur inconnue est survenue" }
     );
+  }
+};
+
+export const deleteUser = async (userId: string) => {
+  try {
+    await axios.delete(`${API_URL}/users/${userId}`);
+    return true;
+  } catch (error) {
+    console.error('Erreur lors de la suppression du compte:', error);
+    throw error;
   }
 };
