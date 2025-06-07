@@ -10,12 +10,13 @@ import {
 } from "react-native";
 import SearchBarPetsitter from "@/components/SearchBarPetSitter";
 import PetSitterCard from "@/components/PetSitterCard";
+import PetSitterModal from "@/components/PetSitterModal";
 import {
   Pagination,
   PetSitterQueryParams,
   ResponsePetsitter,
 } from "@/types/type";
-import { getPetSitters } from "@/services/petsitter.service";
+import {  getPetSittersWithPagination } from "@/services/petsitter.service";
 import * as Location from "expo-location";
 
 export default function PetSitterPage() {
@@ -26,7 +27,6 @@ export default function PetSitterPage() {
   });
   const [petsitters, setPetsitters] = useState<ResponsePetsitter[]>([]);
   const [loading, setIsLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
   const [userLocation, setUserLocation] = useState<{
     latitude: number;
     longitude: number;
@@ -40,6 +40,8 @@ export default function PetSitterPage() {
     totalItems: "0",
     totalPages: "0"
   });
+  const [selectedPetSitter, setSelectedPetSitter] = useState<ResponsePetsitter | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -62,6 +64,7 @@ export default function PetSitterPage() {
           latitude,
           longitude,
         });
+        setFilters({...filters, longitude: longitude, latitude: latitude});
       } catch (error) {
         console.error("Error getting location:", error);
       }
@@ -75,15 +78,15 @@ export default function PetSitterPage() {
   const getPetSitter = async (reset: boolean = false) => {
     try {
       setIsLoading(true);
-      console.log("on rentre dans getPetSitter")
-      const page = reset ? 1 : currentPage;
-      const res = await getPetSitters(filters, { page, limit: 10 });
+      const page = reset ? 1 : parseInt(resultPagination.currentPage) + 1;
+      const res = await getPetSittersWithPagination(filters, { page, limit: 10 });
       
       if (reset) {
-        setPetsitters(res.petsitters);
-        setCurrentPage(1);
+        //@ts-ignore
+        setPetsitters(res.data.petsitters);
       } else {
-        setPetsitters(prev => [...prev, ...res.petsitters]);
+        //@ts-ignore
+        setPetsitters(prev => [...prev, ...res.data.petsitters]);
       }
       
       setResultPagination(res.pagination);
@@ -98,10 +101,7 @@ export default function PetSitterPage() {
   };
 
   const loadMore = () => {
-    console.log("on rentre dans loadMore")
-    console.log(resultPagination)
-    if (!loading && currentPage < parseInt(resultPagination.totalPages)) {
-      setCurrentPage(prev => prev + 1);
+    if (!loading && parseInt(resultPagination.currentPage) < parseInt(resultPagination.totalPages)) {
       getPetSitter();
     }
   };
@@ -112,10 +112,8 @@ export default function PetSitterPage() {
   };
 
   const handleSelectPetSitter = (item: ResponsePetsitter) => {
-    Alert.alert(
-      "Pet-sitter sélectionné",
-      `Vous avez sélectionné: ${item.user.firstName} ${item.user.lastName}`
-    );
+    setSelectedPetSitter(item);
+    setModalVisible(true);
   };
 
   const renderFooter = () => {
@@ -127,17 +125,17 @@ export default function PetSitterPage() {
       );
     }
 
-    // if (petsitters.length === 0) {
-    //   return (
-    //     <View style={{ padding: 20, alignItems: "center" }}>
-    //       <Text style={{ color: isDark ? "#FFFFFF" : "#000000" }}>
-    //         Aucun pet-sitter trouvé
-    //       </Text>
-    //     </View>
-    //   );
-    // }
+    if (petsitters.length === 0) {
+      return (
+        <View style={{ padding: 20, alignItems: "center" }}>
+          <Text style={{ color: isDark ? "#FFFFFF" : "#000000" }}>
+            Aucun pet-sitter trouvé
+          </Text>
+        </View>
+      );
+    }
 
-    if (true) {
+    if (parseInt(resultPagination.currentPage) < parseInt(resultPagination.totalPages)) {
       return (
         <TouchableOpacity
           onPress={loadMore}
@@ -159,7 +157,13 @@ export default function PetSitterPage() {
       );
     }
 
-    return null;
+    return (
+      <View style={{ padding: 20, alignItems: "center" }}>
+        <Text style={{ color: isDark ? "#FFFFFF" : "#000000", textAlign: "center" }}>
+          Y'a plus de pet-sitters à charger  ! 😺
+        </Text>
+      </View>
+    );
   };
 
   return (
@@ -167,6 +171,8 @@ export default function PetSitterPage() {
       <SearchBarPetsitter 
         onSearch={updateFilters}
         onSearchCity={(longitude, latitude) => {
+          console.log("longitude", longitude);
+          console.log("latitude", latitude);
           if (longitude && latitude) {
             setUserLocation({ longitude, latitude });
           }
@@ -175,13 +181,18 @@ export default function PetSitterPage() {
       />
       <FlatList
         data={petsitters}
-        keyExtractor={(item) => item.petsitter.id}
+        keyExtractor={(item) => `${item.petsitter.id}-${item.user.id}`}
         contentContainerStyle={{ paddingHorizontal: 10, paddingTop: 10 }}
         renderItem={({ item }) => (
           <PetSitterCard item={item} onSelect={handleSelectPetSitter} />
         )}
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
+      />
+      <PetSitterModal
+        petSitter={selectedPetSitter}
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
       />
     </View>
   );

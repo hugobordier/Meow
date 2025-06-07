@@ -1,6 +1,6 @@
 import type React from "react";
 import debounce from "lodash/debounce";
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   useColorScheme,
   ActivityIndicator,
   Keyboard,
+  Alert,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
@@ -22,6 +23,7 @@ import type {
 } from "@/types/type";
 import { type CityResult, searchCityByName } from "@/utils/serrchCityByName";
 import { ScrollView } from "react-native-gesture-handler";
+import * as Location from 'expo-location';
 
 type SearchBarPetSitterProps = {
   onSearch?: (params: PetSitterQueryParams) => void;
@@ -44,13 +46,43 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     useState<boolean>(false);
   const [citySuggestions, setCitySuggestions] = useState<CityResult[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [selectedLocation, setSelectedLocation] = useState<'current' | 'city'>('current');
+  const [selectedLocation, setSelectedLocation] = useState<'current' | 'city' | 'none'>('current');
   const [selectedCoordinates, setSelectedCoordinates] = useState<{longitude: number, latitude: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [locationPermission, setLocationPermission] = useState<boolean>(false);
   const [filters, setFilters] = useState<PetSitterQueryParams>({
     minRate: 0,
     maxRate: 100,
     radius: 10,
   });
+
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission refusée",
+          "Nous avons besoin de votre localisation pour cette fonctionnalité."
+        );
+        return;
+      }
+
+      setLocationPermission(true);
+
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
+
+        setUserLocation({
+          latitude,
+          longitude,
+        });
+        setFilters({...filters, longitude: longitude, latitude: latitude});
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    })();
+  }, []);
 
   const filterAnim = useRef(new Animated.Value(0)).current;
   const filterScaleAnim = useRef(new Animated.Value(0.95)).current;
@@ -70,7 +102,6 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     outputRange: [0.95, 1],
   });
 
-  // Animations pour les suggestions de villes - même style que les filtres
   const suggestionAnim = useRef(new Animated.Value(0)).current;
   const suggestionScaleAnim = useRef(new Animated.Value(0.95)).current;
 
@@ -283,12 +314,29 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     debouncedCitySearch(text);
   };
 
-  const useCurrentLocation = () => {
-    if (onSearchCity) {
-      onSearchCity();
-      hideCitySuggestions();
-      setSelectedLocation('current');
-      setSelectedCoordinates(null);
+  const useCurrentLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission refusée",
+          "Nous avons besoin de votre localisation pour cette fonctionnalité."
+        );
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      
+      setUserLocation({ latitude, longitude });
+     
+      
+    } catch (error) {
+      console.error("Error getting location:", error);
+      Alert.alert(
+        "Erreur",
+        "Impossible d'obtenir votre position actuelle."
+      );
     }
   };
 
@@ -297,6 +345,7 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     hideCitySuggestions();
     if (selectedCity && onSearchCity) {
       onSearchCity(selectedCity.longitude, selectedCity.latitude);
+      setFilters({...filters, longitude: selectedCity.longitude, latitude: selectedCity.latitude});
       setSelectedLocation('city');
       setSelectedCoordinates({
         longitude: selectedCity.longitude,
@@ -777,14 +826,20 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
                     color: getTextColor(),
                   }}
                 >
-                  Rechercher depuis
+                  Rechercher depuis : 
                 </Text>
                 <View style={{ flexDirection: 'row', gap: 8 }}>
                   <Pressable
                     onPress={() => {
-                      setSelectedLocation('current');
-                      setSelectedCoordinates(null);
-                      if (onSearchCity) onSearchCity();
+                      if (selectedLocation === 'current') {
+                        setSelectedLocation('none');
+                        setSelectedCoordinates(null);
+                        setFilters({...filters, longitude: undefined, latitude: undefined});
+                      } else {
+                        setSelectedLocation('current');
+                        setSelectedCoordinates(userLocation); //revenir
+                        setFilters({...filters, longitude: userLocation?.longitude, latitude: userLocation?.latitude});
+                      }
                     }}
                     style={{
                       flex: 1,
@@ -817,11 +872,14 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
 
                   <Pressable
                     onPress={() => {
-                      if (selectedCoordinates) {
+                      if (selectedLocation === 'city') {
+                        setSelectedLocation('none');
+                        setSelectedCoordinates(null);
+                        setFilters({...filters, longitude: undefined, latitude: undefined});
+                      } else if (selectedCoordinates) {
                         setSelectedLocation('city');
                         if (onSearchCity) onSearchCity(selectedCoordinates.longitude, selectedCoordinates.latitude);
                       } else {
-                        // Si aucune ville n'est sélectionnée, on ouvre les suggestions
                         showCityResults();
                       }
                     }}
@@ -1138,3 +1196,4 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
 };
 
 export default SearchBarPetSitter;
+

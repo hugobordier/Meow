@@ -82,7 +82,7 @@ export default function PetSitterCard({
         }}
         onPress={() => onSelect(item)}
       >
-        <Text style={{ color: "white" }}>Demander</Text>
+        <Text style={{ color: "white" }}>Voir profil</Text>
       </TouchableOpacity>
     </View>
   );
