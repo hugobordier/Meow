@@ -81,7 +81,7 @@ export default function PetAddModale({ visible, onClose, onAdd }: Props) {
       if (onAdd) onAdd();
       if (onClose) onClose();
     } catch (error) {
-      console.error("Erreur lors de l'ajout :", error);
+      console.log("Erreur lors de l'ajout :", error);
       toast.showToast("Erreur lors de l'ajout", ToastType.ERROR);
     }
   };

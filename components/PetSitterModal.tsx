@@ -52,7 +52,7 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
       setPetsitterReviews(response.reviews);
       setTotalReviews(response.reviews.length);
     } catch (error) {
-      console.error("Erreur lors du chargement des avis:", error);
+      console.log("Erreur lors du chargement des avis:", error);
       setPetsitterReviews([]);
       setTotalReviews(0);
     } finally {

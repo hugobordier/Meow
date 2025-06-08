@@ -32,7 +32,7 @@ export default function MesAnimaux() {
         setListPets(response.data);
       })
       .catch((error) => {
-        console.error("Erreur lors du chargement des animaux :", error);
+        console.log("Erreur lors du chargement des animaux :", error);
       });
   }
 }, []);
@@ -52,7 +52,7 @@ export default function MesAnimaux() {
         if (updatedPet) setSelectedPet(updatedPet);
       }
     } catch (error) {
-      console.error("Erreur lors du rafraîchissement des animaux :", error);
+      console.log("Erreur lors du rafraîchissement des animaux :", error);
     }
   }
 };
