@@ -17,8 +17,19 @@ import {
 import { ToastType, useToast } from "@/context/ToastContext";
 import { User } from "@/types/type";
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
+import { useRouter } from 'expo-router';
+import PetAddModale from "@/components/PetAddModale";
+import { useEffect
+
+ } from "react";
+   import { Pet } from "@/types/pets";
+import { getPetsForAUser } from "@/services/pet.service";
+import PetDetailModale from "@/components/PetDetailModale";
 
 export default function HomeScreen() {
+  const [addPetModalVisible, setAddPetModalVisible] = useState(false);
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const { user, setUser } = useAuthContext();
   const { showToast } = useToast();
 
@@ -116,6 +127,55 @@ export default function HomeScreen() {
     }
   };
 
+  const handleNavigationListePets = async () => {
+  try {
+    setLoading(true);
+  
+    router.push("/(home)/(main)/ListePets");
+  } catch (error) {
+    console.error("Erreur de navigation :", error);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const [listPets, setListPets] = useState<Pet[]>([]);
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  useEffect(() => {
+    // console.log(user?.id)
+  if (user?.id) {
+    getPetsForAUser()
+      .then((response) => {
+        // console.log("animaux:", response);
+        setListPets(response.data);
+      })
+      .catch((error) => {
+        console.error("Erreur lors du chargement des animaux :", error);
+      });
+  }
+}, []);
+
+  const handlePressPet = (pet: Pet) => {
+    setSelectedPet(pet);
+    setModalVisible(true);
+  };
+
+  const refreshPets = async () => {
+  if (user?.id) {
+    try {
+      const response = await getPetsForAUser();
+      setListPets(response.data);
+      if (selectedPet) {
+        const updatedPet = response.data.find((p) => p.id === selectedPet.id);
+        if (updatedPet) setSelectedPet(updatedPet);
+      }
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement des animaux :", error);
+    }
+  }
+};
+
   return (
     <ScrollView className="flex-1 bg-fuchsia-50 dark:bg-gray-900">
       {/* User Profile */}
@@ -173,7 +233,7 @@ export default function HomeScreen() {
           className="mt-3"
         >
           {/* Add Pet */}
-          <TouchableOpacity className="items-center mr-4">
+          <TouchableOpacity className="items-center mr-4" onPress={() => setAddPetModalVisible(true)}>
             <View className="w-16 h-16 rounded-full bg-yellow-200 dark:bg-yellow-300 items-center justify-center">
               <Ionicons name="add" size={24} color="black" />
             </View>
@@ -181,46 +241,75 @@ export default function HomeScreen() {
               Add Pet
             </Text>
           </TouchableOpacity>
+          {/* List Pets */}
+          {[0, 1, 2, 3].map((i) =>
+    listPets[i] ? (
+      <TouchableOpacity key={listPets[i].id} className="items-center mr-4" onPress={() => handlePressPet(listPets[i])}>
+        <View
+          className={`w-16 h-16 rounded-full items-center justify-center overflow-hidden ${
+            i === 0
+              ? "bg-blue-200 dark:bg-blue-300"
+              : i === 1
+              ? "bg-yellow-200 dark:bg-yellow-300"
+              : i === 2
+              ? "bg-blue-100 dark:bg-blue-200"
+              : "bg-orange-200 dark:bg-orange-300"
+          }`}
+        >
+          {listPets[i].photo_url ? (
+            <Image
+              source={{ uri: listPets[i].photo_url }}
+              style={{ width: 64, height: 64, borderRadius: 32 }}
+              resizeMode="cover"
+            />
+          ) : (
+            <FontAwesome5
+              name={
+                i === 0
+                  ? "dog"
+                  : i === 1
+                  ? "cat"
+                  : i === 2
+                  ? "fish"
+                  : "cat"
+              }
+              size={24}
+              color={
+                i === 0
+                  ? "brown"
+                  : i === 1
+                  ? "orange"
+                  : i === 2
+                  ? "blue"
+                  : "orange"
+              }
+            />
+          )}
+        </View>
+        <Text className="text-xs mt-1 text-center text-black dark:text-white">
+          {listPets[i].name}
+        </Text>
+      </TouchableOpacity>
+    ) : null
+  )}
 
-          {/* Pet - River */}
-          <TouchableOpacity className="items-center mr-4">
-            <View className="w-16 h-16 rounded-full bg-blue-200 dark:bg-blue-300 items-center justify-center">
-              <FontAwesome5 name="dog" size={24} color="brown" />
-            </View>
-            <Text className="text-xs mt-1 text-center text-black dark:text-white">
-              River
-            </Text>
-          </TouchableOpacity>
+          <PetAddModale
+            visible={addPetModalVisible}
+            onClose={() => setAddPetModalVisible(false)}
+            onAdd={() => {
+              setAddPetModalVisible(false);
+              refreshPets();
+            }}
+            />
+          <PetDetailModale
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            pet={selectedPet}
 
-          {/* Pet - Sky */}
-          <TouchableOpacity className="items-center mr-4">
-            <View className="w-16 h-16 rounded-full bg-yellow-200 dark:bg-yellow-300 items-center justify-center">
-              <FontAwesome5 name="cat" size={24} color="orange" />
-            </View>
-            <Text className="text-xs mt-1 text-center text-black dark:text-white">
-              Sky
-            </Text>
-          </TouchableOpacity>
-
-          {/* Pet - Blue */}
-          <TouchableOpacity className="items-center mr-4">
-            <View className="w-16 h-16 rounded-full bg-blue-100 dark:bg-blue-200 items-center justify-center">
-              <FontAwesome5 name="fish" size={24} color="blue" />
-            </View>
-            <Text className="text-xs mt-1 text-center text-black dark:text-white">
-              Blue
-            </Text>
-          </TouchableOpacity>
-
-          {/* Pet - Ginger */}
-          <TouchableOpacity className="items-center mr-4">
-            <View className="w-16 h-16 rounded-full bg-orange-200 dark:bg-orange-300 items-center justify-center">
-              <FontAwesome5 name="cat" size={24} color="orange" />
-            </View>
-            <Text className="text-xs mt-1 text-center text-black dark:text-white">
-              Ginger
-            </Text>
-          </TouchableOpacity>
+            onUpdate={() => {
+              refreshPets();
+            }}
+            />
         </ScrollView>
       </View>
 
@@ -279,6 +368,7 @@ export default function HomeScreen() {
               icon: <FontAwesome5 name="paw" size={20} color="white" />,
               bg: "bg-blue-500",
               label: "Mes animaux",
+              navigateTo: "/ListePets",
             },
             {
               icon: (
@@ -321,6 +411,7 @@ export default function HomeScreen() {
               key={index}
               className="items-center mb-6"
               style={{ width: "25%" }} // 4 colonnes = 100 / 4
+              onPress={() => handleNavigationListePets()}
             >
               <View
                 className={`w-14 h-14 rounded-full items-center justify-center ${item.bg}`}
