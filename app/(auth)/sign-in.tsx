@@ -81,6 +81,15 @@ const SignInScreen = () => {
       const user = await login(form);
       if (user as User) {
         setUser(user.data);
+
+        const socket = await createSocket();
+
+        if (!socket) {
+          console.error("❌ Socket non initialisé");
+          showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
+          return;
+        }
+
         try {
           const petsitterResponse = await api.get(`/Petsitter/user/${user.id}`);
           if (petsitterResponse.data) {
@@ -91,7 +100,7 @@ const SignInScreen = () => {
           console.log(" Pas de profil petsitter pour cet utilisateur");
           setPetsitter(null);
         }
-        const socket = createSocket();
+
 
         socket.on("connect", () => {
           console.log("✅ Socket maintenant connecté");
