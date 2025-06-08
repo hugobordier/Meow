@@ -4,9 +4,7 @@ import { Pet } from "@/types/pets";
 
 export const createPet =async (data:Partial<Pet>)=>{
     try {
-    const response = await api.post("/PetsRoutes", {
-      data,
-    });
+    const response = await api.post("/PetsRoutes", data,);
     console.log(response.data);
     return response.data;
   } catch (error: any) {
@@ -76,7 +74,7 @@ export const deletePet = async (petID:string) => {
 
 
 
-export const createPhotoprofilPet = async (id:string,image: string) => {
+export const updatePhotoprofilPet = async (id:string,image: string) => {
   try {
     const formData = new FormData();
     const filename = image.split("/").pop() || "photo.jpg";
@@ -89,7 +87,7 @@ export const createPhotoprofilPet = async (id:string,image: string) => {
       type,
     } as any);
 
-    const response = await api.post(`/PetsRoutes/PhotoProfil/${id}`, formData, {
+    const response = await api.patch(`/PetsRoutes/PhotoProfil/${id}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },

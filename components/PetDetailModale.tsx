@@ -5,6 +5,8 @@ import { Pet } from '@/types/pets';
 import { deletePet, updatePet } from '@/services/pet.service';
 import { useEffect } from 'react';
 import { ToastType, useToast } from "@/context/ToastContext";
+import { pickImageFromLibrary } from "@/utils/imagePicker";
+import { updatePhotoprofilPet} from '@/services/pet.service';
 
 type Props = {
   visible: boolean;
@@ -17,6 +19,7 @@ export default function PetDetailModale({ visible, onClose, pet, onUpdate }: Pro
   const toast = useToast();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<Partial<Pet>>(pet || {});
+  const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
     setForm(pet || {});
@@ -39,7 +42,16 @@ export default function PetDetailModale({ visible, onClose, pet, onUpdate }: Pro
     setEditMode(false);
     setForm(formToSend);
     if (onUpdate) onUpdate();
-    // if (onClose) onClose();
+
+    if (image) {
+      const uploadResult = await updatePhotoprofilPet(pet.id, image);
+      if (uploadResult?.photo_url) {
+        await updatePet(pet.id, { photo_url: uploadResult.photo_url });
+        setForm({ ...form, photo_url: uploadResult.photo_url });
+        if (onUpdate) onUpdate();
+      }
+      toast.showToast("Image ajoutée", ToastType.SUCCESS);
+    }
     toast.showToast("Animal modifié", ToastType.SUCCESS);
   } catch (error) {
     console.error("Erreur lors de la modification :", error);
@@ -76,64 +88,91 @@ const handleDelete = async () => {
             )}
             {editMode ? (
               <>
-                <TextInput
-                  style={styles.input}
-                  value={form.name || ''}
-                  onChangeText={text => handleChange('name', text)}
-                  placeholder="Nom"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.breed || ''}
-                  onChangeText={text => handleChange('breed', text)}
-                  placeholder="Race"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.species || ''}
-                  onChangeText={text => handleChange('species', text)}
-                  placeholder="Espèce"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.gender || ''}
-                  onChangeText={text => handleChange('gender', text)}
-                  placeholder="Genre"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.color || ''}
-                  onChangeText={text => handleChange('color', text)}
-                  placeholder="Couleur"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.age ? String(form.age) : ''}
-                  onChangeText={text => handleChange('age', Number(text))}
-                  placeholder="Âge"
-                  keyboardType="numeric"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.weight ? String(form.weight) : ''}
-                  onChangeText={text => handleChange('weight', Number(text))}
-                  placeholder="Poids"
-                  keyboardType="numeric"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.allergy || ''}
-                  onChangeText={text => handleChange('allergy', text)}
-                  placeholder="Allergie"
-                />
-                <TextInput
-                  style={styles.input}
-                  value={form.diet || ''}
-                  onChangeText={text => handleChange('diet', text)}
-                  placeholder="Régime"
-                />
                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ marginRight: 8 }}>Castré :</Text>
+                  <Text style={{ width: 90 }}>Nom</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.name || ''}
+                    onChangeText={text => handleChange('name', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Race</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.breed || ''}
+                    onChangeText={text => handleChange('breed', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Espèce</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.species || ''}
+                    onChangeText={text => handleChange('species', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Genre</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.gender || ''}
+                    onChangeText={text => handleChange('gender', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Couleur</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.color || ''}
+                    onChangeText={text => handleChange('color', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Âge</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.age ? String(form.age) : ''}
+                    onChangeText={text => handleChange('age', Number(text))}
+                    placeholder=""
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Poids</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.weight ? String(form.weight) : ''}
+                    onChangeText={text => handleChange('weight', Number(text))}
+                    placeholder=""
+                    keyboardType="numeric"
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Allergie</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.allergy || ''}
+                    onChangeText={text => handleChange('allergy', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Régime</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
+                    value={form.diet || ''}
+                    onChangeText={text => handleChange('diet', text)}
+                    placeholder=""
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Castré</Text>
                   <TouchableOpacity
                     style={{
                       width: 40,
@@ -155,13 +194,47 @@ const handleDelete = async () => {
                   </TouchableOpacity>
                   <Text style={{ marginLeft: 8 }}>{form.neutered ? 'Oui' : 'Non'}</Text>
                 </View>
-                <TextInput
-                  style={[styles.input, { height: 60 }]}
-                  value={form.description || ''}
-                  onChangeText={text => handleChange('description', text)}
-                  placeholder="Description"
-                  multiline
-                />
+                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
+                  <Text style={{ width: 90 }}>Description</Text>
+                  <TextInput
+                    style={[styles.input, { flex: 1, marginBottom: 0, height: 60 }]}
+                    value={form.description || ''}
+                    onChangeText={text => handleChange('description', text)}
+                    placeholder=""
+                    multiline
+                  />
+                </View>
+                {editMode && (
+                  <>
+                    <TouchableOpacity
+                      onPress={async () => {
+                        const result = await pickImageFromLibrary();
+                        if (result.uri) setImage(result.uri);
+                        else if (result.error) toast.showToast(result.error, ToastType.ERROR);
+                      }}
+                      style={{
+                        backgroundColor: "#facc15",
+                        paddingVertical: 12,
+                        paddingHorizontal: 20,
+                        borderRadius: 9999,
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        marginBottom: 12,
+                      }}
+                    >
+                      <Ionicons name="images" size={24} color="white" />
+                      <Text style={{ color: "white", marginLeft: 8, fontWeight: "bold" }}>
+                        Choisir une photo
+                      </Text>
+                    </TouchableOpacity>
+                    {image && (
+                      <Text style={{ marginBottom: 8, color: "#555" }}>
+                        Image sélectionnée
+                      </Text>
+                    )}
+                  </>
+                )}
               </>
             ) : (
               <>
