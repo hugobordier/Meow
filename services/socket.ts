@@ -1,14 +1,42 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { io, Socket } from "socket.io-client";
 
+const WS_URL = "https://meowback-production.up.railway.app";
 let socket: Socket | null = null;
 
-export const createSocket = () => {
-  socket = io("https://meowback-production.up.railway.app", {
-    transports: ['websocket'],   // forcer WebSocket
-    path: "/socket.io", 
+export const createSocket = async () => {
+  const accessToken = await AsyncStorage.getItem("accessToken");
+  const refreshToken = await AsyncStorage.getItem("refreshToken");
+
+  if (!accessToken || !refreshToken) {
+    console.error("❌ Tokens manquants, socket non créé");
+    return null;
+  }
+
+  console.log("🔐 accessToken:", accessToken.slice(0, 20) + "...");
+  console.log("🔄 refreshToken:", refreshToken.slice(0, 20) + "...");
+
+  socket = io(WS_URL, {
+    transports: ["websocket"],
+    path: "/socket.io",
     autoConnect: true,
+    query: {
+      accessToken,
+      refreshToken,
+    },
   });
+
+  socket.on("new-access-token", async (newToken) => {
+    console.log("🆕 Nouveau accessToken reçu via WebSocket");
+    await AsyncStorage.setItem("accessToken", newToken);
+  });
+
+  socket.on("connect", () => {
+    const fullUrl = `wss://${socket?.io.opts.hostname}${socket?.io.opts.path}`;
+    console.log("✅ WebSocket connecté !");
+    console.log("🔗 URL de connexion :", fullUrl);
+  });
+
   return socket;
 };
-
 export const getSocket = () => socket;

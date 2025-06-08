@@ -7,10 +7,15 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
+  ScrollView
 } from "react-native";
-import { getSocket } from "@/services/socket";
+import { getSocket, waitForSocketConnection  } from "@/services/socket";
 import {SegmentedControl} from "segmented-control-rn";
 import { getAllUsers } from "@/services/user.service";
+
+const generateRoomID = (user1: string, user2: string) => {
+  return [user1, user2].sort().join("_");
+};
 
 const INACTIVE_COLOR = 'rgba(0, 0, 0, 0.5)';
 const ACTIVE_COLOR = 'rgb(0, 0, 0)';
@@ -41,13 +46,16 @@ const segments = [
 const socket = getSocket();
 
 const ChatScreen = () => {
+  const [serverState, setServerState] = useState('Loading...');   //???
   const [activeIndex, setActiveIndex] = useState(0);
   const [message, setMessage] = useState("");
+  const [inputFieldEmpty, setInputFieldEmpty] = useState(true);
   const [recipient, setRecipient] = useState("");
   const [allUsers, setAllUsers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [isUserListVisible, setIsUserListVisible] = useState(false);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
+  const [joinRoom,setJoinRoom] = useState("");
   const [messages, setMessages] = useState<{ user: string; text: string }[]>(
     []
   );
@@ -74,7 +82,8 @@ const ChatScreen = () => {
     }
     
     socket.on("connect", () => { //"on" signifie ecoute un event
-      console.log("✅ Connecté au serveur WebSocket");
+      const fullUrl = `wss://${socket.io.opts.hostname}${socket.io.opts.path}`;
+      console.log("📲 Client connecté à :", fullUrl);
       
      fetchUsers();
     });
@@ -111,30 +120,72 @@ const ChatScreen = () => {
     }
   };
 
+  // Si aucune discussion
+if (messages.length === 0 && !isUserListVisible) {
+  return (
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <Text style={{ marginBottom: 20, fontSize: 16 }}>Aucune discussion pour le moment</Text>
+      <TouchableOpacity
+        style={{
+          padding: 12,
+          backgroundColor: '#000',
+          borderRadius: 8,
+        }}
+        onPress={() => setIsUserListVisible(true)}
+      >
+        <Text style={{ color: '#fff' }}>Commencer une discussion</Text>
+      </TouchableOpacity>
+    </View>
+  );
+}
+
+
   return (
     
-    <View className="mt-20">
-      <Text>
+    <View className="pt-20 px-4">
+      
+      <Text className="text-xl font-bold mb-4">
         Activité
       </Text>
+      {message.length > 0 && (
+        <>
       <SegmentedControl
         onChange={(index) => setActiveIndex(index)}
         segments={segments}
         selectedIndex={activeIndex}
       />
-      <TouchableOpacity className="mt-20 items-center"
-        onPress={() => setIsUserListVisible(true)}>
-        <Text>Send Message</Text>
-      </TouchableOpacity>
+        </>
+      )}
       {isUserListVisible && (
         <View className="mt-4 ml-2">
-          <Text className="font-bold">Utilisateurs</Text>
+          <Text className="font-bold">Choisissez un utilisateurs</Text>
           {allUsers.map((user, index) => (
             <TouchableOpacity
               key={index}
-              onPress={() => {
-                setSelectedUser(user);
-                setIsUserListVisible(false);
+              onPress={async () => {
+                
+                
+                if (!socket) return;
+                setLoading(true);
+                try{
+                  await waitForSocketConnection(socket);
+
+                  if (socket.id){
+                    const roomID = generateRoomID(socket.id, user);
+                    socket.emit("join", roomID);
+                    setSelectedUser(user);
+                    setIsUserListVisible(false);
+                    setJoinRoom(roomID);
+                    console.log("rej room:", roomID);
+                  }else{
+                    console.log("!!!!!!!!!!socket or socketid not available!!!!!!!!!!!!!!!HEEEEEELP")
+                  }
+                }catch(err){
+                  console.error("Erreur pendant la connexion au socket :", err);
+                } finally {
+                  setLoading(false); // ✅ sera appelé même si erreur
+                }
+            
               }}
               style={{ paddingVertical: 6 }}
             >

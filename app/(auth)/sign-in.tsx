@@ -76,7 +76,13 @@ const SignInScreen = () => {
       const user = await login(form);
       if (user as User) {
         setUser(user.data);
-        const socket = createSocket();
+        const socket = await createSocket();
+
+        if (!socket) {
+          console.error("❌ Socket non initialisé");
+          showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
+          return;
+        }
 
         socket.on("connect", () => {
           console.log("✅ Socket maintenant connecté");
