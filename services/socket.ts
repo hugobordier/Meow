@@ -40,3 +40,18 @@ export const createSocket = async () => {
   return socket;
 };
 export const getSocket = () => socket;
+
+export const waitForSocketConnection = (socket: Socket, timeout = 3000): Promise<boolean> => {
+  return new Promise((resolve, reject) => {
+    if (socket.connected) return resolve(true);
+
+    const timer = setTimeout(() => {
+      reject(new Error("❌ Timeout : socket non connecté"));
+    }, timeout);
+
+    socket.once("connect", () => {
+      clearTimeout(timer);
+      resolve(true);
+    });
+  });
+};

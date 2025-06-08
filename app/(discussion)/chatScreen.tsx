@@ -9,9 +9,11 @@ import {
   TouchableOpacity,
   ScrollView
 } from "react-native";
-import { getSocket, waitForSocketConnection  } from "@/services/socket";
+import { getSocket, waitForSocketConnection } from "@/services/socket";
 import {SegmentedControl} from "segmented-control-rn";
 import { getAllUsers } from "@/services/user.service";
+import { useRouter } from "expo-router";
+
 
 const generateRoomID = (user1: string, user2: string) => {
   return [user1, user2].sort().join("_");
@@ -44,6 +46,8 @@ const segments = [
 ];
 
 const socket = getSocket();
+
+const router = useRouter();
 
 const ChatScreen = () => {
   const [serverState, setServerState] = useState('Loading...');   //???
@@ -123,17 +127,12 @@ const ChatScreen = () => {
   // Si aucune discussion
 if (messages.length === 0 && !isUserListVisible) {
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ marginBottom: 20, fontSize: 16 }}>Aucune discussion pour le moment</Text>
-      <TouchableOpacity
-        style={{
-          padding: 12,
-          backgroundColor: '#000',
-          borderRadius: 8,
-        }}
+    <View className="flex-1 justify-center items-center">
+      <Text className="mb-5 text-base">Aucune discussion pour le moment</Text>
+      <TouchableOpacity className="p-3 bg-black rounded-lg"
         onPress={() => setIsUserListVisible(true)}
       >
-        <Text style={{ color: '#fff' }}>Commencer une discussion</Text>
+        <Text className="text-white">Commencer une discussion</Text>
       </TouchableOpacity>
     </View>
   );
@@ -163,23 +162,28 @@ if (messages.length === 0 && !isUserListVisible) {
             <TouchableOpacity
               key={index}
               onPress={async () => {
-                
+                const socket = getSocket();
+                console.log("socket.id =", socket?.id);
                 
                 if (!socket) return;
                 setLoading(true);
                 try{
                   await waitForSocketConnection(socket);
 
-                  if (socket.id){
-                    const roomID = generateRoomID(socket.id, user);
-                    socket.emit("join", roomID);
-                    setSelectedUser(user);
-                    setIsUserListVisible(false);
-                    setJoinRoom(roomID);
-                    console.log("rej room:", roomID);
-                  }else{
-                    console.log("!!!!!!!!!!socket or socketid not available!!!!!!!!!!!!!!!HEEEEEELP")
-                  }
+                  const roomID = generateRoomID(socket.id!, user);
+                  socket.emit("join", roomID);
+                  setSelectedUser(user);
+                  setIsUserListVisible(false);
+                  setJoinRoom(roomID);
+                  console.log("rej room:", roomID);
+                  router.push({
+                    pathname: "./chatDialogue",
+                    params: {
+                      roomID,
+                      recipient: user
+                    }
+                  });
+                  
                 }catch(err){
                   console.error("Erreur pendant la connexion au socket :", err);
                 } finally {
@@ -187,7 +191,7 @@ if (messages.length === 0 && !isUserListVisible) {
                 }
             
               }}
-              style={{ paddingVertical: 6 }}
+              className="py-[6px]"
             >
               <Text>{user}</Text>
             </TouchableOpacity>
