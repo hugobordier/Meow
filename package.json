@@ -4,6 +4,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "expo start --tunnel",
+    "prod": "expo start --tunnel --no-dev --minify",
     "clear": "expo start --tunnel --clear",
     "local": "expo start",
     "reset-project": "node ./scripts/reset-project.js",

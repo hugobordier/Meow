@@ -67,7 +67,7 @@ export default function BottomNavBar() {
     },
     {
       name: "Menu",
-      path: "/",
+      path: "/(home)/(petsitter)/PetSitterPage",
       icon: "menu-outline",
       activeIcon: "menu",
     },
@@ -118,8 +118,8 @@ export default function BottomNavBar() {
                 }
               }
 
-  router.push(route.path as Href);
-}}
+              router.push(route.path as Href);
+            }}
             style={[styles.tab]}
           >
             <Ionicons

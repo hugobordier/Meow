@@ -27,11 +27,12 @@ import {
   PetSitterQueryParams,
   ResponsePetsitter,
 } from "@/types/type";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const Maps = () => {
   const mapRef = useRef<MapView | null>(null);
-  const bottomSheetRef = useRef<BottomSheet | null>(null);
+  const bottomSheetRef = useRef<BottomSheetModalMethods>(null);
 
   const [mapRegion, setMapRegion] = useState({
     latitude: 48.8566,
@@ -54,7 +55,6 @@ const Maps = () => {
   const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>([]);
   const [loading, setIsLoading] = useState(false);
 
-  // État pour le BottomSheet
   const [selectedPetSitter, setSelectedPetSitter] =
     useState<ResponsePetsitter | null>(null);
 
@@ -170,7 +170,8 @@ const Maps = () => {
   };
 
   const centerOnMarker = (latitude: number, longitude: number) => {
-    if (mapRef.current) {
+    bottomSheetRef.current?.snapToIndex(1);
+    if (mapRef.current && bottomSheetRef.current) {
       mapRef.current.animateToRegion(
         {
           latitude: latitude - 0.0001,
@@ -244,9 +245,12 @@ const Maps = () => {
   };
 
   const openPetSitterDetails = (ps: ResponsePetsitter) => {
+    console.log("test");
     setSelectedPetSitter(ps);
-    bottomSheetRef.current?.snapToIndex(0);
     showTooltip(ps.petsitter.id);
+    setTimeout(() => {
+      bottomSheetRef.current?.snapToIndex(1);
+    }, 50);
   };
 
   useEffect(() => {
@@ -301,11 +305,17 @@ const Maps = () => {
                     key={ps.petsitter.id}
                     coordinate={{ latitude, longitude }}
                     onPress={() => {
-                      openPetSitterDetails(ps);
                       centerOnMarker(latitude, longitude);
+                      openPetSitterDetails(ps);
                     }}
+                    
+                   
                   >
-                    <View style={{ alignItems: "center" }}>
+                    
+                    <View style={{ 
+                      alignItems: Platform.OS === "android" ? "flex-start" : "center",
+                      justifyContent: "center",
+                    }}>
                       {/* Tooltip */}
                       {tooltipVisible === ps.petsitter.id && (
                         <Animated.View
