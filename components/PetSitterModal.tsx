@@ -252,7 +252,7 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
               />
             </TouchableOpacity>
 
-            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 ,marginBottom: 10}}>
               <View style={{ position: "relative" }}>
                 <Image
                   source={{
@@ -326,6 +326,8 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
                 </View>
               </View>
             </View>
+            <ScrollView style={{ height: windowHeight * 0.40 }}>
+              <View className="flex-1 ">
 
             {/* Tarif */}
             <View style={{ 
@@ -375,8 +377,7 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
                 </Text>
               </View>
             </View>
-            <ScrollView style={{ height: windowHeight * 0.33 }}>
-              <View className="flex-1 ">
+            
                 {/* Bio */}
                 <View style={{ marginBottom: 20 }}>
                   <Text 

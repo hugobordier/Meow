@@ -16,8 +16,10 @@ import {
   PetSitterQueryParams,
   ResponsePetsitter,
 } from "@/types/type";
-import {  getPetSittersWithPagination } from "@/services/petsitter.service";
+import { getPetSittersWithPagination } from "@/services/petsitter.service";
+import { useAuthContext } from "@/context/AuthContext";
 import * as Location from "expo-location";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function PetSitterPage() {
   const [filters, setFilters] = useState<PetSitterQueryParams>({
@@ -42,6 +44,9 @@ export default function PetSitterPage() {
   });
   const [selectedPetSitter, setSelectedPetSitter] = useState<ResponsePetsitter | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  
+  // Récupération du contexte d'authentification
+  const { petsitter } = useAuthContext();
 
   useEffect(() => {
     (async () => {
@@ -116,6 +121,14 @@ export default function PetSitterPage() {
     setModalVisible(true);
   };
 
+  const handleEditPetsitterProfile = () => {
+    // Navigation vers la page d'édition du profil petsitter
+    // Remplacez par votre logique de navigation
+    console.log("Navigation vers l'édition du profil petsitter");
+    // Exemple avec React Navigation:
+    // navigation.navigate('EditPetsitterProfile');
+  };
+
   const renderFooter = () => {
     if (loading) {
       return (
@@ -179,6 +192,7 @@ export default function PetSitterPage() {
         }}
         count={resultPagination ? parseInt(resultPagination.totalItems) : 0  }
       />
+      
       <FlatList
         data={petsitters}
         keyExtractor={(item) => `${item.petsitter.id}-${item.user.id}`}
@@ -189,11 +203,44 @@ export default function PetSitterPage() {
         ListFooterComponent={renderFooter}
         showsVerticalScrollIndicator={false}
       />
+      
       <PetSitterModal
         petSitter={selectedPetSitter}
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
       />
+
+      {/* Bouton flottant pour modifier le profil petsitter */}
+      {petsitter && (
+        <TouchableOpacity
+          onPress={handleEditPetsitterProfile}
+          style={{
+            position: "absolute",
+            bottom: 30,
+            right: 20,
+            backgroundColor: isDark ? "#D946EF" : "#3849d6",
+            width: 60,
+            height: 60,
+            borderRadius: 30,
+            justifyContent: "center",
+            alignItems: "center",
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: 2,
+            },
+            shadowOpacity: 0.25,
+            shadowRadius: 3.84,
+            elevation: 5,
+          }}
+        >
+          <Ionicons 
+            name="create-outline" 
+            size={28} 
+            color="#FFFFFF" 
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
