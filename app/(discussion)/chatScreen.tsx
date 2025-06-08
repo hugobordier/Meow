@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   ScrollView
 } from "react-native";
-import { getSocket, waitForSocketConnection } from "@/services/socket";
+import { createSocket, getSocket, waitForSocketConnection } from "@/services/socket";
 import {SegmentedControl} from "segmented-control-rn";
 import { getAllUsers } from "@/services/user.service";
 import { useRouter } from "expo-router";
@@ -78,39 +78,41 @@ const ChatScreen = () => {
     };
   
   useEffect(() => {
+  const init = async () => {
+    const createdSocket = await createSocket(); // Crée le socket
 
-    fetchUsers();
-    if (!socket) {
-      console.warn("⚠️ Socket non disponible (non connecté)");
+    if (!createdSocket) {
+      console.warn("❌ Socket non créé !");
       return;
     }
-    
-    socket.on("connect", () => { //"on" signifie ecoute un event
-      const fullUrl = `wss://${socket.io.opts.hostname}${socket.io.opts.path}`;
-      console.log("📲 Client connecté à :", fullUrl);
-      
-     fetchUsers();
-    });
 
-    socket.on("message", (msg) => {
-      setMessages((prev) => [...prev, msg]);
-    });
+    try {
+      await waitForSocketConnection(createdSocket); // ⏳ Attend la connexion
 
-    //socket.on("online-users", (userList)=> {
-      //console.log("User online:", userList);
-      //setAllUsers(userList);//remplir les user (la liste)
-    //});
+      console.log("✅ Socket connecté :", createdSocket.id);
 
-    //For private messages
-    socket.on("receive_message", ({ sender, message }) => {
-      console.log(`Msg received from ${sender}: ${message}`);
+      createdSocket.on("connect", () => {
+        const fullUrl = `wss://${createdSocket.io.opts.hostname}${createdSocket.io.opts.path}`;
+        console.log("📲 Client connecté à :", fullUrl);
+      });
 
-      setMessages((prev) => [
-        ...prev,
-        {user: `[privé] ${sender}`, text: message},
-      ]);
-    });
-  }, []);
+      createdSocket.on("message", (msg) => {
+        setMessages((prev) => [...prev, msg]);
+      });
+
+      createdSocket.on("receive_message", ({ sender, message }) => {
+        console.log(`📩 Msg reçu de ${sender}: ${message}`);
+        setMessages((prev) => [...prev, { user: `[privé] ${sender}`, text: message }]);
+      });
+
+      await fetchUsers();
+    } catch (err) {
+      console.error("❌ Erreur de connexion socket :", err);
+    }
+  };
+
+  init(); // Ne pas oublier d’appeler la fonction !
+}, []);
 
   const sendMessage = () => {
     
@@ -162,13 +164,19 @@ if (messages.length === 0 && !isUserListVisible) {
             <TouchableOpacity
               key={index}
               onPress={async () => {
-                const socket = getSocket();
-                console.log("socket.id =", socket?.id);
-                
-                if (!socket) return;
                 setLoading(true);
-                try{
+                try {
+                  let socket = getSocket();
+
+    
+                  if (!socket || !socket.connected) {
+                  console.log("🔄 Recréation de la socket...");
+                  socket = await createSocket();
+                  if (!socket) throw new Error("Échec de création du socket");
                   await waitForSocketConnection(socket);
+                }
+
+                  console.log("socket.id =", socket.id);
 
                   const roomID = generateRoomID(socket.id!, user);
                   socket.emit("join", roomID);
