@@ -26,6 +26,10 @@ const Layout = () => {
             name="(onboarding)"
             options={{ headerShown: false, animation: "none" }}
           />
+          <Stack.Screen
+            name="(petsitter)"
+            options={{ headerShown: false, animation: "none" }}
+          />
         </Stack>
 
         {!isOnboarding && <BottomNavBar />}
