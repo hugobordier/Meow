@@ -91,7 +91,7 @@ const SignInScreen = () => {
         }
 
         try {
-          const petsitterResponse = await api.get(`/Petsitter/user/${user.id}`);
+          const petsitterResponse = await api.get(`/Petsitter/user/${user.data.id}`);
           if (petsitterResponse.data) {
             setPetsitter(petsitterResponse.data);
             console.log("✅ Profil petsitter trouvé");

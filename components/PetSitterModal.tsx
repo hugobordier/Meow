@@ -13,6 +13,7 @@ import ReviewCard from "./ReviewCard";
 import RatingModal from "@/components/RatingModal";
 import CommentModal from "@/components/CommentModal";
 import { ToastType, useToast } from "@/context/ToastContext";
+import ContactPetSitterModal from "@/components/ContactPetSitterModal";
 
 interface PetSitterModalProps {
   petSitter: ResponsePetsitter | null;
@@ -34,6 +35,7 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
   const [ratingModalVisible, setRatingModalVisible] = useState(false);
   const [commentModalVisible, setCommentModalVisible] = useState(false);
   const [visibleReviewsCount, setVisibleReviewsCount] = useState(2);
+  const [contactModalVisible, setContactModalVisible] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -662,7 +664,7 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
                   alignItems: "center",
                   justifyContent: "center",
                 }}
-                onPress={() => console.log("Contacter le petsitter")}
+                onPress={() => setContactModalVisible(true)}
               >
                 <Ionicons
                   name="chatbubble-ellipses-outline"
@@ -681,40 +683,7 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                style={{
-                  flex: 1,
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  borderRadius: 12,
-                  backgroundColor: "#3b82f6",
-                  flexDirection: "row",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  shadowColor: "#3b82f6",
-                  shadowOffset: { width: 0, height: 4 },
-                  shadowOpacity: 0.3,
-                  shadowRadius: 8,
-                  elevation: 6,
-                }}
-                onPress={() => console.log("Faire une demande de réservation")}
-              >
-                <MaterialIcons
-                  name="event-available"
-                  size={20}
-                  color="#ffffff"
-                  style={{ marginRight: 8 }}
-                />
-                <Text
-                  style={{
-                    fontWeight: "600",
-                    fontSize: 16,
-                    color: "#ffffff",
-                  }}
-                >
-                  Réserver
-                </Text>
-              </TouchableOpacity>
+           
             </View>
           </View>
         </TouchableOpacity>
@@ -731,6 +700,13 @@ const PetSitterModal: React.FC<PetSitterModalProps> = ({
         visible={commentModalVisible}
         onClose={() => setCommentModalVisible(false)}
         onSubmit={handleCommentSubmit}
+      />
+
+      <ContactPetSitterModal
+        visible={contactModalVisible}
+        onClose={() => setContactModalVisible(false)}
+        petSitterName={user.firstName}
+        hourlyRate={parseFloat(petsitter.hourly_rate)}
       />
     </Modal>
   );

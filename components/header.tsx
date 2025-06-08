@@ -17,9 +17,9 @@ const Header = () => {
       style={{ paddingTop: insets.top, paddingBottom: insets.bottom * 0.2 }}
       className="bg-fuchsia-50 dark:bg-gray-900 flex-row items-center justify-between px-4"
     >
-      <View className="w-12 h-1 "></View>
-      <Text className="text-3xl font-bold text-slate-900 dark:text-white">
-        {"       "}MEOW
+      <View className="w-12"></View>
+      <Text className="text-3xl font-bold text-slate-900 dark:text-white flex-1 text-center">
+        MEOW
       </Text>
 
       <View className="flex-row space-x-2">
