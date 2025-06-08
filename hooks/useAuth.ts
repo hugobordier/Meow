@@ -38,15 +38,15 @@ export const useAuth = () => {
           }
 
           // Créer socket à l'ouverture de l'app
-          const socket = createSocket();
-          socket.on("connect", () => {
-            console.log("🔌 Reconnexion socket automatique");
-            socket.emit("register", data.data.username); 
-          });
+          // const socket = createSocket();
+          // socket.on("connect", () => {
+          //   console.log("🔌 Reconnexion socket automatique");
+          //    socket.emit("register", data.data.username); 
+          // });
         }
       } catch (error: any) {
-        console.error("Auth check failed", error);
-        console.error("Auth check failed", error.message);
+        console.log("Auth check failed", error);
+        console.log("Auth check failed", error.message);
         logout();
       } finally {
         setLoading(false);

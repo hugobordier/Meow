@@ -18,7 +18,7 @@ export const getPetsForAUser = async (
     const response = await api.get(`/PetsRoutes/user`);
     return response.data;
   }catch (error:any){
-    console.error("erreur lors de la récupération des pets", error);
+    console.log("erreur lors de la récupération des pets", error);
     throw(error.response?.data || {message: "erreur lors de la récupération des pets"});
   }
     }
@@ -28,7 +28,7 @@ export const getPetById = async (petID: string) => {
     const response = await api.get(`/PetsRoutes/${petID}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la récupération du pet:", error);
+    console.log("Erreur lors de la récupération du pet:", error);
     throw (
       error.response?.data || { message: "Une erreur inconnue est survenue" }
     );
@@ -53,7 +53,7 @@ export const updatePet = async (userID:string,data: Partial<Pet>) => {
     const response = await api.patch(`/PetsRoutes/${userID}`, sanitizedData);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors du pet:", error);
+    console.log("Erreur lors du pet:", error);
     throw (
       error.response?.data || { message: "Une erreur inconnue est survenue" }
     );
