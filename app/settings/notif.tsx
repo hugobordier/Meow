@@ -1,60 +1,69 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeftIcon, CheckSquare, Square } from "lucide-react-native";
 import tw from "twrnc";
-import {useRouter} from "expo-router";
+import { useRouter } from "expo-router";
 
-const notif = () => {
+const Notif = () => {
     const router = useRouter();
-    const [isOnline, setIsOnline] = useState(true);
+    const [settings, setSettings] = useState({
+        doNotDisturb: false,
+        showPreviews: true,
+        inAppSounds: true
+    });
+
+    const toggleSetting = (setting: keyof typeof settings) => {
+        setSettings(prev => ({
+            ...prev,
+            [setting]: !prev[setting]
+        }));
+    };
 
     return (
-        <View style={tw`flex-1 bg-white`}>
+        <SafeAreaView style={tw`flex-1 bg-white`}>
             {/* Header */}
-            <View style={tw`flex-row items-center p-4 border-b border-gray-200`}>
+            <View style={tw`flex-row items-center px-4 py-3 border-b border-gray-200`}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <ArrowLeftIcon size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={tw`text-lg font-bold text-center flex-1`}>MEOW</Text>
+                <Text style={tw`flex-1 text-center text-xl font-bold`}>MEOW</Text>
             </View>
 
-            {/* Titre */}
-            <Text style={tw`text-center text-lg font-semibold mt-4`}>Notifications et sons</Text>
+            <Text style={tw`text-lg font-semibold text-center mt-4 mb-2`}>Notifications et sons</Text>
 
-            {/* Option de notif */}
-            <TouchableOpacity
-                style={tw`flex-row justify-between items-center p-4 border-b border-gray-200`}
-                onPress={() => setIsOnline(!isOnline)}
-            >
-                <Text style={tw`text-gray-800`}>Ne pas déranger</Text>
-                {isOnline ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
-            </TouchableOpacity>
+            {/* Options */}
+            <View style={tw`px-4`}>
+                <TouchableOpacity
+                    style={tw`flex-row justify-between items-center py-4 border-b border-gray-200`}
+                    onPress={() => toggleSetting('doNotDisturb')}
+                >
+                    <Text style={tw`text-gray-800`}>Ne pas déranger</Text>
+                    {settings.doNotDisturb ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
+                </TouchableOpacity>
 
+                <Text style={tw`text-lg font-semibold text-center mt-4 mb-2`}>Notifications</Text>
 
-            <Text style={tw`text-center text-lg font-semibold mt-4`}>Notifications</Text>
+                <TouchableOpacity
+                    style={tw`flex-row justify-between items-center py-4 border-b border-gray-200`}
+                    onPress={() => toggleSetting('showPreviews')}
+                >
+                    <Text style={tw`text-gray-800`}>Afficher les aperçus</Text>
+                    {settings.showPreviews ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
+                </TouchableOpacity>
 
-            {/* Option de notif */}
-            <TouchableOpacity
-                style={tw`flex-row justify-between items-center p-4 border-b border-gray-200`}
-                onPress={() => setIsOnline(!isOnline)}
-            >
-                <Text style={tw`text-gray-800`}>Afficher les aperçus</Text>
-                {isOnline ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
-            </TouchableOpacity>
+                <Text style={tw`text-lg font-semibold text-center mt-4 mb-2`}>Sons et vibrations</Text>
 
-
-            <Text style={tw`text-center text-lg font-semibold mt-4`}>Sons et vibrations</Text>
-
-            {/* Option de notif */}
-            <TouchableOpacity
-                style={tw`flex-row justify-between items-center p-4 border-b border-gray-200`}
-                onPress={() => setIsOnline(!isOnline)}
-            >
-                <Text style={tw`text-gray-800`}>Lorsque l'application est utilisée</Text>
-                {isOnline ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity
+                    style={tw`flex-row justify-between items-center py-4 border-b border-gray-200`}
+                    onPress={() => toggleSetting('inAppSounds')}
+                >
+                    <Text style={tw`text-gray-800`}>Lorsque l'application est utilisée</Text>
+                    {settings.inAppSounds ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 };
 
-export default notif;
+export default Notif;

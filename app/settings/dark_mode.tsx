@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { ArrowLeftIcon } from "lucide-react-native";
 import tw from "twrnc";
@@ -9,39 +10,41 @@ const dark_mode = () => {
     const [selected, setSelected] = useState("Activé");
 
     return (
-        <View style={tw`flex-1 bg-white`}>
+        <SafeAreaView style={tw`flex-1 bg-white`}>
             {/* Header */}
-            <View style={tw`flex-row items-center p-4 border-b border-gray-200`}>
+            <View style={tw`flex-row items-center px-4 py-3 border-b border-gray-200`}>
                 <TouchableOpacity onPress={() => router.back()}>
                     <ArrowLeftIcon size={24} color="black" />
                 </TouchableOpacity>
-                <Text style={tw`text-lg font-bold text-center flex-1`}>MEOW</Text>
+                <Text style={tw`flex-1 text-center text-xl font-bold`}>MEOW</Text>
             </View>
 
-            {/* Titre */}
-            <Text style={tw`text-center text-lg font-semibold mt-4`}>Mode sombre</Text>
+            <Text style={tw`text-lg font-semibold text-center mt-4 mb-2`}>Mode sombre</Text>
 
             {/* Options */}
-            <TouchableOpacity
-                style={tw`p-4 border-b border-gray-200`}
-                onPress={() => setSelected("Activé")}
-            >
-                <Text style={tw`${selected === "Activé" ? "font-bold" : "text-gray-600"}`}>Activé</Text>
-            </TouchableOpacity>
+            <View style={tw`px-4`}>
+                <TouchableOpacity
+                    style={tw`py-4 border-b border-gray-200`}
+                    onPress={() => setSelected("Activé")}
+                >
+                    <Text style={tw`${selected === "Activé" ? "font-bold" : "text-gray-600"}`}>Activé</Text>
+                </TouchableOpacity>
 
-            <TouchableOpacity
-                style={tw`p-4 border-b border-gray-200`}
-                onPress={() => setSelected("Désactivé")}
-            >
-                <Text style={tw`${selected === "Désactivé" ? "font-bold" : "text-gray-600"}`}>Désactivé</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={tw`p-4 border-b border-gray-200`}
-                onPress={() => setSelected("Automatique")}
-            >
-                <Text style={tw`${selected === "Automatique" ? "font-bold" : "text-gray-600"}`}>Automatique</Text>
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity
+                    style={tw`py-4 border-b border-gray-200`}
+                    onPress={() => setSelected("Désactivé")}
+                >
+                    <Text style={tw`${selected === "Désactivé" ? "font-bold" : "text-gray-600"}`}>Désactivé</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                    style={tw`py-4 border-b border-gray-200`}
+                    onPress={() => setSelected("Automatique")}
+                >
+                    <Text style={tw`${selected === "Automatique" ? "font-bold" : "text-gray-600"}`}>Automatique</Text>
+                </TouchableOpacity>
+            </View>
+        </SafeAreaView>
     );
 };
 

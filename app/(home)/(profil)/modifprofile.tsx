@@ -16,8 +16,15 @@ import { AntDesign, Feather } from "@expo/vector-icons"; // Ajouter Feather
 import { useAuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import {updateUser} from "@/services/user.service";
+import { ToastType, useToast } from "@/context/ToastContext";
 
+import { User } from "@/types/type";
 
+import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
+import {
+  deleteProfilePicture,
+  updateProfilePicture,
+} from "@/services/user.service";
 // Import de vos services (à adapter selon votre structure)
 // import { updateUser, updateProfilePicture, updateDocId, getCurrentUser } from "@/services/user.service";
 // import { User } from "@/types/type";
@@ -54,32 +61,8 @@ const ModifProfile: React.FC = () => {
   const [address, setAddress] = useState<string>(user?.address || "");
   const [isLoading, setIsLoading] = useState(false);
 
-  const pickImage = async (setImage: (uri: string) => void) => {
-    try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert(
-          "Permission requise",
-          "Nous avons besoin de votre permission pour accéder à la galerie."
-        );
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-
-      if (!result.canceled && result.assets && result.assets.length > 0) {
-        setImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.error("Erreur lors de la sélection d'image:", error);
-      Alert.alert("Erreur", "Impossible de sélectionner l'image");
-    }
-  };
+  const { showToast } = useToast();
+  // Supprimer la fonction pickImage car elle est redondante
 
   // Modifier la fonction validateForm pour ne vérifier que les champs requis
   const validateForm = (): boolean => {
@@ -140,14 +123,15 @@ const ModifProfile: React.FC = () => {
         ...(password && { password: password.trim() }),
         ...(age && { age: parseInt(age) }),
         ...(birthDate && { birthDate: birthDate.trim() }),
-        ...(gender && { gender : gender}),
+        ...(gender && { gender }),
         ...(city && { city: city.trim() }),
         ...(country && { country: country.trim() }),
         ...(bio && { bio: bio.trim() }),
         ...(bankInfo && { bankInfo: bankInfo.trim() }),
         ...(address && { address: address.trim() }),
         ...(phone && { phoneNumber: phone.trim() }),
-        ...(profilePic && { profilePicture: profilePic }),
+        // Supprimer ces lignes car elles sont gérées séparément
+        // ...(profilePic && { profilePicture: profilePic }),
         ...(identityDoc && { identityDocument: identityDoc }),
         ...(insuranceCertificate && { insuranceCertificate })
       };
@@ -160,10 +144,11 @@ const ModifProfile: React.FC = () => {
         throw new Error(response.message || "Échec de la mise à jour");
       }
 
-      // Mise à jour du contexte avec les nouvelles données
+      // Mise à jour du contexte avec les nouvelles données en conservant la photo existante
       setUser({
         ...user,
-        ...cleanedData // Assurez-vous que la réponse contient les données dans .data
+        ...cleanedData,
+        profilePicture: user.profilePicture // Conserver la photo existante
       });
 
       Alert.alert(
@@ -180,7 +165,101 @@ const ModifProfile: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+    
   };
+
+  const handleOpenPhotoLibrary = async () => {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  
+      if (status !== "granted") {
+        showToast("L'accès à la galerie est requis.", ToastType.ERROR);
+        return;
+      }
+  
+      try {
+        const result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+  
+        if (!result.canceled && result.assets.length > 0) {
+          const selectedUri = result.assets[0].uri;
+          const res = await updateProfilePicture(selectedUri);
+          console.log(res);
+          setUser({
+            ...user,
+            profilePicture: res.data.profilePicture,
+          } as User);
+          showToast(res.message, ToastType.SUCCESS);
+        } else {
+          showToast(
+            "Veuillez d'abord sélectionner une image.",
+            ToastType.WARNING
+          );
+        }
+      } catch (error: any) {
+        console.error("Erreur lors de la sélection d'image:", error);
+        showToast(
+          error.message || "Erreur lors de la sélection d'image",
+          ToastType.ERROR
+        );
+      }
+    };
+  const handleOpenCamera = async () => {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+  
+      if (status !== "granted") {
+        showToast("L'accès à la caméra est requis.", ToastType.ERROR);
+        return;
+      }
+  
+      try {
+        const result = await ImagePicker.launchCameraAsync({
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
+          allowsEditing: true,
+          aspect: [1, 1],
+          quality: 0.8,
+        });
+  
+        if (!result.canceled && result.assets.length > 0) {
+          const selectedUri = result.assets[0].uri;
+          const res = await updateProfilePicture(selectedUri);
+          setUser({
+            ...user,
+            profilePicture: res.data.profilePicture,
+          } as User);
+          showToast(res.message, ToastType.SUCCESS);
+        } else {
+          showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
+        }
+      } catch (error: any) {
+        console.error("Erreur lors de la prise de photo:", error);
+        showToast(
+          error.message || "Impossible de prendre une photo.",
+          ToastType.ERROR
+        );
+      } finally {
+      }
+    };
+  
+    const onDeletePhoto = async () => {
+      try {
+        const res = await deleteProfilePicture();
+        showToast(res.message, ToastType.SUCCESS);
+        setUser({
+          ...user,
+          profilePicture: res.data.profilePicture,
+        } as User);
+      } catch (error: any) {
+        showToast(
+          error.message || "Impossible de supprimer une photo.",
+          ToastType.ERROR
+        );
+        console.log(error);
+      }
+    };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -188,21 +267,14 @@ const ModifProfile: React.FC = () => {
         {/* Titre de section */}
         <Text style={styles.sectionTitle}>Modifier le profil</Text>
 
-        {/* Photo de profil */}
+        {/* Photo de profil - Version corrigée */}
         <View style={styles.profilePicContainer}>
-          <Image
-            source={
-              profilePic
-                ? { uri: profilePic }
-                : require("@/assets/icons/profile.png")
-            }
-            style={styles.profilePic}
+          <ProfilePictureZoomable
+            onDeletePhoto={onDeletePhoto}
+            profilePicture={user?.profilePicture}
+            onChooseFromLibrary={handleOpenPhotoLibrary}
+            onTakePhoto={handleOpenCamera}
           />
-          <Pressable onPress={() => pickImage(setProfilePic)}>
-            <Text style={styles.profilePicText}>
-              {profilePic ? "Modifier la photo" : "Ajouter une photo"}
-            </Text>
-          </Pressable>
         </View>
 
         {/* Champs utilisateur */}
