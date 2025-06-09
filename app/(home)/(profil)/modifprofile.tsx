@@ -261,6 +261,38 @@ const ModifProfile: React.FC = () => {
       }
     };
 
+  // Ajouter cette fonction dans le composant ModifProfile
+  const handleDocumentPicker = async (setDocument: (uri: string | null) => void) => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== "granted") {
+      showToast("L'accès à la galerie est requis.", ToastType.ERROR);
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        setDocument(selectedUri);
+        showToast("Document sélectionné avec succès", ToastType.SUCCESS);
+      } else {
+        showToast("Veuillez sélectionner un document", ToastType.WARNING);
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la sélection du document:", error);
+      showToast(
+        error.message || "Erreur lors de la sélection du document",
+        ToastType.ERROR
+      );
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
@@ -436,7 +468,7 @@ const ModifProfile: React.FC = () => {
 
         {/* Documents */}
         <Pressable
-          onPress={() => pickImage(setIdentityDoc)}
+          onPress={() => handleDocumentPicker(setIdentityDoc)}
           style={styles.fileUploadButton}
         >
           <AntDesign name="upload" size={20} color="#374151" />
@@ -446,7 +478,7 @@ const ModifProfile: React.FC = () => {
         </Pressable>
 
         <Pressable
-          onPress={() => pickImage(setInsuranceCertificate)}
+          onPress={() => handleDocumentPicker(setInsuranceCertificate)}
           style={styles.fileUploadButton}
         >
           <AntDesign name="upload" size={20} color="#374151" />
