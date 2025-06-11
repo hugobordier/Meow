@@ -1,8 +1,10 @@
 import {
   ApiResponsePetsitter,
   PaginationParams,
+  PetSitter,
   PetSitterQueryParams,
   ResponsePetsitter,
+  User,
 } from "@/types/type";
 import { api } from "./api";
 
@@ -13,6 +15,18 @@ export const createPetSitter = async (hourly_rate: number) => {
     });
     console.log(response.data);
     return response.data;
+  } catch (error: any) {
+    throw error.response?.data?.message || "Échec de la création du petsitter";
+  }
+};
+
+export const getUserByPetSitterId = async (
+  userId: string
+): Promise<{ petSitter: PetSitter; user: User }> => {
+  try {
+    const response = await api.get(`/PetSitter/${userId}`);
+    console.log(response.data.data.petsitter.petsitter);
+    return response.data.data.petsitter;
   } catch (error: any) {
     throw error.response?.data?.message || "Échec de la création du petsitter";
   }

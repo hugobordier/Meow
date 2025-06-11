@@ -37,6 +37,8 @@ export default function HomeScreen() {
   const [addPetModalVisible, setAddPetModalVisible] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [loadingReceived, setLoadingReceived] = useState(false);
+  const [loadingSend, setLoadingSend] = useState(false);
   const { user, setUser, petsitter, setPetsitter } = useAuthContext();
   console.log("petsitter", petsitter);
   const { showToast } = useToast();
@@ -173,6 +175,7 @@ export default function HomeScreen() {
   useEffect(() => {
     const fetchUserRequests = async () => {
       try {
+        setLoadingSend(true);
         const data = await getUserPetsittingRequests();
         setUserRequests(data);
       } catch (error) {
@@ -180,28 +183,35 @@ export default function HomeScreen() {
           "Erreur lors de la récupération des demandes utilisateur :",
           error
         );
+      } finally {
+        setLoadingSend(false);
       }
     };
 
     fetchUserRequests();
   }, []);
 
-  // 🐶 Récupère les demandes reçues en tant que petsitter (si on en est un)
   useEffect(() => {
     const fetchReceivedRequests = async () => {
       try {
+        setLoadingReceived(true);
         const data = await getPetsitterReceivedRequests();
+        console.log("Received Requests:", data);
         setReceivedRequests(data);
       } catch (error) {
         console.error(
           "Erreur lors de la récupération des demandes petsitter :",
           error
         );
+      } finally {
+        setLoadingReceived(false);
       }
     };
 
     if (petsitter) {
       fetchReceivedRequests();
+    } else {
+      setLoadingReceived(false);
     }
   }, [petsitter]);
 
@@ -255,11 +265,6 @@ export default function HomeScreen() {
                 {user?.city && user?.country ? ", " : ""} {user?.country}
               </Text>
             )}
-          </View>
-          <View className="ml-auto">
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">
-              Localisation
-            </Text>
           </View>
         </View>
 
@@ -393,7 +398,7 @@ export default function HomeScreen() {
           </Text>
 
           <View className="mt-3 bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm">
-            {loading ? (
+            {loadingReceived ? (
               <View className="py-8 items-center justify-center">
                 <ActivityIndicator
                   size="large"
@@ -418,121 +423,70 @@ export default function HomeScreen() {
             ) : (
               // Demandes envoyées par l'utilisateur
               <>
-                {/* Request 1 */}
-                <View className="flex-row items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/men/41.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Jean-Paul Dupuis
+                {loadingSend ? (
+                  <View className="py-4 items-center justify-center">
+                    <ActivityIndicator
+                      size="large"
+                      color={isDark ? "#9333ea" : "#7c3aed"}
+                    />
+                    <Text className=" text-gray-500 dark:text-gray-400">
+                      Chargement des demandes...
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="mt-2 px-4">
+                    {userRequests.length === 0 ? (
+                      <Text className="text-gray-500 dark:text-gray-400 text-base">
+                        Aucune demande envoyée pour le moment.
                       </Text>
-                      <View className="ml-2 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-blue-700 dark:text-blue-300">
-                          Petsitter certifié
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde de Rex • 15-20 Mars 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      25€/jour • Paris 15ème
-                    </Text>
+                    ) : (
+                      userRequests.map((request) => (
+                        <RequestCard
+                          key={request.id}
+                          request={request}
+                          requestbool={false}
+                        />
+                      ))
+                    )}
                   </View>
-                  <View className="flex-row items-center bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-yellow-400 mr-1" />
-                    <Text className="text-sm text-yellow-700 dark:text-yellow-300">
-                      En attente
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Request 2 */}
-                <View className="flex-row items-center">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/women/67.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Marie Delarue
-                      </Text>
-                      <View className="ml-2 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-green-700 dark:text-green-300">
-                          4.8 ★ (56 avis)
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde de Minou • 10-12 Mars 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      30€/jour • Bordeaux Centre
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center bg-red-100 dark:bg-red-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-red-500 mr-1" />
-                    <Text className="text-sm text-red-700 dark:text-red-300">
-                      Refusé
-                    </Text>
-                  </View>
-                </View>
+                )}
               </>
             )}
           </View>
         </View>
 
-        {petsitter && (
+        {loadingSend ? (
+          <View className="py-8 items-center justify-center">
+            <ActivityIndicator
+              size="large"
+              color={isDark ? "#9333ea" : "#7c3aed"}
+            />
+            <Text className="mt-2 text-gray-500 dark:text-gray-400">
+              Chargement des demandes...
+            </Text>
+          </View>
+        ) : petsitter ? (
           <View className="mt-6 px-4">
             <Text className="text-lg font-semibold text-black dark:text-white">
               Vos Demandes en cours
             </Text>
-
             <View className="mt-3 bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm">
-              {/* Request 3 */}
-              <View className="flex-row items-center">
-                <Image
-                  source={{
-                    uri: "https://randomuser.me/api/portraits/men/32.jpg",
-                  }}
-                  className="w-12 h-12 rounded-full"
-                />
-                <View className="ml-3 flex-1">
-                  <View className="flex-row items-center">
-                    <Text className="text-gray-800 dark:text-white font-medium text-base">
-                      Lucas Martin
-                    </Text>
-                    <View className="ml-2 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded">
-                      <Text className="text-xs text-purple-700 dark:text-purple-300">
-                        Nouveau petsitter
-                      </Text>
-                    </View>
-                  </View>
-                  <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                    Visite de Bella • 18-25 Mars 2024
-                  </Text>
-                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                    15€/visite • Lyon 6ème
-                  </Text>
-                </View>
-                <View className="flex-row items-center bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">
-                  <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                  <Text className="text-sm text-green-700 dark:text-green-300">
-                    Accepté
-                  </Text>
-                </View>
-              </View>
+              {userRequests.length === 0 ? (
+                <Text className="text-gray-500 dark:text-gray-400 text-base">
+                  Aucune demande envoyée pour le moment.
+                </Text>
+              ) : (
+                userRequests.map((request) => (
+                  <RequestCard
+                    key={request.id}
+                    request={request}
+                    requestbool={false}
+                  />
+                ))
+              )}
             </View>
           </View>
-        )}
+        ) : null}
 
         {/* Services */}
         <View className="mt-6 px-1">

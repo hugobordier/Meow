@@ -57,7 +57,7 @@ export const getUserPetsittingRequests = async (): Promise<
 > => {
   try {
     const response = await api.get("/Amis/user");
-    return response.data;
+    return response.data.data;
   } catch (error: any) {
     throw (
       error.response?.data?.message ||
@@ -71,7 +71,7 @@ export const getPetsitterReceivedRequests = async (): Promise<
 > => {
   try {
     const response = await api.get("/Amis/petsitter");
-    return response.data;
+    return response.data.data;
   } catch (error: any) {
     throw (
       error.response?.data?.message ||
@@ -89,7 +89,7 @@ export const respondToPetsittingRequest = async (
       `/Amis/ReponseDemande/${iddemandeur}`,
       data
     );
-    return response.data;
+    return response.data.data;
   } catch (error: any) {
     throw (
       error.response?.data?.message || "Erreur lors de la réponse à la demande"
