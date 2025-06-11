@@ -1,6 +1,6 @@
 import { api } from "./api";
 import { User } from "@/types/type";
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
@@ -125,7 +125,7 @@ export const deleteUser = async (userId: string) => {
     await axios.delete(`${API_URL}/users/${userId}`);
     return true;
   } catch (error) {
-    console.error('Erreur lors de la suppression du compte:', error);
+    console.error("Erreur lors de la suppression du compte:", error);
     throw error;
   }
 };

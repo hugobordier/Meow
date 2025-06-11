@@ -82,13 +82,12 @@ export const getPetsitterReceivedRequests = async (): Promise<
 
 export const respondToPetsittingRequest = async (
   iddemandeur: string,
-  data: any
+  data: "accepted" | "rejected"
 ) => {
   try {
-    const response = await api.patch(
-      `/Amis/ReponseDemande/${iddemandeur}`,
-      data
-    );
+    const response = await api.patch(`/Amis/ReponseDemande/${iddemandeur}`, {
+      statusdemande: data,
+    } as any);
     return response.data.data;
   } catch (error: any) {
     throw (
