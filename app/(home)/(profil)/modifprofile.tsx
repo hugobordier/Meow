@@ -8,6 +8,8 @@ import {
   Pressable,
   Alert,
   StyleSheet,
+  useColorScheme, // Import useColorScheme
+  StatusBar, // Import StatusBar
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -15,7 +17,7 @@ import { useRouter } from "expo-router";
 import { AntDesign, Feather } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
 import axios from "axios";
-import {updateUser} from "@/services/user.service";
+import { updateUser } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
 
 import { User } from "@/types/type";
@@ -37,7 +39,9 @@ const GENDER_OPTIONS = [
 const ModifProfile: React.FC = () => {
   const router = useRouter();
   const { user, setUser } = useAuthContext();
-  
+  const colorScheme = useColorScheme(); // Get current color scheme
+  const isDark = colorScheme === "dark"; // Check if dark mode is active
+
   const [username, setUsername] = useState<string>(user?.username || "");
   const [lastName, setLastName] = useState<string>(user?.lastName || "");
   const [firstName, setFirstName] = useState<string>(user?.firstName || "");
@@ -90,7 +94,7 @@ const ModifProfile: React.FC = () => {
 
     try {
       setIsLoading(true);
-      
+
       const cleanedData = {
         id: user.id,
         username: username.trim(),
@@ -125,114 +129,114 @@ const ModifProfile: React.FC = () => {
       });
 
       Alert.alert(
-        "Succès", 
+        "Succès",
         "Profil mis à jour avec succès !",
         [{ text: "OK", onPress: () => router.back() }]
       );
     } catch (error: any) {
       console.error("Erreur complète:", error);
       Alert.alert(
-        "Erreur", 
+        "Erreur",
         error.message || "Échec de la mise à jour du profil"
       );
     } finally {
       setIsLoading(false);
     }
-    
+
   };
 
   const handleOpenPhotoLibrary = async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  
-      if (status !== "granted") {
-        showToast("L'accès à la galerie est requis.", ToastType.ERROR);
-        return;
-      }
-  
-      try {
-        const result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.8,
-        });
-  
-        if (!result.canceled && result.assets.length > 0) {
-          const selectedUri = result.assets[0].uri;
-          const res = await updateProfilePicture(selectedUri);
-          console.log(res);
-          setUser({
-            ...user,
-            profilePicture: res.data.profilePicture,
-          } as User);
-          showToast(res.message, ToastType.SUCCESS);
-        } else {
-          showToast(
-            "Veuillez d'abord sélectionner une image.",
-            ToastType.WARNING
-          );
-        }
-      } catch (error: any) {
-        console.error("Erreur lors de la sélection d'image:", error);
-        showToast(
-          error.message || "Erreur lors de la sélection d'image",
-          ToastType.ERROR
-        );
-      }
-    };
-  const handleOpenCamera = async () => {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-  
-      if (status !== "granted") {
-        showToast("L'accès à la caméra est requis.", ToastType.ERROR);
-        return;
-      }
-  
-      try {
-        const result = await ImagePicker.launchCameraAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images,
-          allowsEditing: true,
-          aspect: [1, 1],
-          quality: 0.8,
-        });
-  
-        if (!result.canceled && result.assets.length > 0) {
-          const selectedUri = result.assets[0].uri;
-          const res = await updateProfilePicture(selectedUri);
-          setUser({
-            ...user,
-            profilePicture: res.data.profilePicture,
-          } as User);
-          showToast(res.message, ToastType.SUCCESS);
-        } else {
-          showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
-        }
-      } catch (error: any) {
-        console.error("Erreur lors de la prise de photo:", error);
-        showToast(
-          error.message || "Impossible de prendre une photo.",
-          ToastType.ERROR
-        );
-      } finally {
-      }
-    };
-  
-    const onDeletePhoto = async () => {
-      try {
-        const res = await deleteProfilePicture();
-        showToast(res.message, ToastType.SUCCESS);
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== "granted") {
+      showToast("L'accès à la galerie est requis.", ToastType.ERROR);
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        const res = await updateProfilePicture(selectedUri);
+        console.log(res);
         setUser({
           ...user,
           profilePicture: res.data.profilePicture,
         } as User);
-      } catch (error: any) {
+        showToast(res.message, ToastType.SUCCESS);
+      } else {
         showToast(
-          error.message || "Impossible de supprimer une photo.",
-          ToastType.ERROR
+          "Veuillez d'abord sélectionner une image.",
+          ToastType.WARNING
         );
-        console.log(error);
       }
-    };
+    } catch (error: any) {
+      console.error("Erreur lors de la sélection d'image:", error);
+      showToast(
+        error.message || "Erreur lors de la sélection d'image",
+        ToastType.ERROR
+      );
+    }
+  };
+  const handleOpenCamera = async () => {
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (status !== "granted") {
+      showToast("L'accès à la caméra est requis.", ToastType.ERROR);
+      return;
+    }
+
+    try {
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets.length > 0) {
+        const selectedUri = result.assets[0].uri;
+        const res = await updateProfilePicture(selectedUri);
+        setUser({
+          ...user,
+          profilePicture: res.data.profilePicture,
+        } as User);
+        showToast(res.message, ToastType.SUCCESS);
+      } else {
+        showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
+      }
+    } catch (error: any) {
+      console.error("Erreur lors de la prise de photo:", error);
+      showToast(
+        error.message || "Impossible de prendre une photo.",
+        ToastType.ERROR
+      );
+    } finally {
+    }
+  };
+
+  const onDeletePhoto = async () => {
+    try {
+      const res = await deleteProfilePicture();
+      showToast(res.message, ToastType.SUCCESS);
+      setUser({
+        ...user,
+        profilePicture: res.data.profilePicture,
+      } as User);
+    } catch (error: any) {
+      showToast(
+        error.message || "Impossible de supprimer une photo.",
+        ToastType.ERROR
+      );
+      console.log(error);
+    }
+  };
 
   const handleDocumentPicker = async (setDocument: (uri: string | null) => void) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -280,23 +284,23 @@ const ModifProfile: React.FC = () => {
   }
 
   const formFields: FormField[] = [
-    { 
-      label: "Nom d'utilisateur", 
-      value: username, 
+    {
+      label: "Nom d'utilisateur",
+      value: username,
       setter: setUsername,
-      required: true 
+      required: true
     },
-    { 
-      label: "Nom", 
-      value: lastName, 
+    {
+      label: "Nom",
+      value: lastName,
       setter: setLastName,
-      required: true 
+      required: true
     },
-    { 
-      label: "Prénom", 
-      value: firstName, 
+    {
+      label: "Prénom",
+      value: firstName,
       setter: setFirstName,
-      required: true 
+      required: true
     },
     {
       label: "Genre",
@@ -309,13 +313,17 @@ const ModifProfile: React.FC = () => {
                 key={option.value}
                 style={[
                   styles.genderButton,
-                  gender === option.value && styles.genderButtonSelected
+                  gender === option.value && styles.genderButtonSelected,
+                  isDark && styles.genderButtonDark,
+                  isDark && gender === option.value && styles.genderButtonSelectedDark
                 ]}
                 onPress={() => setGender(option.value)}
               >
                 <Text style={[
                   styles.genderButtonText,
-                  gender === option.value && styles.genderButtonTextSelected
+                  gender === option.value && styles.genderButtonTextSelected,
+                  isDark && styles.genderButtonTextDark,
+                  isDark && gender === option.value && styles.genderButtonTextSelectedDark
                 ]}>
                   {option.label}
                 </Text>
@@ -325,24 +333,24 @@ const ModifProfile: React.FC = () => {
         </View>
       )
     },
-    { 
-      label: "Date de naissance (JJ/MM/AAAA)", 
-      value: birthDate, 
-      setter: setBirthDate 
+    {
+      label: "Date de naissance (JJ/MM/AAAA)",
+      value: birthDate,
+      setter: setBirthDate
     },
-    { 
-      label: "Email", 
-      value: email, 
+    {
+      label: "Email",
+      value: email,
       setter: setEmail,
       keyboardType: "email-address",
       autoCapitalize: "none",
-      required: true 
+      required: true
     },
-    { 
-      label: "Numéro de téléphone", 
-      value: phone, 
+    {
+      label: "Numéro de téléphone",
+      value: phone,
       setter: setPhone,
-      keyboardType: "phone-pad" 
+      keyboardType: "phone-pad"
     },
     {
       label: "Adresse",
@@ -372,13 +380,18 @@ const ModifProfile: React.FC = () => {
       setter: setBankInfo,
       secureTextEntry: true
     },
-  
+
   ];
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <ScrollView style={styles.scrollView}>
-        <Text style={styles.sectionTitle}>Modifier le profil</Text>
+        <Text style={[styles.sectionTitle, isDark ? styles.textDark : styles.textLight]}>Modifier le profil</Text>
 
         <View style={styles.profilePicContainer}>
           <ProfilePictureZoomable
@@ -392,12 +405,13 @@ const ModifProfile: React.FC = () => {
         {formFields.map((field: FormField, idx: number) => (
           <View key={idx}>
             <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>
+              <Text style={[styles.inputLabel, isDark ? styles.textDark : styles.textLight]}>
                 {field.label} {field.required && <Text style={styles.required}>*</Text>}
               </Text>
               {field.customInput || (
                 <TextInput
                   placeholder={field.label}
+                  placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
                   value={field.value}
                   onChangeText={field.setter}
                   secureTextEntry={field.secureTextEntry}
@@ -407,7 +421,8 @@ const ModifProfile: React.FC = () => {
                   autoCapitalize={field.autoCapitalize}
                   style={[
                     styles.textInput,
-                    field.multiline && { height: 100, textAlignVertical: 'top' }
+                    field.multiline && { height: 100, textAlignVertical: 'top' },
+                    isDark ? styles.textInputDark : styles.textInputLight
                   ]}
                 />
               )}
@@ -416,8 +431,8 @@ const ModifProfile: React.FC = () => {
           </View>
         ))}
 
-        <View style={styles.verificationContainer}>
-          <Text style={styles.verificationLabel}>
+        <View style={[styles.verificationContainer, isDark ? styles.borderDark : styles.borderLight]}>
+          <Text style={[styles.verificationLabel, isDark ? styles.textDark : styles.textLight]}>
             Vérification d'identité
           </Text>
           <View style={styles.verificationStatus}>
@@ -437,20 +452,20 @@ const ModifProfile: React.FC = () => {
 
         <Pressable
           onPress={() => handleDocumentPicker(setIdentityDoc)}
-          style={styles.fileUploadButton}
+          style={[styles.fileUploadButton, isDark ? styles.fileUploadButtonDark : styles.fileUploadButtonLight]}
         >
-          <AntDesign name="upload" size={20} color="#374151" />
-          <Text style={styles.fileUploadText}>
+          <AntDesign name="upload" size={20} color={isDark ? "#D1D5DB" : "#374151"} />
+          <Text style={[styles.fileUploadText, isDark ? styles.textDark : styles.textLight]}>
             {identityDoc ? "Pièce d'identité sélectionnée ✓" : "Télécharger une pièce d'identité"}
           </Text>
         </Pressable>
 
         <Pressable
           onPress={() => handleDocumentPicker(setInsuranceCertificate)}
-          style={styles.fileUploadButton}
+          style={[styles.fileUploadButton, isDark ? styles.fileUploadButtonDark : styles.fileUploadButtonLight]}
         >
-          <AntDesign name="upload" size={20} color="#374151" />
-          <Text style={styles.fileUploadText}>
+          <AntDesign name="upload" size={20} color={isDark ? "#D1D5DB" : "#374151"} />
+          <Text style={[styles.fileUploadText, isDark ? styles.textDark : styles.textLight]}>
             {insuranceCertificate ? "Attestation d'assurance sélectionnée ✓" : "Télécharger une attestation d'assurance"}
           </Text>
         </Pressable>
@@ -458,23 +473,23 @@ const ModifProfile: React.FC = () => {
         <View style={styles.buttonContainer}>
           <Pressable
             onPress={() => router.back()}
-            style={[styles.button, styles.cancelButton]}
+            style={[styles.button, styles.cancelButton, isDark ? styles.cancelButtonDark : styles.cancelButtonLight]}
           >
-            <Text style={styles.cancelButtonText}>Annuler</Text>
+            <Text style={[styles.cancelButtonText, isDark ? styles.cancelButtonTextDark : styles.cancelButtonTextLight]}>Annuler</Text>
           </Pressable>
-          
+
           <Pressable
             onPress={handleSubmit}
             disabled={isLoading}
-            style={[styles.button, styles.submitButton, isLoading && { opacity: 0.7 }]}
+            style={[styles.button, styles.submitButton, isLoading && { opacity: 0.7 }, isDark ? styles.submitButtonDark : styles.submitButtonLight]}
           >
-            <Text style={styles.submitButtonText}>
+            <Text style={[styles.submitButtonText, isDark ? styles.submitButtonTextDark : styles.submitButtonTextLight]}>
               {isLoading ? "Mise à jour..." : "Valider"}
             </Text>
           </Pressable>
         </View>
 
-        <Text style={styles.footerText}>
+        <Text style={[styles.footerText, isDark ? styles.textDark : styles.textLight]}>
           En cliquant pour valider, vous acceptez la politique privée{"\n"}et les
           conditions générales.
         </Text>
@@ -486,7 +501,12 @@ const ModifProfile: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  containerLight: {
     backgroundColor: 'white',
+  },
+  containerDark: {
+    backgroundColor: '#1F2937', // Dark background
   },
   scrollView: {
     paddingHorizontal: 16,
@@ -498,13 +518,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
     marginBottom: 24,
+  },
+  borderLight: {
+    borderBottomColor: '#E5E7EB',
+  },
+  borderDark: {
+    borderBottomColor: '#4B5563',
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
+  },
+  textLight: {
     color: '#111827',
+  },
+  textDark: {
+    color: 'white',
   },
   headerSpacer: {
     width: 24,
@@ -530,7 +560,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     marginBottom: 24,
-    color: '#111827',
   },
   inputContainer: {
     marginBottom: 16,
@@ -539,18 +568,25 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 6,
-    color: '#374151',
   },
   required: {
     color: '#EF4444',
   },
   textInput: {
-    backgroundColor: 'white',
     padding: 12,
     borderRadius: 8,
     fontSize: 16,
     borderWidth: 1,
+  },
+  textInputLight: {
+    backgroundColor: 'white',
     borderColor: '#D1D5DB',
+    color: '#111827',
+  },
+  textInputDark: {
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
+    color: 'white',
   },
   passwordHint: {
     fontSize: 12,
@@ -567,12 +603,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
     marginBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#F3F4F6',
   },
   verificationLabel: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#374151',
   },
   verificationStatus: {
     flexDirection: 'row',
@@ -596,16 +630,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#F9FAFB',
     padding: 12,
     borderRadius: 8,
     marginBottom: 24,
     borderWidth: 1,
+  },
+  fileUploadButtonLight: {
+    backgroundColor: '#F9FAFB',
     borderColor: '#E5E7EB',
+  },
+  fileUploadButtonDark: {
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
   },
   fileUploadText: {
     marginLeft: 8,
-    color: '#374151',
     fontSize: 14,
   },
   buttonContainer: {
@@ -620,27 +659,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   cancelButton: {
-    backgroundColor: '#F3F4F6',
     borderWidth: 1,
+  },
+  cancelButtonLight: {
+    backgroundColor: '#F3F4F6',
     borderColor: '#D1D5DB',
   },
+  cancelButtonDark: {
+    backgroundColor: '#4B5563',
+    borderColor: '#6B7280',
+  },
   submitButton: {
+  },
+  submitButtonLight: {
     backgroundColor: '#111827',
   },
+  submitButtonDark: {
+    backgroundColor: '#6D28D9', // A purple shade for dark mode submit
+  },
   cancelButtonText: {
-    color: '#374151',
     fontSize: 16,
     fontWeight: '600',
   },
-  submitButtonText: {
+  cancelButtonTextLight: {
+    color: '#374151',
+  },
+  cancelButtonTextDark: {
     color: 'white',
+  },
+  submitButtonText: {
     fontSize: 16,
     fontWeight: '600',
+  },
+  submitButtonTextLight: {
+    color: 'white',
+  },
+  submitButtonTextDark: {
+    color: 'white',
   },
   footerText: {
     fontSize: 12,
     textAlign: 'center',
-    color: '#6B7280',
     lineHeight: 16,
   },
   pickerContainer: {
@@ -663,18 +722,40 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
+  },
+  genderButtonLight: {
     borderColor: '#D1D5DB',
     backgroundColor: 'white',
   },
+  genderButtonDark: {
+    borderColor: '#4B5563',
+    backgroundColor: '#374151',
+  },
   genderButtonSelected: {
+  },
+  genderButtonSelectedLight: {
     backgroundColor: '#111827',
     borderColor: '#111827',
   },
+  genderButtonSelectedDark: {
+    backgroundColor: '#6D28D9',
+    borderColor: '#6D28D9',
+  },
   genderButtonText: {
-    color: '#374151',
     fontSize: 14,
   },
+  genderButtonTextLight: {
+    color: '#374151',
+  },
+  genderButtonTextDark: {
+    color: 'white',
+  },
   genderButtonTextSelected: {
+  },
+  genderButtonTextSelectedLight: {
+    color: 'white',
+  },
+  genderButtonTextSelectedDark: {
     color: 'white',
   },
 });
