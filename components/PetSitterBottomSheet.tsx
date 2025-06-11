@@ -37,7 +37,7 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
 }) => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
-  const snapPoints = useMemo(() => ["40%", "90%"], []);
+  const snapPoints = useMemo(() => ["50%", "90%"], []);
   const [petSitterReviews, setPetsitterReviews] = useState<
     PetSitterReviewResponse[]
   >([]);
@@ -804,8 +804,6 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
                 Contacter
               </Text>
             </TouchableOpacity>
-
-            
           </View>
         </View>
         {/* Modals */}
@@ -826,6 +824,7 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
           onClose={() => setContactModalVisible(false)}
           petSitterName={user.firstName}
           hourlyRate={parseFloat(petsitter.hourly_rate)}
+          petSitterId={petsitter.id}
         />
       </BottomSheetView>
     </BottomSheet>

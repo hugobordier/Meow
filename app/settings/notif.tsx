@@ -2,11 +2,17 @@ import React, { useState } from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { ArrowLeftIcon, CheckSquare, Square } from "lucide-react-native";
 import tw from "twrnc";
-import {useRouter} from "expo-router";
+import { useRouter } from "expo-router";
+import { useNotifications } from "@/context/NotificationContext";
 
 const notif = () => {
     const router = useRouter();
     const [isOnline, setIsOnline] = useState(true);
+    const { sendTestNotification } = useNotifications();
+
+    const handleTestNotification = async () => {
+        await sendTestNotification();
+    };
 
     return (
         <View style={tw`flex-1 bg-white`}>
@@ -21,6 +27,16 @@ const notif = () => {
             {/* Titre */}
             <Text style={tw`text-center text-lg font-semibold mt-4`}>Notifications et sons</Text>
 
+            {/* Bouton de test */}
+            <TouchableOpacity
+                style={tw`mx-4 my-4 bg-indigo-600 p-4 rounded-lg`}
+                onPress={handleTestNotification}
+            >
+                <Text style={tw`text-white text-center font-semibold`}>
+                    Envoyer une notification test
+                </Text>
+            </TouchableOpacity>
+
             {/* Option de notif */}
             <TouchableOpacity
                 style={tw`flex-row justify-between items-center p-4 border-b border-gray-200`}
@@ -29,7 +45,6 @@ const notif = () => {
                 <Text style={tw`text-gray-800`}>Ne pas déranger</Text>
                 {isOnline ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
             </TouchableOpacity>
-
 
             <Text style={tw`text-center text-lg font-semibold mt-4`}>Notifications</Text>
 
@@ -41,7 +56,6 @@ const notif = () => {
                 <Text style={tw`text-gray-800`}>Afficher les aperçus</Text>
                 {isOnline ? <CheckSquare size={24} color="black" /> : <Square size={24} color="black" />}
             </TouchableOpacity>
-
 
             <Text style={tw`text-center text-lg font-semibold mt-4`}>Sons et vibrations</Text>
 
