@@ -27,6 +27,12 @@ import { useEffect } from "react";
 import { Pet } from "@/types/pets";
 import { getPetsForAUser } from "@/services/pet.service";
 import PetDetailModale from "@/components/PetDetailModale";
+import {
+  getPetsitterReceivedRequests,
+  getUserPetsittingRequests,
+  PetsittingRequestResponse,
+} from "@/services/requestPetsitter.service";
+import RequestCard from "@/components/RequestCard";
 export default function HomeScreen() {
   const [addPetModalVisible, setAddPetModalVisible] = useState(false);
   const router = useRouter();
@@ -36,6 +42,12 @@ export default function HomeScreen() {
   const { showToast } = useToast();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const [userRequests, setUserRequests] = useState<PetsittingRequestResponse[]>(
+    []
+  );
+  const [receivedRequests, setReceivedRequests] = useState<
+    PetsittingRequestResponse[]
+  >([]);
 
   const handleOpenPhotoLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -157,6 +169,41 @@ export default function HomeScreen() {
         });
     }
   }, []);
+
+  useEffect(() => {
+    const fetchUserRequests = async () => {
+      try {
+        const data = await getUserPetsittingRequests();
+        setUserRequests(data);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des demandes utilisateur :",
+          error
+        );
+      }
+    };
+
+    fetchUserRequests();
+  }, []);
+
+  // 🐶 Récupère les demandes reçues en tant que petsitter (si on en est un)
+  useEffect(() => {
+    const fetchReceivedRequests = async () => {
+      try {
+        const data = await getPetsitterReceivedRequests();
+        setReceivedRequests(data);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des demandes petsitter :",
+          error
+        );
+      }
+    };
+
+    if (petsitter) {
+      fetchReceivedRequests();
+    }
+  }, [petsitter]);
 
   const handlePressPet = (pet: Pet) => {
     setSelectedPet(pet);
@@ -357,75 +404,16 @@ export default function HomeScreen() {
                 </Text>
               </View>
             ) : petsitter ? (
-              // Demandes reçues par le petsitter
               <>
-                {/* Request 1 - Client */}
-                <View className="flex-row items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/women/22.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Sophie Lambert
-                      </Text>
-                      <View className="ml-2 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-blue-700 dark:text-blue-300">
-                          Nouveau client
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde de 2 chats • 20-25 Mars 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      Votre tarif: {petsitter.hourly_rate}€/h • {user?.city}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-yellow-400 mr-1" />
-                    <Text className="text-sm text-yellow-700 dark:text-yellow-300">
-                      À confirmer
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Request 2 - Client */}
-                <View className="flex-row items-center">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/men/45.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Thomas Dubois
-                      </Text>
-                      <View className="ml-2 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-green-700 dark:text-green-300">
-                          Client fidèle
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde d'un chien • 1-5 Avril 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      Votre tarif: {petsitter.hourly_rate}€/h • {user?.city}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                    <Text className="text-sm text-green-700 dark:text-green-300">
-                      Accepté
-                    </Text>
-                  </View>
-                </View>
+                {receivedRequests.length === 0 ? (
+                  <Text className="text-gray-500 dark:text-gray-400 text-base">
+                    Aucune demande reçue pour le moment.
+                  </Text>
+                ) : (
+                  receivedRequests.map((request) => (
+                    <RequestCard request={request} requestbool={true} />
+                  ))
+                )}
               </>
             ) : (
               // Demandes envoyées par l'utilisateur
