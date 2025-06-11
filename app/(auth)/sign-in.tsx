@@ -24,6 +24,7 @@ import { getUserById } from "@/services/user.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createSocket } from "@/services/socket";
 import { api } from "@/services/api";
+import { useNotifications } from "@/context/NotificationContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -34,7 +35,7 @@ const SignInScreen = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { setUser,setPetsitter } = useAuthContext();
+  const { setUser, setPetsitter } = useAuthContext();
   const { showToast } = useToast();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";

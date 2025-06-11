@@ -170,7 +170,7 @@ const Maps = () => {
   };
 
   const centerOnMarker = (latitude: number, longitude: number) => {
-    bottomSheetRef.current?.snapToIndex(1);
+    bottomSheetRef.current?.snapToIndex(0);
     if (mapRef.current && bottomSheetRef.current) {
       mapRef.current.animateToRegion(
         {
@@ -249,7 +249,7 @@ const Maps = () => {
     setSelectedPetSitter(ps);
     showTooltip(ps.petsitter.id);
     setTimeout(() => {
-      bottomSheetRef.current?.snapToIndex(1);
+      bottomSheetRef.current?.snapToIndex(0);
     }, 50);
   };
 
@@ -308,14 +308,14 @@ const Maps = () => {
                       centerOnMarker(latitude, longitude);
                       openPetSitterDetails(ps);
                     }}
-                    
-                   
                   >
-                    
-                    <View style={{ 
-                      alignItems: Platform.OS === "android" ? "flex-start" : "center",
-                      justifyContent: "center",
-                    }}>
+                    <View
+                      style={{
+                        alignItems:
+                          Platform.OS === "android" ? "flex-start" : "center",
+                        justifyContent: "center",
+                      }}
+                    >
                       {/* Tooltip */}
                       {tooltipVisible === ps.petsitter.id && (
                         <Animated.View
