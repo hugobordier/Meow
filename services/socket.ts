@@ -4,7 +4,11 @@ import { io, Socket } from "socket.io-client";
 const WS_URL = "https://meowback-production.up.railway.app";
 let socket: Socket | null = null;
 
-export const createSocket = async () => {
+export const createSocket = async (): Promise<Socket | null> => {
+  if (socket && socket.connected) {
+    console.log("⚠️ Socket déjà connecté :", socket.id);
+    return socket;
+  }
   const accessToken = await AsyncStorage.getItem("accessToken");
   const refreshToken = await AsyncStorage.getItem("refreshToken");
 
@@ -31,11 +35,13 @@ export const createSocket = async () => {
     await AsyncStorage.setItem("accessToken", newToken);
   });
 
-  socket.on("connect", () => {
-    const fullUrl = `wss://${socket?.io.opts.hostname}${socket?.io.opts.path}`;
-    console.log("✅ WebSocket connecté !");
-    console.log("🔗 URL de connexion :", fullUrl);
-  });
+  //socket?.on("connect", () => {
+    //if (!socket) return;
+    //const fullUrl = `wss://${socket?.io.opts.hostname}${socket?.io.opts.path}`;
+    //console.log("✅ WebSocket connecté !");
+    //console.log("socketId:", socket.id);
+    //console.log("🔗 URL de connexion :", fullUrl);
+  //});
 
   return socket;
 };
