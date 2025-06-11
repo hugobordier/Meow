@@ -1,4 +1,6 @@
-import React, { use, useEffect, useState } from "react";
+"use client";
+
+import { useEffect, useState } from "react";
 import {
   View,
   Image,
@@ -14,13 +16,12 @@ import {
 } from "react-native";
 import {
   deletePetsittingRequest,
-  PetsittingRequestResponse,
+  type PetsittingRequestResponse,
   respondToPetsittingRequest,
 } from "@/services/requestPetsitter.service";
 import { getUserById } from "@/services/user.service";
 import { getUserByPetSitterId } from "@/services/petsitter.service";
-import { PetSitter, User } from "@/types/type";
-import { set } from "lodash";
+import type { PetSitter, User } from "@/types/type";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -34,6 +35,7 @@ if (
 type RequestCardProps = {
   request: PetsittingRequestResponse;
   requestbool: boolean; // true = user a envoyé la demande, false = le petsitter l'a reçue
+  onDelete?: (requestId: string) => void; // Callback pour la suppression
 };
 
 const SkeletonCard = () => {
@@ -63,7 +65,7 @@ const SkeletonCard = () => {
   );
 };
 
-const RequestCard = ({ request, requestbool }: RequestCardProps) => {
+const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [petsitter, setPetsitter] = useState<PetSitter | null>(null);
   const [loading, setLoading] = useState(true);
@@ -157,6 +159,11 @@ const RequestCard = ({ request, requestbool }: RequestCardProps) => {
     try {
       await deletePetsittingRequest(request.id);
       showToast("Demande supprimée avec succès", ToastType.SUCCESS);
+
+      // Appeler onDelete pour mettre à jour le state dans le composant parent
+      if (onDelete) {
+        onDelete(request.id);
+      }
     } catch (error) {
       showToast("Erreur lors de la suppression de la demande", ToastType.ERROR);
     } finally {
@@ -314,21 +321,22 @@ const RequestCard = ({ request, requestbool }: RequestCardProps) => {
               </Text>
             </TouchableOpacity>
           )}
+          {showDeleteButton && (
+            <View className="w-full mt-4 justify-end items-end">
+              <TouchableOpacity
+                style={[styles.deleteButton, isDark && styles.deleteButtonDark]}
+                onPress={() => setDeleteModalVisible(true)}
+              >
+                <Ionicons
+                  name="trash-outline"
+                  size={20}
+                  color={isDark ? "#fca5a5" : "#b91c1c"}
+                />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </View>
-
-      {showDeleteButton && (
-        <TouchableOpacity
-          style={[styles.deleteButton, isDark && styles.deleteButtonDark]}
-          onPress={() => setDeleteModalVisible(true)}
-        >
-          <Ionicons
-            name="trash-outline"
-            size={20}
-            color={isDark ? "#fca5a5" : "#b91c1c"}
-          />
-        </TouchableOpacity>
-      )}
 
       {/* Modal de réponse */}
       <Modal
@@ -473,7 +481,7 @@ const styles = StyleSheet.create({
 
   // Bouton de suppression
   deleteButton: {
-    position: "absolute",
+    //position: "absolute",
     bottom: 16,
     right: 8,
     backgroundColor: "#fee2e2",

@@ -1,11 +1,10 @@
-import React from "react";
+"use client";
 import {
   View,
   Text,
   ScrollView,
   Image,
   TouchableOpacity,
-  TextInput,
   useColorScheme,
   StatusBar,
   ActivityIndicator,
@@ -19,20 +18,21 @@ import {
   updateProfilePicture,
 } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
-import { User } from "@/types/type";
+import type { User } from "@/types/type";
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
 import { useRouter } from "expo-router";
 import PetAddModale from "@/components/PetAddModale";
 import { useEffect } from "react";
-import { Pet } from "@/types/pets";
+import type { Pet } from "@/types/pets";
 import { getPetsForAUser } from "@/services/pet.service";
 import PetDetailModale from "@/components/PetDetailModale";
 import {
   getPetsitterReceivedRequests,
   getUserPetsittingRequests,
-  PetsittingRequestResponse,
+  type PetsittingRequestResponse,
 } from "@/services/requestPetsitter.service";
 import RequestCard from "@/components/RequestCard";
+
 export default function HomeScreen() {
   const [addPetModalVisible, setAddPetModalVisible] = useState(false);
   const router = useRouter();
@@ -40,7 +40,6 @@ export default function HomeScreen() {
   const [loadingReceived, setLoadingReceived] = useState(false);
   const [loadingSend, setLoadingSend] = useState(false);
   const { user, setUser, petsitter, setPetsitter } = useAuthContext();
-  console.log("petsitter", petsitter);
   const { showToast } = useToast();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -50,6 +49,21 @@ export default function HomeScreen() {
   const [receivedRequests, setReceivedRequests] = useState<
     PetsittingRequestResponse[]
   >([]);
+
+  // Fonction pour supprimer une demande du state
+  const handleDeleteRequest = (requestId: string) => {
+    // Mettre à jour les demandes utilisateur (demandes envoyées)
+    setUserRequests((prevRequests) =>
+      prevRequests.filter((request) => request.id !== requestId)
+    );
+
+    // Mettre à jour les demandes reçues (pour les petsitters)
+    setReceivedRequests((prevRequests) =>
+      prevRequests.filter((request) => request.id !== requestId)
+    );
+
+    showToast("Demande supprimée avec succès", ToastType.SUCCESS);
+  };
 
   const handleOpenPhotoLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -83,7 +97,7 @@ export default function HomeScreen() {
         );
       }
     } catch (error: any) {
-      console.error("Erreur lors de la sélection d'image:", error);
+      console.log("Erreur lors de la sélection d'image:", error);
       showToast(
         error.message || "Erreur lors de la sélection d'image",
         ToastType.ERROR
@@ -119,7 +133,7 @@ export default function HomeScreen() {
         showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
       }
     } catch (error: any) {
-      console.error("Erreur lors de la prise de photo:", error);
+      console.log("Erreur lors de la prise de photo:", error);
       showToast(
         error.message || "Impossible de prendre une photo.",
         ToastType.ERROR
@@ -151,7 +165,7 @@ export default function HomeScreen() {
 
       router.push("/(home)/(main)/ListePets");
     } catch (error) {
-      console.error("Erreur de navigation :", error);
+      console.log("Erreur de navigation :", error);
     } finally {
       setLoading(false);
     }
@@ -160,6 +174,7 @@ export default function HomeScreen() {
   const [listPets, setListPets] = useState<Pet[] | null>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+
   useEffect(() => {
     if (user?.id) {
       getPetsForAUser()
@@ -179,7 +194,7 @@ export default function HomeScreen() {
         const data = await getUserPetsittingRequests();
         setUserRequests(data);
       } catch (error) {
-        console.error(
+        console.log(
           "Erreur lors de la récupération des demandes utilisateur :",
           error
         );
@@ -199,7 +214,7 @@ export default function HomeScreen() {
         console.log("Received Requests:", data);
         setReceivedRequests(data);
       } catch (error) {
-        console.error(
+        console.log(
           "Erreur lors de la récupération des demandes petsitter :",
           error
         );
@@ -230,7 +245,7 @@ export default function HomeScreen() {
           if (updatedPet) setSelectedPet(updatedPet);
         }
       } catch (error) {
-        console.error("Erreur lors du rafraîchissement des animaux :", error);
+        console.log("Erreur lors du rafraîchissement des animaux :", error);
       }
     }
   };
@@ -416,7 +431,12 @@ export default function HomeScreen() {
                   </Text>
                 ) : (
                   receivedRequests.map((request) => (
-                    <RequestCard request={request} requestbool={true} />
+                    <RequestCard
+                      key={request.id}
+                      request={request}
+                      requestbool={true}
+                      onDelete={handleDeleteRequest}
+                    />
                   ))
                 )}
               </>
@@ -445,6 +465,7 @@ export default function HomeScreen() {
                           key={request.id}
                           request={request}
                           requestbool={false}
+                          onDelete={handleDeleteRequest}
                         />
                       ))
                     )}
@@ -481,6 +502,7 @@ export default function HomeScreen() {
                     key={request.id}
                     request={request}
                     requestbool={false}
+                    onDelete={handleDeleteRequest}
                   />
                 ))
               )}
