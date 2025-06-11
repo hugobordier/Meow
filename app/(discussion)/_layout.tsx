@@ -7,6 +7,7 @@ const Layout = () => {
     <SafeAreaProvider>
       <Stack >
         <Stack.Screen name="chatScreen" options={{ headerShown: false }} />
+        <Stack.Screen name="chatDialogue" options={{ headerShown: false }} />
       </Stack>
       <BottomNavBar/>
     </SafeAreaProvider>

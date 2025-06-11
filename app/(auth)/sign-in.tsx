@@ -23,6 +23,8 @@ import * as Linking from "expo-linking";
 import { getUserById } from "@/services/user.service";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createSocket } from "@/services/socket";
+import { api } from "@/services/api";
+import { useNotifications } from "@/context/NotificationContext";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -33,7 +35,7 @@ const SignInScreen = () => {
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  const { setUser } = useAuthContext();
+  const { setUser, setPetsitter } = useAuthContext();
   const { showToast } = useToast();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
@@ -80,14 +82,34 @@ const SignInScreen = () => {
       const user = await login(form);
       if (user as User) {
         setUser(user.data);
-        const socket = createSocket();
+
+        const socket = await createSocket();
+
+        if (!socket) {
+          console.error("❌ Socket non initialisé");
+          showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
+          return;
+        }
+
+        try {
+          const petsitterResponse = await api.get(`/Petsitter/user/${user.data.id}`);
+          if (petsitterResponse.data) {
+            setPetsitter(petsitterResponse.data);
+            console.log("✅ Profil petsitter trouvé");
+          }
+        } catch (petsitterError: any) {
+          console.log(" Pas de profil petsitter pour cet utilisateur");
+          setPetsitter(null);
+        }
+
 
         socket.on("connect", () => {
           console.log("✅ Socket maintenant connecté");
+          console.log("Voici", socket.id);
           socket.emit("register", user.data.username);
         });
 
-        handleRedirect();
+        handleRedirect(user.data);
         showToast("Connexion réussie avec succès", ToastType.SUCCESS);
       }
     } catch (error: any) {
@@ -98,9 +120,18 @@ const SignInScreen = () => {
     }
   };
 
-  const handleRedirect = () => {
+  const handleRedirect = (user: User) => {
     router.dismissAll();
-    router.replace("/(auth)/home");
+    const userCreationDate = new Date(user.createdAt);
+    const oneDayAgo = new Date();
+    oneDayAgo.setDate(oneDayAgo.getDate() - 1);
+
+    if (userCreationDate < oneDayAgo) {
+      console.log("on entre dans le if donc le user est plus vieux que 1 jour");
+      router.replace("/(home)/(main)/home");
+    } else {
+      router.replace("/(auth)/home");
+    }
   };
 
   const togglePasswordVisibility = () => {
@@ -142,8 +173,19 @@ const SignInScreen = () => {
           if (user as User) {
             setUser(user.data);
           }
+          try {
+            const petsitterResponse = await api.get(`/Petsitter/user/${user.data.id}`);
+            if (petsitterResponse.data) {
+              setPetsitter(petsitterResponse.data);
+              console.log("✅ Profil petsitter trouvé");
+            }
+          } catch (petsitterError: any) {
+            console.log(" Pas de profil petsitter pour cet utilisateur");
+            setPetsitter(null);
+          }
+          console.log("user.data", user.data);
+          handleRedirect(user.data);
         }
-        handleRedirect();
       } else {
         showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);
       }

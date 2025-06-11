@@ -27,7 +27,7 @@ import {
   PetSitterQueryParams,
   ResponsePetsitter,
 } from "@/types/type";
-import { AntDesign, Feather } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
 const Maps = () => {
@@ -54,7 +54,6 @@ const Maps = () => {
   const [filters, setFilters] = useState<PetSitterQueryParams | null>(null);
   const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>([]);
   const [loading, setIsLoading] = useState(false);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const [selectedPetSitter, setSelectedPetSitter] =
     useState<ResponsePetsitter | null>(null);
@@ -310,7 +309,13 @@ const Maps = () => {
                       openPetSitterDetails(ps);
                     }}
                   >
-                    <View style={{ alignItems: "center" }}>
+                    <View
+                      style={{
+                        alignItems:
+                          Platform.OS === "android" ? "flex-start" : "center",
+                        justifyContent: "center",
+                      }}
+                    >
                       {/* Tooltip */}
                       {tooltipVisible === ps.petsitter.id && (
                         <Animated.View

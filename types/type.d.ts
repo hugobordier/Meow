@@ -180,6 +180,7 @@ export interface ApiResponsePetsitter {
   pagination: Pagination;
 }
 
+
 export type PetSitterReviewResponse = {
   id: string;
   pet_sitter_id: string;
@@ -193,3 +194,36 @@ export type PetSitterReviewResponse = {
   createdAt: Date;
   updatedAt: Date;
 };
+export interface Pet {
+  id: string;
+  name: string;
+  breed: string;
+  age: number;
+  species: string;
+  allergy: string;
+  weight: number;
+  diet: string;
+  description: string;  
+  photo_url: string;
+  gender : string;
+  neutered: boolean;
+  color: string;
+  user_id: string;
+}
+
+export interface PetQueryParams {
+  search?: string;
+  name?: string;
+  breed?: string;
+  age?: number;
+  species?: string;
+  gender?: string;
+  color?: string;
+}
+
+interface ApiResponsePet {
+  success: boolean;
+  message: string;
+  data: Pet[];
+  pagination: Pagination;
+}

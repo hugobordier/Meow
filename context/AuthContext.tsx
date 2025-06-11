@@ -1,6 +1,6 @@
 import React, { createContext, useContext, ReactNode } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { User } from "@/types/type";
+import { PetSitter, User } from "@/types/type";
 
 interface AuthContextType {
   user: User | null;
@@ -8,6 +8,9 @@ interface AuthContextType {
   loading: boolean;
   setUser: (user: User | null) => void;
   logout: () => void;
+  petsitter: PetSitter | null;
+  setPetsitter: (petsitter: PetSitter | null) => void;
+  refreshPetsitterProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,10 +20,29 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const { user, setUser, isAuthenticated, loading, logout } = useAuth();
+  const { 
+    user, 
+    setUser, 
+    isAuthenticated, 
+    loading, 
+    logout, 
+    petsitter, 
+    setPetsitter,
+    refreshPetsitterProfile 
+  } = useAuth();
+
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, loading, setUser, logout }}
+      value={{ 
+        user, 
+        isAuthenticated, 
+        loading, 
+        setUser, 
+        logout, 
+        petsitter, 
+        setPetsitter,
+        refreshPetsitterProfile 
+      }}
     >
       {children}
     </AuthContext.Provider>
