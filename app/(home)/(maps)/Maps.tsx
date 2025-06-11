@@ -1,687 +1,445 @@
-// import { useState, useEffect, useRef } from "react";
-// import {
-//   StyleSheet,
-//   View,
-//   Text,
-//   TouchableOpacity,
-//   TextInput,
-//   ScrollView,
-//   ActivityIndicator,
-//   SafeAreaView,
-//   Platform,
-// } from "react-native";
-// import MapView, { Marker, Polyline } from "react-native-maps";
-// import * as Location from "expo-location";
-// import { Ionicons } from "@expo/vector-icons";
-// import { StatusBar } from "expo-status-bar";
+import { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  TouchableOpacity,
+  Platform,
+  Keyboard,
+  Alert,
+  ActivityIndicator,
+  SectionList,
+  Animated,
+} from "react-native";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import * as Location from "expo-location";
+import BottomSheet from "@gorhom/bottom-sheet";
+import SearchBarMap from "@/components/SearchBarMap";
+import UserLocationMarker from "@/components/UserLocationMarker";
+import PetSitterBottomSheet from "@/components/PetSitterBottomSheet";
+import { Cat, Dog } from "lucide-react-native";
+import { useColorScheme } from "react-native";
+import { darkMapStyle, lightMapStyle } from "@/utils/constants";
+import { getPetSitters } from "@/services/petsitter.service";
+import {
+  PaginationParams,
+  PetSitterQueryParams,
+  ResponsePetsitter,
+} from "@/types/type";
+import { AntDesign } from "@expo/vector-icons";
+import { BottomSheetModalMethods } from "@gorhom/bottom-sheet/lib/typescript/types";
 
-// // Types
-// type LocationType = {
-//   latitude: number;
-//   longitude: number;
-//   latitudeDelta: number;
-//   longitudeDelta: number;
-// };
+const Maps = () => {
+  const mapRef = useRef<MapView | null>(null);
+  const bottomSheetRef = useRef<BottomSheetModalMethods>(null);
 
-// type RoutePoint = {
-//   latitude: number;
-//   longitude: number;
-// };
+  const [mapRegion, setMapRegion] = useState({
+    latitude: 48.8566,
+    longitude: 2.3522,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.05,
+  });
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+  const [locationPermission, setLocationPermission] = useState(false);
+  const [petType, setPetType] = useState<"cat" | "dog">("cat");
+  const [zoomLevel, setZoomLevel] = useState(0.01);
+  const [pagination] = useState<PaginationParams | null>({
+    page: 1,
+    limit: 100000,
+  });
+  const [filters, setFilters] = useState<PetSitterQueryParams | null>(null);
+  const [petsitter, setPetsitter] = useState<ResponsePetsitter[] | null>([]);
+  const [loading, setIsLoading] = useState(false);
 
-// type MarkerType = {
-//   id: string;
-//   coordinate: {
-//     latitude: number;
-//     longitude: number;
-//   };
-//   title: string;
-//   description: string;
-// };
+  const [selectedPetSitter, setSelectedPetSitter] =
+    useState<ResponsePetsitter | null>(null);
 
-// const INITIAL_REGION = {
-//   latitude: 48.8566,
-//   longitude: 2.3522, // Paris
-//   latitudeDelta: 0.0922,
-//   longitudeDelta: 0.0421,
-// };
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
-// const Map = () => {
-//   // Refs
-//   const mapRef = useRef<MapView | null>(null);
+  const [tooltipVisible, setTooltipVisible] = useState<string | null>(null);
+  const tooltipOpacity = useRef(new Animated.Value(0)).current;
 
-//   // State
-//   const [region, setRegion] = useState<LocationType>(INITIAL_REGION);
-//   const [currentLocation, setCurrentLocation] = useState<RoutePoint | null>(
-//     null
-//   );
-//   const [errorMsg, setErrorMsg] = useState<string | null>(null);
-//   const [isLoading, setIsLoading] = useState(false);
+  const showTooltip = (petSitterId: string) => {
+    setTooltipVisible(petSitterId);
+    Animated.timing(tooltipOpacity, {
+      toValue: 1,
+      duration: 200,
+      useNativeDriver: true,
+    }).start();
 
-//   // Markers state
-//   const [markers, setMarkers] = useState<MarkerType[]>([
-//     {
-//       id: "1",
-//       coordinate: { latitude: 48.8584, longitude: 2.2945 },
-//       title: "Eiffel Tower",
-//       description: "Famous landmark in Paris",
-//     },
-//     {
-//       id: "2",
-//       coordinate: { latitude: 48.8606, longitude: 2.3376 },
-//       title: "Louvre Museum",
-//       description: "World's largest art museum",
-//     },
-//   ]);
-//   const [selectedMarker, setSelectedMarker] = useState<MarkerType | null>(null);
+    setTimeout(() => {
+      hideTooltip();
+    }, 10000);
+  };
 
-//   // Route state
-//   const [startPoint, setStartPoint] = useState<RoutePoint | null>(null);
-//   const [endPoint, setEndPoint] = useState<RoutePoint | null>(null);
-//   const [routeCoordinates, setRouteCoordinates] = useState<RoutePoint[]>([]);
+  const hideTooltip = () => {
+    Animated.timing(tooltipOpacity, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      setTooltipVisible(null);
+    });
+  };
 
-//   // Search state
-//   const [searchText, setSearchText] = useState("");
-//   const [searchResults, setSearchResults] = useState<any[]>([]);
-//   const [isSearchingStart, setIsSearchingStart] = useState(true);
+  useEffect(() => {
+    (async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert(
+          "Permission refusée",
+          "Nous avons besoin de votre localisation pour cette fonctionnalité."
+        );
+        return;
+      }
 
-//   // Get user location on mount
-//   useEffect(() => {
-//     (async () => {
-//       try {
-//         const { status } = await Location.requestForegroundPermissionsAsync();
-//         if (status !== "granted") {
-//           setErrorMsg("Permission to access location was denied");
-//           return;
-//         }
+      setLocationPermission(true);
 
-//         setIsLoading(true);
-//         const location = await Location.getCurrentPositionAsync({
-//           accuracy: Location.Accuracy.Balanced,
-//         });
+      try {
+        const location = await Location.getCurrentPositionAsync({});
+        const { latitude, longitude } = location.coords;
 
-//         const userLocation = {
-//           latitude: location.coords.latitude,
-//           longitude: location.coords.longitude,
-//         };
+        setUserLocation({
+          latitude,
+          longitude,
+        });
 
-//         setCurrentLocation(userLocation);
-//         setStartPoint(userLocation);
+        setMapRegion({
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        });
+      } catch (error) {
+        console.error("Error getting location:", error);
+      }
+    })();
+  }, []);
 
-//         setRegion({
-//           latitude: userLocation.latitude,
-//           longitude: userLocation.longitude,
-//           latitudeDelta: 0.0922,
-//           longitudeDelta: 0.0421,
-//         });
-//       } catch (error) {
-//         console.log("Error getting location:", error);
-//         setErrorMsg("Could not get current location");
-//       } finally {
-//         setIsLoading(false);
-//       }
-//     })();
-//   }, []);
+  useEffect(() => {
+    if (!locationPermission) return;
 
-//   // Center map on user location
-//   const centerOnUserLocation = async () => {
-//     try {
-//       setIsLoading(true);
-//       const location = await Location.getCurrentPositionAsync({
-//         accuracy: Location.Accuracy.Balanced,
-//       });
+    let locationSubscription: Location.LocationSubscription | null = null;
 
-//       const userLocation = {
-//         latitude: location.coords.latitude,
-//         longitude: location.coords.longitude,
-//         latitudeDelta: 0.0922,
-//         longitudeDelta: 0.0421,
-//       };
+    const startLocationTracking = async () => {
+      try {
+        locationSubscription = await Location.watchPositionAsync(
+          {
+            accuracy: Location.Accuracy.High,
+            distanceInterval: 5, // Update every 5 meters
+          },
+          (location) => {
+            const { latitude, longitude } = location.coords;
+            setUserLocation({ latitude, longitude });
+          }
+        );
+      } catch (error) {
+        console.warn("Erreur lors de la géolocalisation :", error);
+      }
+    };
 
-//       setCurrentLocation({
-//         latitude: location.coords.latitude,
-//         longitude: location.coords.longitude,
-//       });
+    startLocationTracking();
 
-//       if (mapRef.current) {
-//         mapRef.current.animateToRegion(userLocation, 1000);
-//       }
-//     } catch (error) {
-//       console.log("Error centering on location:", error);
-//       setErrorMsg("Could not get current location");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
+    return () => {
+      locationSubscription?.remove();
+    };
+  }, [locationPermission]);
 
-//   // Create a custom marker
-//   const createCustomMarker = (latitude: number, longitude: number) => {
-//     const newMarker: MarkerType = {
-//       id: `custom-${Date.now()}`,
-//       coordinate: { latitude, longitude },
-//       title: `Custom Location ${markers.length + 1}`,
-//       description: "Custom marker location",
-//     };
+  const centerOnUserLocation = () => {
+    if (userLocation && mapRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: userLocation.latitude,
+          longitude: userLocation.longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    } else {
+      Alert.alert(
+        "Localisation non disponible",
+        "Nous ne pouvons pas accéder à votre position actuelle. "
+      );
+    }
+  };
 
-//     setMarkers([...markers, newMarker]);
-//     setSelectedMarker(newMarker);
-//   };
+  const centerOnMarker = (latitude: number, longitude: number) => {
+    bottomSheetRef.current?.snapToIndex(1);
+    if (mapRef.current && bottomSheetRef.current) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: latitude - 0.0001,
+          longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    }
+  };
 
-//   // Search for locations
-//   const searchAddress = (text: string) => {
-//     if (text.length < 3) {
-//       setSearchResults([]);
-//       return;
-//     }
+  const togglePetType = () => {
+    setPetType(petType === "cat" ? "dog" : "cat");
+  };
 
-//     setIsLoading(true);
+  const onRegionChange = (region: any) => {
+    const { latitudeDelta, longitudeDelta } = region;
+    const MAX_DELTA = 0.1;
+    const MIN_DELTA = 0.001;
 
-//     // Mock search results
-//     setTimeout(() => {
-//       const mockResults = [
-//         {
-//           id: "1",
-//           name: "Paris, France",
-//           location: { latitude: 48.8566, longitude: 2.3522 },
-//         },
-//         {
-//           id: "2",
-//           name: "Marseille, France",
-//           location: { latitude: 43.2965, longitude: 5.3698 },
-//         },
-//         {
-//           id: "3",
-//           name: "Lyon, France",
-//           location: { latitude: 45.764, longitude: 4.8357 },
-//         },
-//         {
-//           id: "4",
-//           name: text + " Street, Paris",
-//           location: {
-//             latitude: 48.8566 + Math.random() * 0.02 - 0.01,
-//             longitude: 2.3522 + Math.random() * 0.02 - 0.01,
-//           },
-//         },
-//       ];
+    if (
+      latitudeDelta > MAX_DELTA ||
+      longitudeDelta > MAX_DELTA ||
+      latitudeDelta < MIN_DELTA ||
+      longitudeDelta < MIN_DELTA
+    ) {
+      return;
+    }
 
-//       setSearchResults(mockResults);
-//       setIsLoading(false);
-//     }, 500);
-//   };
+    setZoomLevel(region.latitudeDelta);
+  };
 
-//   // Handle search result selection
-//   const handleSelectSearchResult = (result: any) => {
-//     const selectedLocation = result.location;
+  const getPetSitter = async (
+    pagination?: PaginationParams | null,
+    filters?: PetSitterQueryParams | null
+  ) => {
+    try {
+      setIsLoading(true);
 
-//     if (isSearchingStart) {
-//       setStartPoint(selectedLocation);
-//     } else {
-//       setEndPoint(selectedLocation);
-//     }
+      const res = await getPetSitters(filters, pagination);
 
-//     // Clear search
-//     setSearchText("");
-//     setSearchResults([]);
+      setPetsitter(res.petsitters);
+    } catch (e) {
+      console.error("Erreur getPetSitter :", e);
+      setPetsitter([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-//     // Move map to the selected location
-//     if (mapRef.current) {
-//       mapRef.current.animateToRegion(
-//         {
-//           ...selectedLocation,
-//           latitudeDelta: 0.0922,
-//           longitudeDelta: 0.0421,
-//         },
-//         1000
-//       );
-//     }
+  const updateFilters = (newFilters: PetSitterQueryParams) => {
+    console.log("update fileter", newFilters);
+    setFilters(newFilters);
+  };
 
-//     // Calculate route if both points are set
-//     if ((isSearchingStart && endPoint) || (!isSearchingStart && startPoint)) {
-//       const start = isSearchingStart ? selectedLocation : startPoint;
-//       const end = isSearchingStart ? endPoint : selectedLocation;
-//       calculateRoute(start!, end!);
-//     }
-//   };
+  const onSearchCity = (longitude?: number, latitude?: number) => {
+    if (mapRef.current && longitude && latitude) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: latitude,
+          longitude: longitude,
+          latitudeDelta: 0.005,
+          longitudeDelta: 0.005,
+        },
+        1000
+      );
+    } else {
+      centerOnUserLocation();
+    }
+  };
 
-//   // Use current location as start or end point
-//   const useCurrentLocationAs = async (type: "start" | "end") => {
-//     if (!currentLocation) {
-//       setErrorMsg("Current location not available");
-//       return;
-//     }
+  const openPetSitterDetails = (ps: ResponsePetsitter) => {
+    console.log("test");
+    setSelectedPetSitter(ps);
+    showTooltip(ps.petsitter.id);
+    setTimeout(() => {
+      bottomSheetRef.current?.snapToIndex(1);
+    }, 50);
+  };
 
-//     if (type === "start") {
-//       setStartPoint(currentLocation);
-//       if (endPoint) {
-//         calculateRoute(currentLocation, endPoint);
-//       }
-//     } else {
-//       setEndPoint(currentLocation);
-//       if (startPoint) {
-//         calculateRoute(startPoint, currentLocation);
-//       }
-//     }
-//   };
+  useEffect(() => {
+    getPetSitter();
+  }, []);
 
-//   // Calculate route between two points
-//   const calculateRoute = (start: RoutePoint, end: RoutePoint) => {
-//     setIsLoading(true);
+  useEffect(() => {
+    console.log("filter : ", filters);
+    getPetSitter(pagination, filters);
+  }, [filters]);
 
-//     try {
-//       // Create a simple route with some intermediate points
-//       const numPoints = 10;
-//       const points: RoutePoint[] = [];
+  const getBgColor = () => {
+    return isDark ? "#1a202c" : "rgba(253, 242, 255, 0.98)";
+  };
 
-//       for (let i = 0; i <= numPoints; i++) {
-//         const fraction = i / numPoints;
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={{ flex: 1 }}>
+          <MapView
+            maxDelta={10}
+            ref={mapRef}
+            style={{ flex: 1 }}
+            region={mapRegion}
+            customMapStyle={
+              colorScheme === "dark" ? darkMapStyle : lightMapStyle
+            }
+            provider={PROVIDER_GOOGLE}
+            showsUserLocation={false}
+            followsUserLocation={false}
+            onRegionChange={onRegionChange}
+          >
+            {petsitter &&
+              petsitter.length > 0 &&
+              petsitter.map((ps) => {
+                const { latitude, longitude } = ps.petsitter || {};
 
-//         // Linear interpolation between start and end
-//         const lat = start.latitude + (end.latitude - start.latitude) * fraction;
-//         const lng =
-//           start.longitude + (end.longitude - start.longitude) * fraction;
+                if (
+                  typeof latitude !== "number" ||
+                  typeof longitude !== "number" ||
+                  isNaN(latitude) ||
+                  isNaN(longitude)
+                ) {
+                  return null;
+                }
 
-//         // Add some randomness to make it look like a real route
-//         const jitter =
-//           i > 0 && i < numPoints ? (Math.random() - 0.5) * 0.005 : 0;
+                return (
+                  <Marker
+                    key={ps.petsitter.id}
+                    coordinate={{ latitude, longitude }}
+                    onPress={() => {
+                      centerOnMarker(latitude, longitude);
+                      openPetSitterDetails(ps);
+                    }}
+                    
+                   
+                  >
+                    
+                    <View style={{ 
+                      alignItems: Platform.OS === "android" ? "flex-start" : "center",
+                      justifyContent: "center",
+                    }}>
+                      {/* Tooltip */}
+                      {tooltipVisible === ps.petsitter.id && (
+                        <Animated.View
+                          style={{
+                            opacity: tooltipOpacity,
+                            marginBottom: 5,
+                            paddingHorizontal: 8,
+                            paddingVertical: 4,
+                            backgroundColor: isDark ? "#374151" : "#ffffff",
+                            borderRadius: 8,
+                            borderWidth: 1,
+                            borderColor: isDark ? "#4B5563" : "#D1D5DB",
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.25,
+                            shadowRadius: 3.84,
+                            elevation: 5,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: "600",
+                              color: isDark ? "#ffffff" : "#000000",
+                              textAlign: "center",
+                            }}
+                          >
+                            {ps.user.firstName} {ps.user.lastName}
+                          </Text>
+                        </Animated.View>
+                      )}
 
-//         points.push({
-//           latitude: lat + jitter,
-//           longitude: lng + jitter,
-//         });
-//       }
+                      {/* Marqueur avec le tarif */}
+                      <View
+                        className={`px-2 py-1 rounded-full border ${
+                          isDark
+                            ? "bg-gray-800 border-gray-600"
+                            : "bg-white border-gray-300"
+                        }`}
+                      >
+                        <Text
+                          className={`text-base font-bold ${
+                            isDark ? "text-white" : "text-black"
+                          }`}
+                        >
+                          {ps.petsitter.hourly_rate} €
+                        </Text>
+                      </View>
+                    </View>
+                  </Marker>
+                );
+              })}
 
-//       setRouteCoordinates(points);
+            {userLocation && (
+              <UserLocationMarker
+                coordinate={userLocation}
+                heading={0}
+                zoomLevel={zoomLevel}
+                petType={petType}
+              />
+            )}
+          </MapView>
 
-//       // Fit map to show the entire route
-//       if (points.length > 0 && mapRef.current) {
-//         setTimeout(() => {
-//           if (mapRef.current) {
-//             mapRef.current.fitToCoordinates(points, {
-//               edgePadding: { top: 50, right: 50, bottom: 50, left: 50 },
-//               animated: true,
-//             });
-//           }
-//         }, 500);
-//       }
-//     } catch (error) {
-//       console.log("Error calculating route:", error);
-//       setErrorMsg("Could not calculate route");
-//     } finally {
-//       setIsLoading(false);
-//     }
-//   };
+          <SearchBarMap
+            onSearch={updateFilters}
+            initialCity=""
+            count={petsitter?.length}
+            onSearchCity={onSearchCity}
+          />
 
-//   const handleUseCurrentLocationAs = async (type: "start" | "end") => {
-//     if (!currentLocation) {
-//       setErrorMsg("Current location not available");
-//       return;
-//     }
+          {loading && (
+            <View className="absolute top-3/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black/50 p-4 rounded-lg">
+              <ActivityIndicator size="large" color="#2563EB" />
+              <Text className="text-white mt-2 font-semibold text-center">
+                Chargement des pet sitters...
+              </Text>
+            </View>
+          )}
 
-//     if (type === "start") {
-//       setStartPoint(currentLocation);
-//       if (endPoint) {
-//         calculateRoute(currentLocation, endPoint);
-//       }
-//     } else {
-//       setEndPoint(currentLocation);
-//       if (startPoint) {
-//         calculateRoute(startPoint, currentLocation);
-//       }
-//     }
-//   };
+          <View className="absolute bottom-6 right-6 flex gap-3 flex-col space-y-3">
+            <TouchableOpacity
+              onPress={togglePetType}
+              className=" shadow-md "
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: getBgColor(),
+              }}
+            >
+              {petType === "cat" ? (
+                <Cat size={24} color="#2563EB" />
+              ) : (
+                <Dog size={24} color="#2563EB" />
+              )}
+            </TouchableOpacity>
 
-//   return (
-//     <SafeAreaView style={styles.container}>
-//       <StatusBar style="auto" />
+            <TouchableOpacity
+              onPress={centerOnUserLocation}
+              className="shadow-md"
+              style={{
+                width: 56,
+                height: 56,
+                borderRadius: 16,
+                justifyContent: "center",
+                alignItems: "center",
+                backgroundColor: getBgColor(),
+              }}
+            >
+              <AntDesign name="enviromento" size={24} color="#d946ef" />
+            </TouchableOpacity>
+          </View>
 
-//       {/* Map */}
-//       <View style={styles.mapContainer}>
-//         <MapView
-//           ref={mapRef}
-//           style={styles.map}
-//           initialRegion={region}
-//           showsUserLocation={true}
-//           showsMyLocationButton={false}
-//           onLongPress={(e) =>
-//             createCustomMarker(
-//               e.nativeEvent.coordinate.latitude,
-//               e.nativeEvent.coordinate.longitude
-//             )
-//           }
-//         >
-//           {/* Standard markers */}
-//           {markers.map((marker) => (
-//             <Marker
-//               key={marker.id}
-//               coordinate={marker.coordinate}
-//               title={marker.title}
-//               description={marker.description}
-//               onPress={() => setSelectedMarker(marker)}
-//             />
-//           ))}
+          {/* BottomSheet Gorhom */}
+          <PetSitterBottomSheet
+            petSitter={selectedPetSitter}
+            bottomSheetRef={bottomSheetRef}
+          />
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+};
 
-//           {/* Start point marker */}
-//           {startPoint && (
-//             <Marker coordinate={startPoint} pinColor="green" title="Start" />
-//           )}
-
-//           {/* End point marker */}
-//           {endPoint && (
-//             <Marker coordinate={endPoint} pinColor="red" title="Destination" />
-//           )}
-
-//           {/* Route line */}
-//           {routeCoordinates.length > 0 && (
-//             <Polyline
-//               coordinates={routeCoordinates}
-//               strokeWidth={4}
-//               strokeColor="#4285F4"
-//             />
-//           )}
-//         </MapView>
-//       </View>
-
-//       {/* Loading indicator */}
-//       {isLoading && (
-//         <View style={styles.loadingContainer}>
-//           <ActivityIndicator size="large" color="#0000ff" />
-//         </View>
-//       )}
-
-//       {/* Search bar */}
-//       <View style={styles.searchContainer}>
-//         <View style={styles.searchInputContainer}>
-//           <TextInput
-//             style={styles.searchInput}
-//             placeholder={
-//               isSearchingStart
-//                 ? "Search for starting point..."
-//                 : "Search for destination..."
-//             }
-//             value={searchText}
-//             onChangeText={(text) => {
-//               setSearchText(text);
-//               searchAddress(text);
-//             }}
-//           />
-//           <TouchableOpacity
-//             style={styles.searchTypeToggle}
-//             onPress={() => setIsSearchingStart(!isSearchingStart)}
-//           >
-//             <Text style={styles.searchTypeText}>
-//               {isSearchingStart ? "Start" : "Dest"}
-//             </Text>
-//           </TouchableOpacity>
-//         </View>
-
-//         {/* Search results */}
-//         {searchResults.length > 0 && (
-//           <ScrollView style={styles.searchResults}>
-//             {searchResults.map((result) => (
-//               <TouchableOpacity
-//                 key={result.id}
-//                 style={styles.searchResultItem}
-//                 onPress={() => handleSelectSearchResult(result)}
-//               >
-//                 <Text>{result.name}</Text>
-//               </TouchableOpacity>
-//             ))}
-//           </ScrollView>
-//         )}
-//       </View>
-
-//       {/* Current location button */}
-//       <TouchableOpacity
-//         style={styles.currentLocationButton}
-//         onPress={centerOnUserLocation}
-//       >
-//         <Ionicons name="locate" size={24} color="black" />
-//       </TouchableOpacity>
-
-//       {/* Route controls */}
-//       <View style={styles.routeControlsContainer}>
-//         <TouchableOpacity
-//           style={styles.routeButton}
-//           onPress={() => handleUseCurrentLocationAs("start")}
-//         >
-//           <Text style={styles.routeButtonText}>Start from my location</Text>
-//         </TouchableOpacity>
-
-//         <TouchableOpacity
-//           style={styles.routeButton}
-//           onPress={() => handleUseCurrentLocationAs("end")}
-//         >
-//           <Text style={styles.routeButtonText}>End at my location</Text>
-//         </TouchableOpacity>
-
-//         {startPoint && endPoint && (
-//           <TouchableOpacity
-//             style={styles.routeButton}
-//             onPress={() => calculateRoute(startPoint, endPoint)}
-//           >
-//             <Text style={styles.routeButtonText}>Calculate Route</Text>
-//           </TouchableOpacity>
-//         )}
-//       </View>
-
-//       {/* Selected marker info */}
-//       {selectedMarker && (
-//         <View style={styles.markerInfoContainer}>
-//           <View style={styles.markerInfo}>
-//             <View style={styles.markerInfoHeader}>
-//               <View style={styles.markerInfoTextContainer}>
-//                 <Text style={styles.markerTitle}>{selectedMarker.title}</Text>
-//                 <Text style={styles.markerDescription}>
-//                   {selectedMarker.description}
-//                 </Text>
-//               </View>
-//             </View>
-//             <TouchableOpacity
-//               style={styles.closeButton}
-//               onPress={() => setSelectedMarker(null)}
-//             >
-//               <Text style={styles.closeButtonText}>Close</Text>
-//             </TouchableOpacity>
-//           </View>
-//         </View>
-//       )}
-
-//       {/* Error message */}
-//       {errorMsg && (
-//         <View style={styles.errorContainer}>
-//           <Text style={styles.errorText}>{errorMsg}</Text>
-//           <TouchableOpacity onPress={() => setErrorMsg(null)}>
-//             <Text style={styles.closeErrorText}>Dismiss</Text>
-//           </TouchableOpacity>
-//         </View>
-//       )}
-
-//       {/* Hint */}
-//       <View style={styles.hintContainer}>
-//         <Text style={styles.hintText}>Long press on map to add a marker</Text>
-//       </View>
-//     </SafeAreaView>
-//   );
-// };
-
-// const styles = StyleSheet.create({
-//   container: {
-//     flex: 1,
-//     backgroundColor: "#fff",
-//   },
-//   mapContainer: {
-//     flex: 1,
-//   },
-//   map: {
-//     width: "100%",
-//     height: "100%",
-//   },
-//   searchContainer: {
-//     position: "absolute",
-//     top: Platform.OS === "ios" ? 50 : 40,
-//     left: 10,
-//     right: 10,
-//     backgroundColor: "white",
-//     borderRadius: 8,
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//     zIndex: 1,
-//   },
-//   searchInputContainer: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//   },
-//   searchInput: {
-//     flex: 1,
-//     height: 50,
-//     paddingHorizontal: 15,
-//     borderRadius: 8,
-//   },
-//   searchTypeToggle: {
-//     padding: 10,
-//     backgroundColor: "#e0e0e0",
-//     borderRadius: 8,
-//     marginRight: 5,
-//   },
-//   searchTypeText: {
-//     fontWeight: "bold",
-//   },
-//   searchResults: {
-//     maxHeight: 200,
-//     borderTopWidth: 1,
-//     borderTopColor: "#e0e0e0",
-//   },
-//   searchResultItem: {
-//     padding: 15,
-//     borderBottomWidth: 1,
-//     borderBottomColor: "#e0e0e0",
-//   },
-//   currentLocationButton: {
-//     position: "absolute",
-//     bottom: 200,
-//     right: 20,
-//     backgroundColor: "white",
-//     borderRadius: 30,
-//     width: 60,
-//     height: 60,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   routeControlsContainer: {
-//     position: "absolute",
-//     bottom: 20,
-//     left: 10,
-//     right: 10,
-//     backgroundColor: "white",
-//     borderRadius: 8,
-//     padding: 10,
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   routeButton: {
-//     backgroundColor: "#4285F4",
-//     padding: 12,
-//     borderRadius: 8,
-//     alignItems: "center",
-//     marginVertical: 5,
-//   },
-//   routeButtonText: {
-//     color: "white",
-//     fontWeight: "bold",
-//   },
-//   markerInfoContainer: {
-//     position: "absolute",
-//     bottom: 120,
-//     left: 10,
-//     right: 10,
-//     alignItems: "center",
-//   },
-//   markerInfo: {
-//     backgroundColor: "white",
-//     borderRadius: 8,
-//     padding: 15,
-//     width: "100%",
-//     elevation: 4,
-//     shadowColor: "#000",
-//     shadowOffset: { width: 0, height: 2 },
-//     shadowOpacity: 0.25,
-//     shadowRadius: 3.84,
-//   },
-//   markerInfoHeader: {
-//     flexDirection: "row",
-//     alignItems: "center",
-//     marginBottom: 10,
-//   },
-//   markerInfoTextContainer: {
-//     flex: 1,
-//   },
-//   markerTitle: {
-//     fontSize: 18,
-//     fontWeight: "bold",
-//     marginBottom: 5,
-//   },
-//   markerDescription: {
-//     fontSize: 14,
-//     marginBottom: 10,
-//   },
-//   closeButton: {
-//     alignSelf: "flex-end",
-//   },
-//   closeButtonText: {
-//     color: "#4285F4",
-//     fontWeight: "bold",
-//   },
-//   errorContainer: {
-//     position: "absolute",
-//     top: 120,
-//     left: 10,
-//     right: 10,
-//     backgroundColor: "#ffcccc",
-//     padding: 10,
-//     borderRadius: 8,
-//     flexDirection: "row",
-//     justifyContent: "space-between",
-//     alignItems: "center",
-//   },
-//   errorText: {
-//     color: "#cc0000",
-//   },
-//   closeErrorText: {
-//     color: "#cc0000",
-//     fontWeight: "bold",
-//   },
-//   loadingContainer: {
-//     position: "absolute",
-//     top: 0,
-//     left: 0,
-//     right: 0,
-//     bottom: 0,
-//     justifyContent: "center",
-//     alignItems: "center",
-//     backgroundColor: "rgba(255, 255, 255, 0.5)",
-//   },
-//   hintContainer: {
-//     position: "absolute",
-//     top: 110,
-//     alignSelf: "center",
-//     backgroundColor: "rgba(0,0,0,0.7)",
-//     padding: 8,
-//     borderRadius: 20,
-//   },
-//   hintText: {
-//     color: "white",
-//     fontSize: 12,
-//   },
-// });
-
-// export default Map;
+export default Maps;

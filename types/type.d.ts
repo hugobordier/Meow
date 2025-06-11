@@ -47,32 +47,183 @@ export interface CreatePetSitterInput {
   availability?: AvailabilityDay[];
 }
 
-export interface PetSitter {
-  id: string;
-  user_id: string;
-  bio?: string;
-  hourly_rate: number;
-  experience?: number;
-  availability?: AvailabilityDay[];
-  latitude: number | null;
-  longitude: number | null;
-  createdAt: string;
-  updatedAt: string;
-}
+// export interface PetSitter {
+//   id: string;
+//   user_id: string;
+//   bio?: string;
+//   hourly_rate: number;
+//   experience?: number;
+//   availability?: AvailabilityDay[];
+//   latitude: number | null;
+//   longitude: number | null;
+//   createdAt: string;
+//   updatedAt: string;
+// }
 
 export type TimeInterval = {
   start_time: string;
   end_time: string;
 };
 
-export type AvailabilityDay = {
-  day:
-    | "Monday"
-    | "Tuesday"
-    | "Wednesday"
-    | "Thursday"
-    | "Friday"
-    | "Saturday"
-    | "Sunday";
-  intervals: TimeInterval[];
+export type AvailabilityDay =
+  | "Monday"
+  | "Tuesday"
+  | "Wednesday"
+  | "Thursday"
+  | "Friday"
+  | "Saturday"
+  | "Sunday";
+
+export type AvailabilityInterval = "Matin" | "Après-midi" | "Soir" | "Nuit";
+
+export type ServiceType =
+  | "Promenade"
+  | "Alimentation"
+  | "Jeux"
+  | "Soins"
+  | "Toilettage"
+  | "Dressage"
+  | "Garderie"
+  | "Médication"
+  | "Nettoyage"
+  | "Transport";
+
+export type AnimalType =
+  | "Chat"
+  | "Chien"
+  | "Oiseau"
+  | "Rongeur"
+  | "Reptile"
+  | "Poisson"
+  | "Furet"
+  | "Cheval"
+  | "Autre";
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+}
+
+export interface PetSitterQueryParams {
+  search?: string;
+  minRate?: number;
+  maxRate?: number;
+  minExperience?: number;
+  availability_days?: AvailabilityDay[];
+  availability_intervals?: AvailabilityInterval[];
+  animal_types?: AnimalType[];
+  services?: ServiceType[];
+  latitude?: number;
+  longitude?: number;
+  radius?: number;
+}
+
+export interface PetSitter {
+  id: string;
+  user_id: string;
+  bio: string | null;
+  experience: number;
+  hourly_rate: string;
+  latitude: number;
+  longitude: number;
+  animal_types: string[] | null;
+  available_days: AvailabilityDay[] | null;
+  available_slots: AvailabilityInterval[] | null;
+  services: ServiceType[] | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UserPetSitter {
+  id: string;
+  firstName: string;
+  lastName: string;
+  username: string;
+  email: string;
+  password: string;
+  address: string;
+  phoneNumber: string;
+  profilePicture: string;
+  city: string;
+  country: string;
+  bankInfo: string;
+  identityDocument: string;
+  bio: string | null;
+  birthDate: string;
+  age: number;
+  rating: number | null;
+  gender: string | null;
+  googleId: string | null;
+  isAdmin: boolean | null;
+  resetcode: string | null;
+  resetcodeexpires: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ResponsePetsitter {
+  petsitter: PetSitter;
+  user: UserPetSitter;
+}
+
+export interface Pagination {
+  currentPage: string;
+  itemsPerPage: string;
+  totalItems: string;
+  totalPages: string;
+}
+
+export interface ApiResponsePetsitter {
+  success: boolean;
+  petsitters: ResponsePetsitter[];
+  message: string;
+  pagination: Pagination;
+}
+
+
+export type PetSitterReviewResponse = {
+  id: string;
+  pet_sitter_id: string;
+  user_id: string;
+  user_first_name: string;
+  user_last_name: string;
+  user_username: string;
+  user_picture: string;
+  pet_sitter_rating: number;
+  message: string;
+  createdAt: Date;
+  updatedAt: Date;
 };
+export interface Pet {
+  id: string;
+  name: string;
+  breed: string;
+  age: number;
+  species: string;
+  allergy: string;
+  weight: number;
+  diet: string;
+  description: string;  
+  photo_url: string;
+  gender : string;
+  neutered: boolean;
+  color: string;
+  user_id: string;
+}
+
+export interface PetQueryParams {
+  search?: string;
+  name?: string;
+  breed?: string;
+  age?: number;
+  species?: string;
+  gender?: string;
+  color?: string;
+}
+
+interface ApiResponsePet {
+  success: boolean;
+  message: string;
+  data: Pet[];
+  pagination: Pagination;
+}

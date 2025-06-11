@@ -11,10 +11,14 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "kikipaul.meow",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDXXEFNdQjlAHEQfhvFQ0zRKcYmtLnlfYc"
+      },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
-        "UIBackgroundModes": ["audio"],
-        "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe."
+        "UIBackgroundModes": ["audio", "audio"],
+        "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe.",
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -25,16 +29,19 @@
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
-        "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "package": "kikipaul.meow"
+      "package": "kikipaul.meow",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDXXEFNdQjlAHEQfhvFQ0zRKcYmtLnlfYc"
+        }
+      }
     },
     "web": {
       "bundler": "metro",
-      "output": "server",
+      "output": "static",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
