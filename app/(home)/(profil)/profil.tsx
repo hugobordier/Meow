@@ -35,7 +35,7 @@ const Profil: React.FC = () => {
       <Text style={styles.infoLabel}>
         {label} {required && <Text style={styles.required}>*</Text>}
       </Text>
-      <Text style={styles.infoValue}>
+      <Text style={value ? styles.infoValue : styles.infoValueEmpty}>
         {value || "Non renseigné"}
       </Text>
     </View>
@@ -278,10 +278,18 @@ const styles = StyleSheet.create({
     color: '#111827',
     paddingVertical: 8,
     paddingHorizontal: 12,
-    backgroundColor: 'white',
+    backgroundColor: '#F9FAFB', // Couleur de fond plus claire
     borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    // Suppression de borderWidth et borderColor pour enlever l'apparence d'input
+  },
+  infoValueEmpty: {
+    fontSize: 16,
+    color: '#9CA3AF', // Gris clair pour les valeurs non renseignées
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#F9FAFB',
+    borderRadius: 8,
+    fontStyle: 'italic',
   },
   verificationSection: {
     backgroundColor: '#F0FDF4',

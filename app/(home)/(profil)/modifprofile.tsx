@@ -38,7 +38,6 @@ const ModifProfile: React.FC = () => {
   const router = useRouter();
   const { user, setUser } = useAuthContext();
   
-  // États pour les champs de formulaire
   const [username, setUsername] = useState<string>(user?.username || "");
   const [lastName, setLastName] = useState<string>(user?.lastName || "");
   const [firstName, setFirstName] = useState<string>(user?.firstName || "");
