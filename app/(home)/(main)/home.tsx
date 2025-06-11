@@ -50,14 +50,11 @@ export default function HomeScreen() {
     PetsittingRequestResponse[]
   >([]);
 
-  // Fonction pour supprimer une demande du state
   const handleDeleteRequest = (requestId: string) => {
-    // Mettre à jour les demandes utilisateur (demandes envoyées)
     setUserRequests((prevRequests) =>
       prevRequests.filter((request) => request.id !== requestId)
     );
 
-    // Mettre à jour les demandes reçues (pour les petsitters)
     setReceivedRequests((prevRequests) =>
       prevRequests.filter((request) => request.id !== requestId)
     );
@@ -262,7 +259,7 @@ export default function HomeScreen() {
       />
       <ScrollView className="flex-1">
         {/* User Profile */}
-        <View className="flex-row items-center px-4 mt-4">
+        <View className="flex-row items-center px-4 mt-4 w-full">
           <ProfilePictureZoomable
             onDeletePhoto={onDeletePhoto}
             profilePicture={user?.profilePicture}
@@ -270,17 +267,29 @@ export default function HomeScreen() {
             onTakePhoto={handleOpenCamera}
           />
 
-          <View className="ml-3">
+          <View className="ml-3 flex-1">
             <Text className="text-lg font-semibold text-black dark:text-white">
               Bonjour, {user?.username} !
             </Text>
             {user?.city && user?.country && (
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                {user?.city}
-                {user?.city && user?.country ? ", " : ""} {user?.country}
+                {user.city}, {user.country}
               </Text>
             )}
           </View>
+
+          {petsitter && (
+            <View className="ml-2 items-center max-w-[90px]">
+              <View className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 items-center justify-center">
+                <Text className="text-xl text-green-800 dark:text-green-300">
+                  🐶
+                </Text>
+              </View>
+              <Text className="text-[10px] text-green-700 dark:text-green-300 mt-1 text-center leading-tight">
+                Compte pet-sitter{"\n"}activé
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Your Pets Section */}
@@ -315,7 +324,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             {!listPets ? (
               <View className="flex-row">
-                {[0, 1, 2, 3].map((i) => (
+                {[0, 1, 2, 3, 4].map((i) => (
                   <View key={i} className="items-center mr-4">
                     <View className="w-16 h-16 rounded-full bg-gray-300 dark:bg-gray-700 animate-pulse" />
                     <View className="w-12 h-3 rounded mt-1 bg-gray-300 dark:bg-gray-700 animate-pulse" />
@@ -330,7 +339,7 @@ export default function HomeScreen() {
               </View>
             ) : (
               <View className="flex-row">
-                {[0, 1, 2, 3].map((i) =>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
                   listPets[i] ? (
                     <TouchableOpacity
                       key={listPets[i].id}

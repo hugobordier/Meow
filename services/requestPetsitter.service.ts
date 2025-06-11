@@ -9,7 +9,7 @@ export interface PetsittingRequestResponse {
   id: string;
   user_id: string;
   petsitter_id: string;
-  statusdemande: "pending" | "accepted" | "rejected";
+  statusdemande: "pending" | "accepted" | "refused";
   message: string;
   createdAt: Date;
   updatedAt: Date;
@@ -82,7 +82,7 @@ export const getPetsitterReceivedRequests = async (): Promise<
 
 export const respondToPetsittingRequest = async (
   iddemandeur: string,
-  data: "accepted" | "rejected"
+  data: "accepted" | "rejected" | "refused" | "pending"
 ) => {
   try {
     const response = await api.patch(`/Amis/ReponseDemande/${iddemandeur}`, {

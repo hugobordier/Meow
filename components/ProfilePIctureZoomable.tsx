@@ -135,8 +135,8 @@ export default function ProfilePictureZoomable({
               : getRandomPlaceholderImage()
           }
           style={{
-            width: 48,
-            height: 48,
+            width: 52,
+            height: 52,
             borderRadius: 24,
             backgroundColor: "#fde047",
             opacity: thumbnailOpacityAnim,

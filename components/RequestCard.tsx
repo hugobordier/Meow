@@ -129,7 +129,7 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
 
   const handleReject = async () => {
     try {
-      await respondToPetsittingRequest(request.user_id, "rejected");
+      await respondToPetsittingRequest(request.user_id, "refused");
       showToast(
         "Demande acceptée, vous pouvez maintenant discuter !",
         ToastType.SUCCESS
@@ -171,7 +171,7 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
     }
   };
 
-  const getStatusStyles = (status: "pending" | "accepted" | "rejected") => {
+  const getStatusStyles = (status: "pending" | "accepted" | "refused") => {
     switch (status) {
       case "accepted":
         return {
@@ -180,7 +180,7 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
           text: { color: isDark ? "#6ee7b7" : "#047857" },
           label: "Acceptée",
         };
-      case "rejected":
+      case "refused":
         return {
           container: { backgroundColor: isDark ? "#7f1d1d" : "#fee2e2" },
           dot: { backgroundColor: "#ef4444" },
