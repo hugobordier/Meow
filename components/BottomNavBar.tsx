@@ -79,7 +79,7 @@ export default function BottomNavBar() {
     },
     {
       name: "Profile",
-      path: "/",
+      path: "/(home)/(profil)/profil",
       icon: "person-outline",
       activeIcon: "person",
     },
