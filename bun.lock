@@ -33,7 +33,7 @@
         "expo-linking": "^7.1.5",
         "expo-location": "^18.1.5",
         "expo-media-library": "~17.1.6",
-        "expo-notifications": "^0.31.3",
+        "expo-notifications": "~0.31.3",
         "expo-router": "~5.0.6",
         "expo-sensors": "~14.1.4",
         "expo-splash-screen": "~0.30.8",
@@ -59,7 +59,7 @@
         "react-native-maps-super-cluster": "^1.6.0",
         "react-native-modal-datetime-picker": "^18.0.0",
         "react-native-reanimated": "~3.17.4",
-        "react-native-safe-area-context": "5.4.0",
+        "react-native-safe-area-context": "^5.4.1",
         "react-native-screens": "~4.10.0",
         "react-native-svg": "^15.11.2",
         "react-native-vector-icons": "^10.2.0",
@@ -1608,7 +1608,7 @@
 
     "react-native-reanimated": ["react-native-reanimated@3.17.5", "", { "dependencies": { "@babel/plugin-transform-arrow-functions": "^7.0.0-0", "@babel/plugin-transform-class-properties": "^7.0.0-0", "@babel/plugin-transform-classes": "^7.0.0-0", "@babel/plugin-transform-nullish-coalescing-operator": "^7.0.0-0", "@babel/plugin-transform-optional-chaining": "^7.0.0-0", "@babel/plugin-transform-shorthand-properties": "^7.0.0-0", "@babel/plugin-transform-template-literals": "^7.0.0-0", "@babel/plugin-transform-unicode-regex": "^7.0.0-0", "@babel/preset-typescript": "^7.16.7", "convert-source-map": "^2.0.0", "invariant": "^2.2.4", "react-native-is-edge-to-edge": "1.1.7" }, "peerDependencies": { "@babel/core": "^7.0.0-0", "react": "*", "react-native": "*" } }, "sha512-SxBK7wQfJ4UoWoJqQnmIC7ZjuNgVb9rcY5Xc67upXAFKftWg0rnkknTw6vgwnjRcvYThrjzUVti66XoZdDJGtw=="],
 
-    "react-native-safe-area-context": ["react-native-safe-area-context@5.4.0", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-JaEThVyJcLhA+vU0NU8bZ0a1ih6GiF4faZ+ArZLqpYbL6j7R3caRqj+mE3lEtKCuHgwjLg3bCxLL1GPUJZVqUA=="],
+    "react-native-safe-area-context": ["react-native-safe-area-context@5.4.1", "", { "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-x+g3NblZ9jof8y+XkVvaGlpMrSlixhrJJ33BRzhTAKUKctQVecO1heSXmzxc5UdjvGYBKS6kPZVUw2b8NxHcPg=="],
 
     "react-native-screens": ["react-native-screens@4.10.0", "", { "dependencies": { "react-freeze": "^1.0.0", "warn-once": "^0.1.0" }, "peerDependencies": { "react": "*", "react-native": "*" } }, "sha512-Tw21NGuXm3PbiUGtZd0AnXirUixaAbPXDjNR0baBH7/WJDaDTTELLcQ7QRXuqAWbmr/EVCrKj1348ei1KFIr8A=="],
 

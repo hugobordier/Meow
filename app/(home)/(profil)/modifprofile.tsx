@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { AntDesign, Feather } from "@expo/vector-icons"; // Ajouter Feather
+import { AntDesign, Feather } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import {updateUser} from "@/services/user.service";
@@ -25,9 +25,6 @@ import {
   deleteProfilePicture,
   updateProfilePicture,
 } from "@/services/user.service";
-// Import de vos services (à adapter selon votre structure)
-// import { updateUser, updateProfilePicture, updateDocId, getCurrentUser } from "@/services/user.service";
-// import { User } from "@/types/type";
 
 const GENDER_OPTIONS = [
   { label: 'Sélectionnez votre genre', value: '' },
@@ -46,7 +43,6 @@ const ModifProfile: React.FC = () => {
   const [lastName, setLastName] = useState<string>(user?.lastName || "");
   const [firstName, setFirstName] = useState<string>(user?.firstName || "");
   const [email, setEmail] = useState<string>(user?.email || "");
-  const [password, setPassword] = useState<string>("");
   const [birthDate, setBirthDate] = useState<string>(user?.birthDate || "");
   const [phone, setPhone] = useState<string>(user?.phoneNumber || "");
   const [profilePic, setProfilePic] = useState<string | null>(user?.profilePicture || null);
@@ -62,9 +58,6 @@ const ModifProfile: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const { showToast } = useToast();
-  // Supprimer la fonction pickImage car elle est redondante
-
-  // Modifier la fonction validateForm pour ne vérifier que les champs requis
   const validateForm = (): boolean => {
     const requiredFields = {
       username: username.trim(),
@@ -82,32 +75,17 @@ const ModifProfile: React.FC = () => {
       return false;
     }
 
-    // Vérifier le format de l'email
     const emailRegexp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegexp.test(email)) {
       Alert.alert("Erreur", "Format d'email invalide");
       return false;
     }
 
-    // Vérifier le mot de passe uniquement s'il est rempli
-    if (password) {
-      const passwordRegexp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-      if (!passwordRegexp.test(password)) {
-        Alert.alert(
-          "Erreur",
-          "Le mot de passe doit contenir au moins 8 caractères avec une minuscule, une majuscule, un chiffre et un caractère spécial"
-        );
-        return false;
-      }
-    }
-
     return true;
   };
 
-  // Calcul automatique de la vérification
   const isIdentityVerified = Boolean(identityDoc && insuranceCertificate);
 
-  // Modification du handleSubmit
   const handleSubmit = async () => {
     if (!validateForm() || !user?.id) return;
 
@@ -120,7 +98,6 @@ const ModifProfile: React.FC = () => {
         lastName: lastName.trim(),
         firstName: firstName.trim(),
         email: email.trim(),
-        ...(password && { password: password.trim() }),
         ...(age && { age: parseInt(age) }),
         ...(birthDate && { birthDate: birthDate.trim() }),
         ...(gender && { gender }),
@@ -130,8 +107,6 @@ const ModifProfile: React.FC = () => {
         ...(bankInfo && { bankInfo: bankInfo.trim() }),
         ...(address && { address: address.trim() }),
         ...(phone && { phoneNumber: phone.trim() }),
-        // Supprimer ces lignes car elles sont gérées séparément
-        // ...(profilePic && { profilePicture: profilePic }),
         ...(identityDoc && { identityDocument: identityDoc }),
         ...(insuranceCertificate && { insuranceCertificate })
       };
@@ -144,11 +119,10 @@ const ModifProfile: React.FC = () => {
         throw new Error(response.message || "Échec de la mise à jour");
       }
 
-      // Mise à jour du contexte avec les nouvelles données en conservant la photo existante
       setUser({
         ...user,
         ...cleanedData,
-        profilePicture: user.profilePicture // Conserver la photo existante
+        profilePicture: user.profilePicture
       });
 
       Alert.alert(
@@ -261,7 +235,6 @@ const ModifProfile: React.FC = () => {
       }
     };
 
-  // Ajouter cette fonction dans le composant ModifProfile
   const handleDocumentPicker = async (setDocument: (uri: string | null) => void) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
@@ -293,13 +266,121 @@ const ModifProfile: React.FC = () => {
     }
   };
 
+  interface FormField {
+    label: string;
+    value: string;
+    setter?: (value: string) => void;
+    secureTextEntry?: boolean;
+    keyboardType?: import('react-native').KeyboardTypeOptions;
+    multiline?: boolean;
+    numberOfLines?: number;
+    required?: boolean;
+    customInput?: React.ReactNode;
+    hint?: React.ReactNode;
+    autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+  }
+
+  const formFields: FormField[] = [
+    { 
+      label: "Nom d'utilisateur", 
+      value: username, 
+      setter: setUsername,
+      required: true 
+    },
+    { 
+      label: "Nom", 
+      value: lastName, 
+      setter: setLastName,
+      required: true 
+    },
+    { 
+      label: "Prénom", 
+      value: firstName, 
+      setter: setFirstName,
+      required: true 
+    },
+    {
+      label: "Genre",
+      value: gender,
+      customInput: (
+        <View style={styles.genderContainer}>
+          {GENDER_OPTIONS.map((option) => (
+            option.value && (
+              <Pressable
+                key={option.value}
+                style={[
+                  styles.genderButton,
+                  gender === option.value && styles.genderButtonSelected
+                ]}
+                onPress={() => setGender(option.value)}
+              >
+                <Text style={[
+                  styles.genderButtonText,
+                  gender === option.value && styles.genderButtonTextSelected
+                ]}>
+                  {option.label}
+                </Text>
+              </Pressable>
+            )
+          ))}
+        </View>
+      )
+    },
+    { 
+      label: "Date de naissance (JJ/MM/AAAA)", 
+      value: birthDate, 
+      setter: setBirthDate 
+    },
+    { 
+      label: "Email", 
+      value: email, 
+      setter: setEmail,
+      keyboardType: "email-address",
+      autoCapitalize: "none",
+      required: true 
+    },
+    { 
+      label: "Numéro de téléphone", 
+      value: phone, 
+      setter: setPhone,
+      keyboardType: "phone-pad" 
+    },
+    {
+      label: "Adresse",
+      value: address,
+      setter: setAddress
+    },
+    {
+      label: "Ville",
+      value: city,
+      setter: setCity
+    },
+    {
+      label: "Pays",
+      value: country,
+      setter: setCountry
+    },
+    {
+      label: "Bio",
+      value: bio,
+      setter: setBio,
+      multiline: true,
+      numberOfLines: 4
+    },
+    {
+      label: "Informations bancaires",
+      value: bankInfo,
+      setter: setBankInfo,
+      secureTextEntry: true
+    },
+  
+  ];
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollView}>
-        {/* Titre de section */}
         <Text style={styles.sectionTitle}>Modifier le profil</Text>
 
-        {/* Photo de profil - Version corrigée */}
         <View style={styles.profilePicContainer}>
           <ProfilePictureZoomable
             onDeletePhoto={onDeletePhoto}
@@ -309,144 +390,33 @@ const ModifProfile: React.FC = () => {
           />
         </View>
 
-        {/* Champs utilisateur */}
-        {[
-            { 
-              label: "Nom d'utilisateur", 
-              value: username, 
-              setter: setUsername,
-              required: true 
-            },
-            { 
-              label: "Nom", 
-              value: lastName, 
-              setter: setLastName,
-              required: true 
-            },
-            { 
-              label: "Prénom", 
-              value: firstName, 
-              setter: setFirstName,
-              required: true 
-            },
-            {
-              label: "Mot de passe",
-              value: password,
-              setter: setPassword,
-              secureTextEntry: true,
-              hint: (
-                <Text style={styles.passwordHint}>
-                  Le mot de passe doit contenir au minimum :{"\n"}
-                  8 caractères{"\n"}
-                  1 lettre minuscule{"\n"}
-                  1 lettre majuscule{"\n"}
-                  1 chiffre{"\n"}
-                  1 caractère spécial (@$!%*?&)
-                </Text>
-              )
-            },
-            {
-              label: "Genre",
-              value: gender,
-              customInput: (
-                <View style={styles.genderContainer}>
-                  {GENDER_OPTIONS.map((option) => (
-                    option.value && (
-                      <Pressable
-                        key={option.value}
-                        style={[
-                          styles.genderButton,
-                          gender === option.value && styles.genderButtonSelected
-                        ]}
-                        onPress={() => setGender(option.value)}
-                      >
-                        <Text style={[
-                          styles.genderButtonText,
-                          gender === option.value && styles.genderButtonTextSelected
-                        ]}>
-                          {option.label}
-                        </Text>
-                      </Pressable>
-                    )
-                  ))}
-                </View>
-              )
-            },
-            { 
-              label: "Date de naissance (JJ/MM/AAAA)", 
-              value: birthDate, 
-              setter: setBirthDate 
-            },
-            { 
-              label: "Email", 
-              value: email, 
-              setter: setEmail,
-              keyboardType: "email-address",
-              autoCapitalize: "none",
-              required: true 
-            },
-            { 
-              label: "Numéro de téléphone", 
-              value: phone, 
-              setter: setPhone,
-              keyboardType: "phone-pad" 
-            },
-            {
-              label: "Adresse",
-              value: address,
-              setter: setAddress
-            },
-            {
-              label: "Ville",
-              value: city,
-              setter: setCity
-            },
-            {
-              label: "Pays",
-              value: country,
-              setter: setCountry
-            },
-            {
-              label: "Bio",
-              value: bio,
-              setter: setBio,
-              multiline: true,
-              numberOfLines: 4
-            },
-            {
-              label: "Informations bancaires",
-              value: bankInfo,
-              setter: setBankInfo,
-              secureTextEntry: true
-            },
-          
-          ].map(({ label, value, setter, secureTextEntry, keyboardType, multiline, numberOfLines, required, customInput, hint }, idx) => (
-            <View key={idx}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>
-                  {label} {required && <Text style={styles.required}>*</Text>}
-                </Text>
-                {customInput || (
-                  <TextInput
-                    placeholder={label}
-                    value={value}
-                    onChangeText={setter}
-                    secureTextEntry={secureTextEntry}
-                    keyboardType={keyboardType as import('react-native').KeyboardTypeOptions}
-                    multiline={multiline}
-                    numberOfLines={numberOfLines}
-                    style={[
-                      styles.textInput,
-                      multiline && { height: 100, textAlignVertical: 'top' }
-                    ]}
-                  />
-                )}
-              </View>
-              {hint && hint}
+        {formFields.map((field: FormField, idx: number) => (
+          <View key={idx}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>
+                {field.label} {field.required && <Text style={styles.required}>*</Text>}
+              </Text>
+              {field.customInput || (
+                <TextInput
+                  placeholder={field.label}
+                  value={field.value}
+                  onChangeText={field.setter}
+                  secureTextEntry={field.secureTextEntry}
+                  keyboardType={field.keyboardType}
+                  multiline={field.multiline}
+                  numberOfLines={field.numberOfLines}
+                  autoCapitalize={field.autoCapitalize}
+                  style={[
+                    styles.textInput,
+                    field.multiline && { height: 100, textAlignVertical: 'top' }
+                  ]}
+                />
+              )}
             </View>
-          ))}
+            {field.hint && field.hint}
+          </View>
+        ))}
 
-        {/* Vérification d'identité */}
         <View style={styles.verificationContainer}>
           <Text style={styles.verificationLabel}>
             Vérification d'identité
@@ -466,7 +436,6 @@ const ModifProfile: React.FC = () => {
           </View>
         </View>
 
-        {/* Documents */}
         <Pressable
           onPress={() => handleDocumentPicker(setIdentityDoc)}
           style={styles.fileUploadButton}
@@ -487,7 +456,6 @@ const ModifProfile: React.FC = () => {
           </Text>
         </Pressable>
 
-        {/* Boutons d'action */}
         <View style={styles.buttonContainer}>
           <Pressable
             onPress={() => router.back()}
@@ -507,7 +475,6 @@ const ModifProfile: React.FC = () => {
           </Pressable>
         </View>
 
-        {/* Footer */}
         <Text style={styles.footerText}>
           En cliquant pour valider, vous acceptez la politique privée{"\n"}et les
           conditions générales.
@@ -714,5 +681,3 @@ const styles = StyleSheet.create({
 });
 
 export default ModifProfile;
-
-
