@@ -11,15 +11,16 @@ import {
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
-
-
+import { createSocket, getSocket, waitForSocketConnection } from "@/services/socket";
+import { useEffect } from "react";
 
 const ChatDialogue = () => {
 
   const navigation = useNavigation();
-  const { roomID, recipient } = useLocalSearchParams<{
+  const { roomID, recipient, recipientId } = useLocalSearchParams<{
     roomID: string;
     recipient: string;
+    recipientId: string;
   }>();
 
   const [messages, setMessages] = useState<
@@ -28,8 +29,23 @@ const ChatDialogue = () => {
 
   const [inputText, setInputText] = useState("");
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
+    const socket = getSocket();
     if (!inputText.trim()) return;
+
+    if (!inputText.trim()) return;
+    
+    
+
+    if (!socket || !socket.connected) {
+      console.warn("Socket pas connecté");
+      return;
+    }
+
+    socket.emit("private_message", {
+      recipientId,
+      message: inputText,
+    });
 
     setMessages((prev) => [
       ...prev,
@@ -41,6 +57,36 @@ const ChatDialogue = () => {
     ]);
     setInputText("");
   };
+
+  useEffect(() => {
+    const socket = getSocket();
+
+    if (!socket || !socket.connected) {
+      console.warn("Socket pas la");
+      return;
+    }
+
+    const handler = ({ sender, message }: { sender: string; message: string }) => {
+      console.log("Message reçu", sender, message);
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          text: message,
+          fromMe: false,
+        },
+      ]);
+    };
+
+
+    socket.on("receive_message", handler);
+
+    return () => {
+      socket.off("receive_message", handler);
+    };
+  }, []);
+  
 
   const renderItem = ({ item }: any) => (
     <View

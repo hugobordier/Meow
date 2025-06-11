@@ -104,6 +104,7 @@ const SignInScreen = () => {
 
         socket.on("connect", () => {
           console.log("✅ Socket maintenant connecté");
+          console.log("Voici", socket.id);
           socket.emit("register", user.data.username);
         });
 

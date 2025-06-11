@@ -13,7 +13,23 @@ import { createSocket, getSocket, waitForSocketConnection } from "@/services/soc
 import {SegmentedControl} from "segmented-control-rn";
 import { getAllUsers } from "@/services/user.service";
 import { useRouter } from "expo-router";
+import { jwtDecode } from "jwt-decode";
 
+
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+const getUserIdFromToken = async (): Promise<string | null> => { //id sender
+  const token = await AsyncStorage.getItem("accessToken");
+  if (!token) return null;
+  const decoded: any = jwtDecode(token);
+  return decoded.id;
+};
+
+const getUserIdFromUsername = async (username: string): Promise<string | null> => {
+  const users = await getAllUsers();
+  const match = users.find((u: any) => u.username === username);
+  return match?.id || null;
+};//id recevier
 
 const generateRoomID = (user1: string, user2: string) => {
   return [user1, user2].sort().join("_");
@@ -178,7 +194,7 @@ if (messages.length === 0 && !isUserListVisible) {
 
                   console.log("socket.id =", socket.id);
 
-                  const roomID = generateRoomID(socket.id!, user);
+                const roomID = generateRoomID(myUserId, recipientUserId);
                   socket.emit("join", roomID);
                   setSelectedUser(user);
                   setIsUserListVisible(false);
@@ -188,7 +204,8 @@ if (messages.length === 0 && !isUserListVisible) {
                     pathname: "./chatDialogue",
                     params: {
                       roomID,
-                      recipient: user
+                      recipient: user,
+                      recipientId: recipientUserId,
                     }
                   });
                   
