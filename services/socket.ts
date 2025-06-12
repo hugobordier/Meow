@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { io, Socket } from "socket.io-client";
 
-const WS_URL = "https://meowback-production.up.railway.app";
+const WS_URL = "wss://meowback-production.up.railway.app";
 let socket: Socket | null = null;
 
 export const createSocket = async (): Promise<Socket | null> => {
