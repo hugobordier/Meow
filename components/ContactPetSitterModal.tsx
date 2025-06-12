@@ -142,7 +142,7 @@ const ContactPetSitterModal: React.FC<ContactPetSitterModalProps> = ({
         });
         showToast("Paiement effectué avec succès !", ToastType.SUCCESS);
       } catch (error) {
-        console.error("Erreur lors du paiement :", error);
+        console.log("Erreur lors du paiement :", error);
         showToast("Échec du paiement, veuillez réessayer", ToastType.ERROR);
         return;
       } finally {

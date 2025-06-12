@@ -72,7 +72,7 @@ export default function PetSitterPage() {
         });
         setFilters({ ...filters, longitude: longitude, latitude: latitude });
       } catch (error) {
-        console.error("Error getting location:", error);
+        console.log("Error getting location:", error);
       }
     })();
   }, []);
@@ -100,7 +100,7 @@ export default function PetSitterPage() {
 
       setResultPagination(res.pagination);
     } catch (e) {
-      console.error("Erreur getPetSitter :", e);
+      console.log("Erreur getPetSitter :", e);
       if (reset) {
         setPetsitters([]);
       }

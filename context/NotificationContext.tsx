@@ -52,10 +52,7 @@ export const NotificationProvider = ({
       });
       console.log("✅ Notification test envoyée");
     } catch (error) {
-      console.error(
-        "❌ Erreur lors de l'envoi de la notification test:",
-        error
-      );
+      console.log("❌ Erreur lors de l'envoi de la notification test:", error);
     }
   };
 

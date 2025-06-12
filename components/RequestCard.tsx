@@ -95,7 +95,7 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
         }
         setUser(fetched);
       } catch (error) {
-        console.error("Erreur lors du fetch de l'utilisateur :", error);
+        console.log("Erreur lors du fetch de l'utilisateur :", error);
       } finally {
         setLoading(false);
       }

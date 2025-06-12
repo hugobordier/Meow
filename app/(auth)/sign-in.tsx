@@ -86,7 +86,7 @@ const SignInScreen = () => {
         const socket = await createSocket();
 
         if (!socket) {
-          console.error("❌ Socket non initialisé");
+          console.log("❌ Socket non initialisé");
           showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
           return;
         }
@@ -114,7 +114,7 @@ const SignInScreen = () => {
         showToast("Connexion réussie avec succès", ToastType.SUCCESS);
       }
     } catch (error: any) {
-      console.error(error);
+      console.log(error);
       showToast(error.message || "Une erreur s'est produite", ToastType.ERROR);
     } finally {
       setLoading(false);

@@ -89,7 +89,7 @@ const ImageIdDisplay = ({
           setIsCropped(true);
           setCroppedUri(result.uri);
         } catch (error) {
-          //console.error("Crop error:", error);
+          //console.log("Crop error:", error);
           setCroppedUri(imageUri);
         }
       } else {

@@ -1,4 +1,3 @@
-
 import { ApiResponsePet, ApiResponsePetImage } from "@/types/type";
 
 import { api } from "./api";
@@ -73,7 +72,7 @@ export const deletePet = async (petID: string) => {
     const response = await api.delete(`/PetsRoutes/pets/${petID}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la suppression:", error);
+    console.log("Erreur lors de la suppression:", error);
     throw error;
   }
 };
@@ -102,7 +101,7 @@ export const updatePhotoprofilPet = async (id: string, image: string) => {
     );
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de l'upload:", error);
+    console.log("Erreur lors de l'upload:", error);
     throw error;
   }
 };
@@ -112,13 +111,12 @@ export const deletePhotoprofilPet = async (id: string) => {
     const response = await api.delete(`/PetsRoutes/PhotoProfil/${id}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la suppression:", error);
+    console.log("Erreur lors de la suppression:", error);
     throw error;
   }
 };
 
-export const createPetImage = async (petId:string,image: string) => {
-
+export const createPetImage = async (petId: string, image: string) => {
   try {
     const formData = new FormData();
     const filename = image.split("/").pop() || "photo.jpg";
@@ -138,35 +136,38 @@ export const createPetImage = async (petId:string,image: string) => {
     });
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de l'upload:", error);
+    console.log("Erreur lors de l'upload:", error);
     throw error;
   }
 };
 
-
-export const deletePetImage = async (imageId:string) : Promise<ApiResponsePetImage>=> {
-
+export const deletePetImage = async (
+  imageId: string
+): Promise<ApiResponsePetImage> => {
   try {
     const response = await api.delete(`/PetImage/${imageId}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la suppression:", error);
+    console.log("Erreur lors de la suppression:", error);
     throw error;
   }
 };
 
-
-
-export const getAllImagesForaPet = async (petId:string
+export const getAllImagesForaPet = async (
+  petId: string
 ): Promise<ApiResponsePetImage> => {
-  try{
+  try {
     const response = await api.get(`/PetImage/${petId}`);
     return response.data;
-  }catch (error:any){
+  } catch (error: any) {
     console.log("erreur lors de la récupération des images pet", error);
-    throw(error.response?.data || {message: "erreur lors de la récupération des images pet"});
+    throw (
+      error.response?.data || {
+        message: "erreur lors de la récupération des images pet",
+      }
+    );
   }
-    }
+};
 
 export const getPetImageByid = async (id: string) => {
   try {
