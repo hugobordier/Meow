@@ -13,6 +13,13 @@ type Props = {
 
 export default function PetAddModal({ visible, onClose, onAdd }: Props) {
   const toast = useToast();
+
+  const GENDER_OPTIONS = [
+  { label: 'Sélectionnez votre genre', value: '' },
+  { label: 'Mâle', value: 'Male' },
+  { label: 'Femelle', value: 'Female' },
+  { label: 'Hermaphrodite', value: 'hermaphrodite' },
+  ];
   
   const [form, setForm] = useState({
     name: '',
@@ -147,6 +154,49 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
     );
   };
 
+  const renderGenderField = () => {
+    return (
+      <View style={styles.inputContainer}>
+        <Text style={styles.inputLabel}>Genre *</Text>
+        <View style={styles.genderContainer}>
+          {GENDER_OPTIONS.filter(opt => opt.value === 'Male' || opt.value === 'Female').map((option) => (
+            <TouchableOpacity
+              key={option.value}
+              style={[
+                styles.genderButton,
+                form.gender === option.value && styles.genderButtonSelected
+              ]}
+              onPress={() => handleChange('gender', option.value)}
+            >
+              <Text style={[
+                styles.genderButtonText,
+                form.gender === option.value && styles.genderButtonTextSelected
+              ]}>
+                {option.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+        <View style={{ alignItems: 'center' }}>
+          <TouchableOpacity
+            style={[
+              styles.genderButton,
+              form.gender === 'hermaphrodite' && styles.genderButtonSelected
+            ]}
+            onPress={() => handleChange('gender', 'hermaphrodite')}
+          >
+            <Text style={[
+              styles.genderButtonText,
+              form.gender === 'hermaphrodite' && styles.genderButtonTextSelected
+            ]}>
+              Hermaphrodite
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
@@ -214,7 +264,9 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
               {renderInputField('Nom *', 'name', 'Nom de l\'animal')}
               {renderInputField('Race *', 'breed', 'Race de l\'animal')}
               {renderInputField('Espèce *', 'species', 'Chien, Chat, etc.')}
-              {renderInputField('Genre *', 'gender', 'Male, Female')}
+              
+              {renderGenderField()}
+              
               {renderInputField('Couleur *', 'color', 'Couleur du pelage')}
               {renderInputField('Âge *', 'age', 'Âge en années', 'numeric')}
               {renderInputField('Poids (kg) *', 'weight', 'Poids en kg', 'numeric')}
@@ -266,9 +318,10 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modal: {
+    flex: 1,
     width: '100%',
     maxWidth: 400,
-    maxHeight: '90%',
+    minHeight: 550,
     backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
@@ -470,5 +523,31 @@ const styles = StyleSheet.create({
     color: 'white',
     fontWeight: '600',
     fontSize: 16,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+    alignItems: 'center',
+    justifyContent:'center'
+  },
+  genderButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 18,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#e1e5e9',
+    backgroundColor: '#fafbfc',
+  },
+  genderButtonSelected: {
+    backgroundColor: '#D946EF',
+    borderColor: '#D946EF',
+  },
+  genderButtonText: {
+    color: '#333',
+    fontWeight: '600',
+  },
+  genderButtonTextSelected: {
+    color: '#fff',
   },
 });
