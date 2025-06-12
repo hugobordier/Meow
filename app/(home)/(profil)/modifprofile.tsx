@@ -8,8 +8,9 @@ import {
   Pressable,
   Alert,
   StyleSheet,
-  useColorScheme, // Import useColorScheme
-  StatusBar, // Import StatusBar
+  useColorScheme,
+  StatusBar,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -28,6 +29,9 @@ import {
   updateProfilePicture,
 } from "@/services/user.service";
 
+import DateTimePicker from '@react-native-community/datetimepicker';
+
+
 const GENDER_OPTIONS = [
   { label: 'Sélectionnez votre genre', value: '' },
   { label: 'Homme', value: 'Male' },
@@ -39,8 +43,8 @@ const GENDER_OPTIONS = [
 const ModifProfile: React.FC = () => {
   const router = useRouter();
   const { user, setUser } = useAuthContext();
-  const colorScheme = useColorScheme(); // Get current color scheme
-  const isDark = colorScheme === "dark"; // Check if dark mode is active
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   const [username, setUsername] = useState<string>(user?.username || "");
   const [lastName, setLastName] = useState<string>(user?.lastName || "");
@@ -60,6 +64,8 @@ const ModifProfile: React.FC = () => {
   const [address, setAddress] = useState<string>(user?.address || "");
   const [isLoading, setIsLoading] = useState(false);
 
+
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const { showToast } = useToast();
   const validateForm = (): boolean => {
     const requiredFields = {
@@ -88,6 +94,16 @@ const ModifProfile: React.FC = () => {
   };
 
   const isIdentityVerified = Boolean(identityDoc && insuranceCertificate);
+
+
+  const onChangeDate = (event: any, selectedDate?: Date) => {
+    const currentDate = selectedDate || new Date(birthDate);
+    setShowDatePicker(Platform.OS === 'ios');
+    if (selectedDate) {
+      setBirthDate(selectedDate.toISOString().split('T')[0]);
+    }
+  };
+
 
   const handleSubmit = async () => {
     if (!validateForm() || !user?.id) return;
@@ -334,9 +350,44 @@ const ModifProfile: React.FC = () => {
       )
     },
     {
-      label: "Date de naissance (JJ/MM/AAAA)",
+      label: "Date de naissance",
       value: birthDate,
-      setter: setBirthDate
+      customInput: (
+        <View>
+          <Pressable
+            onPress={() => setShowDatePicker(true)}
+            style={[
+              styles.textInput,
+              isDark ? styles.textInputDark : styles.textInputLight
+            ]}
+          >
+            <Text 
+              style={[
+                { fontSize: 16 },
+                isDark ? styles.textDark : styles.textLight,
+                !birthDate && { color: isDark ? "#9CA3AF" : "#6B7280" }
+              ]}
+            >
+              {birthDate ? new Date(birthDate).toLocaleDateString('fr-FR') : 'JJ/MM/AAAA'}
+            </Text>
+          </Pressable>
+
+          {showDatePicker && (
+            <DateTimePicker
+              testID="dateTimePicker"
+              value={birthDate ? new Date(birthDate) : new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+              onChange={(event, selectedDate) => {
+                setShowDatePicker(Platform.OS === 'ios');
+                if (selectedDate) {
+                  setBirthDate(selectedDate.toISOString().split('T')[0]);
+                }
+              }}
+            />
+          )}
+        </View>
+      )
     },
     {
       label: "Email",
@@ -506,7 +557,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   containerDark: {
-    backgroundColor: '#1F2937', // Dark background
+    backgroundColor: '#1F2937',
   },
   scrollView: {
     paddingHorizontal: 16,
@@ -675,7 +726,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#111827',
   },
   submitButtonDark: {
-    backgroundColor: '#6D28D9', // A purple shade for dark mode submit
+    backgroundColor: '#6D28D9',
   },
   cancelButtonText: {
     fontSize: 16,
@@ -757,6 +808,19 @@ const styles = StyleSheet.create({
   },
   genderButtonTextSelectedDark: {
     color: 'white',
+  },
+  datePickerButton: {
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  datePickerButtonLight: {
+    backgroundColor: 'white',
+    borderColor: '#D1D5DB',
+  },
+  datePickerButtonDark: {
+    backgroundColor: '#374151',
+    borderColor: '#4B5563',
   },
 });
 
