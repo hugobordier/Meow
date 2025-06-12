@@ -26,6 +26,7 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
   const isDark = colorScheme === "dark";
 
 
+
   useEffect(() => {
     setForm(pet || {});
     setEditMode(false);
@@ -293,6 +294,7 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 400,
     maxHeight: '90%',
+    minHeight: 550,
     backgroundColor: '#fff',
     borderRadius: 20,
     overflow: 'hidden',
