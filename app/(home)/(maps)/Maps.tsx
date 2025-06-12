@@ -139,7 +139,7 @@ const Maps = () => {
           }
         );
       } catch (error) {
-        console.warn("Erreur lors de la géolocalisation :", error);
+        console.log("Erreur lors de la géolocalisation :", error);
       }
     };
 

@@ -1,16 +1,16 @@
 import { api } from "./api";
 import { User } from "@/types/type";
-import axios from 'axios';
+import axios from "axios";
 
 const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const getAllUsers = async () => {
-  try{
+  try {
     const response = await api.get("/User");
     return response.data.data;
-  }catch (error:any){
+  } catch (error: any) {
     console.error("err recup users", error);
-    throw(error.response?.data || {message: "erreur recup uses"});
+    throw error.response?.data || { message: "erreur recup uses" };
   }
 };
 
@@ -108,10 +108,10 @@ export const updateUser = async (data: Partial<User>) => {
   }
 };
 
-export const getUserById = async (userId: string) => {
+export const getUserById = async (userId: string): Promise<User> => {
   try {
     const response = await api.get(`/User/${userId}`);
-    return response.data;
+    return response.data.data;
   } catch (error: any) {
     console.error("Erreur lors de la récupération de l'utilisateur:", error);
     throw (
@@ -125,7 +125,7 @@ export const deleteUser = async (userId: string) => {
     await axios.delete(`${API_URL}/users/${userId}`);
     return true;
   } catch (error) {
-    console.error('Erreur lors de la suppression du compte:', error);
+    console.error("Erreur lors de la suppression du compte:", error);
     throw error;
   }
 };
