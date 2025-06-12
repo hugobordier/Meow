@@ -7,7 +7,7 @@ import { ToastType, useToast } from "@/context/ToastContext";
 import { pickImageFromLibrary } from "@/utils/imagePicker";
 import { updatePhotoprofilPet } from '@/services/pet.service';
 import { useColorScheme } from 'react-native';
-
+import AlbumPhotoPetModale from './AlbumPhotoPetModale';
 
 type Props = {
   visible: boolean;
@@ -21,8 +21,9 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<Partial<Pet>>(pet || {});
   const [image, setImage] = useState<string | null>(null);
-    const colorScheme = useColorScheme();
-    const isDark = colorScheme === "dark";
+  const [albumVisible, setAlbumVisible] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
 
   useEffect(() => {
@@ -228,6 +229,14 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
                   {renderField('Régime', pet.diet)}
                   {renderField('Castré/Stérilisé', pet.neutered)}
                   {renderField('Description', pet.description)}
+
+                  <TouchableOpacity
+                    style={[styles.editBtn, { backgroundColor: '#D946EF', marginTop: 16 }]}
+                    onPress={() => setAlbumVisible(true)}
+                  >
+                    <Ionicons name="images" size={18} color="white" />
+                    <Text style={styles.editBtnText}>Album photo</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             )}
@@ -255,12 +264,20 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
                   <Ionicons name="trash" size={18} color="white" />
                   <Text style={styles.deleteBtnText}>Supprimer</Text>
                 </TouchableOpacity>
+
               </>
             )}
+            
           </View>
         </View>
       </View>
+      <AlbumPhotoPetModale
+        visible={albumVisible}
+        onClose={() => setAlbumVisible(false)}
+        pet={pet}
+      />
     </Modal>
+    
   );
 }
 

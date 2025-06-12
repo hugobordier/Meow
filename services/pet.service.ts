@@ -1,4 +1,4 @@
-import { ApiResponsePet, PetQueryParams,PaginationParams } from "@/types/type";
+import { ApiResponsePet, ApiResponsePetImage } from "@/types/type";
 import { api } from "./api";
 import { Pet } from "@/types/pets";
 
@@ -108,7 +108,7 @@ export const deletePhotoprofilPet = async (id:string) => {
     throw error;
   }
 };
-export const createPetImage = async (imageId:string,image: string) => {
+export const createPetImage = async (petId:string,image: string) => {
   try {
     const formData = new FormData();
     const filename = image.split("/").pop() || "photo.jpg";
@@ -121,7 +121,7 @@ export const createPetImage = async (imageId:string,image: string) => {
       type,
     } as any);
 
-    const response = await api.post(`/PetImage/${imageId}`, formData, {
+    const response = await api.post(`/PetImage/${petId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
@@ -133,12 +133,36 @@ export const createPetImage = async (imageId:string,image: string) => {
   }
 };
 
-export const deletePetImage = async (imageId:string) => {
+export const deletePetImage = async (imageId:string) : Promise<ApiResponsePetImage>=> {
   try {
     const response = await api.delete(`/PetImage/${imageId}`);
     return response.data;
   } catch (error: any) {
     console.error("Erreur lors de la suppression:", error);
     throw error;
+  }
+};
+
+
+export const getAllImagesForaPet = async (petId:string
+): Promise<ApiResponsePetImage> => {
+  try{
+    const response = await api.get(`/PetImage/${petId}`);
+    return response.data;
+  }catch (error:any){
+    console.log("erreur lors de la récupération des images pet", error);
+    throw(error.response?.data || {message: "erreur lors de la récupération des images pet"});
+  }
+    }
+
+export const getPetImageByid = async (id: string) => {
+  try {
+    const response = await api.get(`/PetImage/OneImage/${id}`);
+    return response.data;
+  } catch (error: any) {
+    console.log("Erreur lors de la récupération du petimage:", error);
+    throw (
+      error.response?.data || { message: "Une erreur inconnue est survenue" }
+    );
   }
 };
