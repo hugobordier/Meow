@@ -11,6 +11,7 @@ import {
   useColorScheme,
   StatusBar,
   Platform,
+  ActivityIndicator, // N'oubliez pas d'importer ActivityIndicator si vous l'utilisez
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -21,6 +22,7 @@ import axios from "axios";
 import { updateUser } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
 
+// Importez l'interface User existante
 import { User } from "@/types/type";
 
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
@@ -40,9 +42,26 @@ const GENDER_OPTIONS = [
   { label: 'Autre', value: 'Other' }
 ];
 
+const DAYS_OPTIONS = [
+  { label: 'Lundi', value: 'Lundi' },
+  { label: 'Mardi', value: 'Mardi' },
+  { label: 'Mercredi', value: 'Mercredi' },
+  { label: 'Jeudi', value: 'Jeudi' },
+  { label: 'Vendredi', value: 'Vendredi' },
+  { label: 'Samedi', value: 'Samedi' },
+  { label: 'Dimanche', value: 'Dimanche' }
+];
+
+const TIME_SLOTS_OPTIONS = [
+  { label: 'Matin (6h-12h)', value: 'Matin' },
+  { label: 'Après-midi (12h-18h)', value: 'Après-midi' },
+  { label: 'Soir (18h-00h)', value: 'Soir' },
+  { label: 'Nuit (00h-6h)', value: 'Nuit' }
+];
+
 const ModifProfile: React.FC = () => {
   const router = useRouter();
-  const { user, setUser } = useAuthContext();
+  const { user, setUser, petsitter, setPetsitter } = useAuthContext();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -64,9 +83,46 @@ const ModifProfile: React.FC = () => {
   const [address, setAddress] = useState<string>(user?.address || "");
   const [isLoading, setIsLoading] = useState(false);
 
+  // CORRECTION DE LA LIGNE 122 : Ajout de .toString()
+  const [hourly_rate, setHourly_rate] = useState<string>(petsitter?.hourly_rate?.toString() || "");
+  const [experience, setExperience] = useState<string | null>(
+    petsitter?.experience?.toString() || ""
+  );
+  const [animal_types, setAnimal_types] = useState<string | null>(
+    Array.isArray(petsitter?.animal_types)
+      ? petsitter.animal_types.join(", ")
+      : petsitter?.animal_types || ""
+  );
+  const [services, setServices] = useState<string>(
+    Array.isArray(petsitter?.services)
+      ? petsitter.services.join(", ")
+      : petsitter?.services || ""
+  );
+  const [available_days, setAvailable_days] = useState<string[]>(
+    Array.isArray(petsitter?.available_days) ? petsitter.available_days : []
+  );
+
+  const [available_slots, setAvailable_slots] = useState<string[]>(
+    Array.isArray(petsitter?.available_slots) ? petsitter.available_slots : []
+  );
+  const [latitude, setLatitude] = useState<string>(
+    petsitter?.latitude?.toString() || ""
+  );
+  const [longitude, setLongitude] = useState<string>(
+    petsitter?.longitude?.toString() || ""
+  );
+
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (petsitter && typeof (petsitter as any).hourly_rate === 'number') {
+      setHourly_rate(String((petsitter as any).hourly_rate));
+    }
+  }, [user, petsitter]);
+
+
   const validateForm = (): boolean => {
     const requiredFields = {
       username: username.trim(),
@@ -96,11 +152,15 @@ const ModifProfile: React.FC = () => {
   const isIdentityVerified = Boolean(identityDoc && insuranceCertificate);
 
 
+  // MODIFICATION ICI: selectedDate sera un objet Date ou undefined.
   const onChangeDate = (event: any, selectedDate?: Date) => {
-    const currentDate = selectedDate || new Date(birthDate);
-    setShowDatePicker(Platform.OS === 'ios');
+    // const currentDate = selectedDate || birthDate; // birthDate est une string, pas un objet Date ici
+    // Sur Android, le sélecteur se ferme automatiquement. Sur iOS, il faut le fermer manuellement.
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false);
+    }
     if (selectedDate) {
-      setBirthDate(selectedDate.toISOString().split('T')[0]);
+      setBirthDate(selectedDate.toISOString().split('T')[0]); // Convertir en string ISO (YYYY-MM-DD)
     }
   };
 
@@ -111,14 +171,15 @@ const ModifProfile: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const cleanedData = {
+      const cleanedData: any = { // Utilisation de 'any' temporairement pour simplifier, idéalement typer plus précisément
         id: user.id,
         username: username.trim(),
         lastName: lastName.trim(),
         firstName: firstName.trim(),
         email: email.trim(),
         ...(age && { age: parseInt(age) }),
-        ...(birthDate && { birthDate: birthDate.trim() }),
+        // Utiliser la chaîne de caractères directement pour le backend
+        ...(birthDate && { birthDate: birthDate }),
         ...(gender && { gender }),
         ...(city && { city: city.trim() }),
         ...(country && { country: country.trim() }),
@@ -127,8 +188,24 @@ const ModifProfile: React.FC = () => {
         ...(address && { address: address.trim() }),
         ...(phone && { phoneNumber: phone.trim() }),
         ...(identityDoc && { identityDocument: identityDoc }),
-        ...(insuranceCertificate && { insuranceCertificate })
+        ...(insuranceCertificate && { insuranceCertificate }),
       };
+
+      if (petsitter) {
+        cleanedData.petsitterData = {
+          hourly_rate: parseFloat(hourly_rate), // Convertir en nombre
+          experience: experience,
+          // S'assurer que animal_types est un tableau de chaînes, même s'il vient d'une chaîne
+          animal_types: animal_types ? animal_types.split(',').map(type => type.trim()) : [],
+          // S'assurer que services est un tableau de chaînes
+          services: services ? services.split(',').map(service => service.trim()) : [],
+          available_days: available_days, // Déjà un tableau
+          available_slots: available_slots, // Déjà un tableau
+          latitude: parseFloat(latitude), // Convertir en nombre
+          longitude: parseFloat(longitude) // Convertir en nombre
+        };
+      }
+
 
       console.log("Données envoyées:", cleanedData);
       const response = await updateUser(cleanedData);
@@ -143,6 +220,12 @@ const ModifProfile: React.FC = () => {
         ...cleanedData,
         profilePicture: user.profilePicture
       });
+
+      // Mettre à jour l'objet petsitter dans le contexte si applicable
+      if (petsitter && response.petsitterData) { // Assurez-vous que response.petsitterData existe
+        setPetsitter(response.petsitterData);
+      }
+
 
       Alert.alert(
         "Succès",
@@ -351,17 +434,16 @@ const ModifProfile: React.FC = () => {
     },
     {
       label: "Date de naissance",
-      value: birthDate,
+      value: birthDate, // birthDate est déjà une chaîne
       customInput: (
         <View>
-          <Pressable
-            onPress={() => setShowDatePicker(true)}
+          <Pressable onPress={() => setShowDatePicker(true)}
             style={[
               styles.textInput,
               isDark ? styles.textInputDark : styles.textInputLight
             ]}
           >
-            <Text 
+            <Text
               style={[
                 { fontSize: 16 },
                 isDark ? styles.textDark : styles.textLight,
@@ -371,7 +453,6 @@ const ModifProfile: React.FC = () => {
               {birthDate ? new Date(birthDate).toLocaleDateString('fr-FR') : 'JJ/MM/AAAA'}
             </Text>
           </Pressable>
-
           {showDatePicker && (
             <DateTimePicker
               testID="dateTimePicker"
@@ -431,7 +512,107 @@ const ModifProfile: React.FC = () => {
       setter: setBankInfo,
       secureTextEntry: true
     },
+  ];
 
+  const petsitterFields: FormField[] = [
+    {
+      label: "Tarif horaire",
+      value: hourly_rate,
+      setter: setHourly_rate,
+      keyboardType: "numeric",
+      required: true
+    },
+    {
+      label: "Expérience",
+      value: experience || "",
+      setter: setExperience as (value: string) => void,
+      multiline: true,
+      numberOfLines: 3
+    },
+    {
+      label: "Types d'animaux",
+      value: animal_types || "",
+      setter: setAnimal_types as (value: string) => void,
+      multiline: true,
+      hint: <Text style={styles.hint}>Séparez les types d'animaux par des virgules</Text>
+    },
+    {
+      label: "Services proposés",
+      value: services,
+      setter: setServices as (value: string) => void,
+      multiline: true,
+      hint: <Text style={styles.hint}>Séparez les services par des virgules</Text>
+    },
+    {
+      label: "Jours disponibles",
+      value: available_days.join(", "), // Changed to join for display
+      customInput: (
+        <View style={styles.optionsContainer}>
+          {DAYS_OPTIONS.map((option) => (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.optionButton,
+                available_days.includes(option.value) && styles.optionButtonSelected,
+                isDark ? styles.optionButtonDark : styles.optionButtonLight,
+                isDark && available_days.includes(option.value) && styles.optionButtonSelectedDark
+              ]}
+              onPress={() => {
+                setAvailable_days(prev =>
+                  prev.includes(option.value)
+                    ? prev.filter(day => day !== option.value)
+                    : [...prev, option.value]
+                );
+              }}
+            >
+              <Text style={[
+                styles.optionButtonText,
+                available_days.includes(option.value) && styles.optionButtonTextSelected,
+                isDark ? styles.optionButtonTextDark : styles.optionButtonTextLight,
+                isDark && available_days.includes(option.value) && styles.optionButtonTextSelectedDark
+              ]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )
+    },
+    {
+      label: "Créneaux horaires",
+      value: available_slots.join(", "), // Changed to join for display
+      customInput: (
+        <View style={styles.optionsContainer}>
+          {TIME_SLOTS_OPTIONS.map((option) => (
+            <Pressable
+              key={option.value}
+              style={[
+                styles.optionButton,
+                available_slots.includes(option.value) && styles.optionButtonSelected,
+                isDark ? styles.optionButtonDark : styles.optionButtonLight,
+                isDark && available_slots.includes(option.value) && styles.optionButtonSelectedDark
+              ]}
+              onPress={() => {
+                setAvailable_slots(prev =>
+                  prev.includes(option.value)
+                    ? prev.filter(slot => slot !== option.value)
+                    : [...prev, option.value]
+                );
+              }}
+            >
+              <Text style={[
+                styles.optionButtonText,
+                available_slots.includes(option.value) && styles.optionButtonTextSelected,
+                isDark ? styles.optionButtonTextDark : styles.optionButtonTextLight,
+                isDark && available_slots.includes(option.value) && styles.optionButtonTextSelectedDark
+              ]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )
+    }
   ];
 
   return (
@@ -459,7 +640,9 @@ const ModifProfile: React.FC = () => {
               <Text style={[styles.inputLabel, isDark ? styles.textDark : styles.textLight]}>
                 {field.label} {field.required && <Text style={styles.required}>*</Text>}
               </Text>
-              {field.customInput || (
+              {field.customInput ? (
+                field.customInput
+              ) : (
                 <TextInput
                   placeholder={field.label}
                   placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
@@ -520,6 +703,46 @@ const ModifProfile: React.FC = () => {
             {insuranceCertificate ? "Attestation d'assurance sélectionnée ✓" : "Télécharger une attestation d'assurance"}
           </Text>
         </Pressable>
+
+        {/* --- CONSERVATION DE LA LOGIQUE DE LA PROPRIÉTÉ 'role' SANS MODIFIER LE TYPE GLOBAL --- */}
+        {Boolean(petsitter) && (
+          <>
+            <Text style={[styles.sectionTitle, isDark ? styles.textDark : styles.textLight]}>
+              Informations Petsitter
+            </Text>
+
+            {petsitterFields.map((field: FormField, idx: number) => (
+              <View key={`petsitter-${idx}`}>
+                <View style={styles.inputContainer}>
+                  <Text style={[styles.inputLabel, isDark ? styles.textDark : styles.textLight]}>
+                    {field.label} {field.required && <Text style={styles.required}>*</Text>}
+                  </Text>
+                  {field.customInput ? (
+                    field.customInput
+                  ) : (
+                    <TextInput
+                      placeholder={field.label}
+                      placeholderTextColor={isDark ? "#9CA3AF" : "#6B7280"}
+                      value={field.value}
+                      onChangeText={field.setter}
+                      secureTextEntry={field.secureTextEntry}
+                      keyboardType={field.keyboardType}
+                      multiline={field.multiline}
+                      numberOfLines={field.numberOfLines}
+                      autoCapitalize={field.autoCapitalize}
+                      style={[
+                        styles.textInput,
+                        field.multiline && { height: 100, textAlignVertical: 'top' },
+                        isDark ? styles.textInputDark : styles.textInputLight
+                      ]}
+                    />
+                  )}
+                </View>
+                {field.hint && field.hint}
+              </View>
+            ))}
+          </>
+        )}
 
         <View style={styles.buttonContainer}>
           <Pressable
@@ -821,6 +1044,60 @@ const styles = StyleSheet.create({
   datePickerButtonDark: {
     backgroundColor: '#374151',
     borderColor: '#4B5563',
+  },
+  hint: {
+    fontSize: 12,
+    color: '#6B7280',
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  optionsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    paddingVertical: 8,
+  },
+  optionButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 8,
+  },
+  optionButtonLight: {
+    borderColor: '#D1D5DB',
+    backgroundColor: 'white',
+  },
+  optionButtonDark: {
+    borderColor: '#4B5563',
+    backgroundColor: '#374151',
+  },
+  optionButtonSelected: {
+  },
+  optionButtonSelectedLight: {
+    backgroundColor: '#111827',
+    borderColor: '#111827',
+  },
+  optionButtonSelectedDark: {
+    backgroundColor: '#6D28D9',
+    borderColor: '#6D28D9',
+  },
+  optionButtonText: {
+    fontSize: 14,
+  },
+  optionButtonTextLight: {
+    color: '#374151',
+  },
+  optionButtonTextDark: {
+    color: 'white',
+  },
+  optionButtonTextSelected: {
+  },
+  optionButtonTextSelectedLight: {
+    color: 'white',
+  },
+  optionButtonTextSelectedDark: {
+    color: 'white',
   },
 });
 
