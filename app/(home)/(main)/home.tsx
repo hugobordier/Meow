@@ -605,23 +605,6 @@ export default function HomeScreen() {
                 bg: "bg-gray-300 dark:bg-gray-600",
                 label: "Notifications",
               },
-              {
-                icon: <FontAwesome5 name="user-plus" size={20} color="white" />,
-                bg: "bg-yellow-400",
-                label: "Parrainage",
-              },
-              {
-                icon: <FontAwesome5 name="percent" size={20} color="white" />,
-                bg: "bg-gray-300 dark:bg-gray-600",
-                label: "Promotions",
-              },
-              {
-                icon: (
-                  <MaterialIcons name="support-agent" size={20} color="white" />
-                ),
-                bg: "bg-gray-300 dark:bg-gray-600",
-                label: "Support",
-              },
             ].map((item, index) => (
               <TouchableOpacity
                 key={index}
