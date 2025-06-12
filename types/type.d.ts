@@ -1,4 +1,5 @@
 import { TextInputProps, TouchableOpacityProps } from "react-native";
+import { PetImage } from "./petImage";
 
 declare interface ButtonProps extends TouchableOpacityProps {
   title: string;
@@ -225,5 +226,12 @@ interface ApiResponsePet {
   success: boolean;
   message: string;
   data: Pet[];
+  pagination: Pagination;
+}
+
+interface ApiResponsePetImage {
+  success: boolean;
+  message: string;
+  data: PetImage[];
   pagination: Pagination;
 }
