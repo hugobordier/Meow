@@ -6,6 +6,8 @@ import { deletePet, updatePet } from '@/services/pet.service';
 import { ToastType, useToast } from "@/context/ToastContext";
 import { pickImageFromLibrary } from "@/utils/imagePicker";
 import { updatePhotoprofilPet } from '@/services/pet.service';
+import { useColorScheme } from 'react-native';
+
 
 type Props = {
   visible: boolean;
@@ -19,6 +21,9 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<Partial<Pet>>(pet || {});
   const [image, setImage] = useState<string | null>(null);
+    const colorScheme = useColorScheme();
+    const isDark = colorScheme === "dark";
+
 
   useEffect(() => {
     setForm(pet || {});
