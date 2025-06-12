@@ -571,8 +571,12 @@ export default function HomeScreen() {
               <TouchableOpacity
                 key={index}
                 className="items-center mb-6"
-                style={{ width: "25%" }} // 4 colonnes = 100 / 4
-                onPress={() => handleNavigationListePets()}
+                style={{ width: "25%" }}
+                onPress={() => {
+                  if (item.label === "Mes animaux") {
+                    handleNavigationListePets();
+                  }
+                }}
               >
                 <View
                   className={`w-14 h-14 rounded-full items-center justify-center ${item.bg}`}

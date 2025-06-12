@@ -44,15 +44,12 @@ export default function RootLayout() {
               screenOptions={{
                 animation: "none",
               }}
-            >
+            ><Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(home)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="(settings)"
-                options={{ headerShown: false }}
-              />
+           
               <Stack.Screen name="settings" options={{ headerShown: false }} />
-              <Stack.Screen name="index" options={{ headerShown: false }} />
+              
               <Stack.Screen name="+not-found" />
             </Stack>
               <StatusBar style="auto" />

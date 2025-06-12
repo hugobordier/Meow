@@ -75,10 +75,7 @@
       "typedRoutes": true
     },
     "extra": {
-      "router": {},
-      "eas": {
-        "projectId": "6ab4e923-47b7-47c7-b81e-fdc61a670f81"
-      }
+      "router": {}
     },
     "owner": "kikipaul"
   }
