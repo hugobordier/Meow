@@ -93,7 +93,7 @@ const HomeSettings = () => {
           className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
           <Text className="text-base text-black dark:text-white">
-            {fantinMode ? "🎵 Mode Fantin Activé" : "😼 Activer le Mode Fantin"}
+            {fantinMode ? "🎵 Mode Fantin Activé" : "Activer le Mode Fantin"}
           </Text>
         </TouchableOpacity>
 
@@ -102,7 +102,7 @@ const HomeSettings = () => {
           className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
           <Text className="text-base text-black dark:text-white">
-            {noAds ? "✅ Mode Sans Pub Activé" : "🚫 Activer le Mode Sans Pub"}
+            {noAds ? "Mode Sans Pub Activé" : "Activer le Mode Sans Pub"}
           </Text>
         </TouchableOpacity>
 
@@ -111,9 +111,9 @@ const HomeSettings = () => {
             const socket = getSocket();
             if (socket) {
               socket.disconnect();
-              console.log("✅ Socket déconnecté !");
+              console.log("Socket déconnecté !");
             } else {
-              console.log("❌ Aucun socket actif");
+              console.log("Aucun socket actif");
             }
           
             await logout()

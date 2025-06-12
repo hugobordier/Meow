@@ -1,12 +1,26 @@
-import React, { useState } from 'react';
-import { Modal, View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
-import { Pet } from '@/types/pets';
-import { deletePet, updatePet } from '@/services/pet.service';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Pet } from "@/types/pets";
+import {
+  deletePet,
+  deletePhotoprofilPet,
+  updatePet,
+} from "@/services/pet.service";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { pickImageFromLibrary } from "@/utils/imagePicker";
-import { updatePhotoprofilPet} from '@/services/pet.service';
+import { updatePhotoprofilPet } from "@/services/pet.service";
+import { useColorScheme } from "react-native";
+import AlbumPhotoPetModale from "./AlbumPhotoPetModale";
 
 type Props = {
   visible: boolean;
@@ -15,15 +29,24 @@ type Props = {
   onUpdate?: () => void;
 };
 
-export default function PetDetailModale({ visible, onClose, pet, onUpdate }: Props) {
+export default function PetDetailModal({
+  visible,
+  onClose,
+  pet,
+  onUpdate,
+}: Props) {
   const toast = useToast();
   const [editMode, setEditMode] = useState(false);
   const [form, setForm] = useState<Partial<Pet>>(pet || {});
   const [image, setImage] = useState<string | null>(null);
+  const [albumVisible, setAlbumVisible] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
   useEffect(() => {
     setForm(pet || {});
     setEditMode(false);
+    setImage(null);
   }, [pet, visible]);
 
   if (!pet) return null;
@@ -32,242 +55,295 @@ export default function PetDetailModale({ visible, onClose, pet, onUpdate }: Pro
     setForm({ ...form, [key]: value });
   };
 
- const handleSave = async () => {
-  try {
-    const { user_id, ...formToSend } = form;
-    if (formToSend.age) formToSend.age = Number(formToSend.age);
-    if (formToSend.weight) formToSend.weight = Number(formToSend.weight);
+  const handleSave = async () => {
+    try {
+      const { user_id, ...formToSend } = form;
+      if (formToSend.age) formToSend.age = Number(formToSend.age);
+      if (formToSend.weight) formToSend.weight = Number(formToSend.weight);
 
-    await updatePet(pet.id, formToSend as Pet);
-    setEditMode(false);
-    setForm(formToSend);
-    if (onUpdate) onUpdate();
+      await updatePet(pet.id, formToSend as Pet);
+      setEditMode(false);
+      setForm(formToSend);
+      if (onUpdate) onUpdate();
 
-    if (image) {
-      const uploadResult = await updatePhotoprofilPet(pet.id, image);
-      if (uploadResult?.photo_url) {
-        await updatePet(pet.id, { photo_url: uploadResult.photo_url });
-        setForm({ ...form, photo_url: uploadResult.photo_url });
-        if (onUpdate) onUpdate();
+      if (image) {
+        const uploadResult = await updatePhotoprofilPet(pet.id, image);
+        if (uploadResult?.photo_url) {
+          await updatePet(pet.id, { photo_url: uploadResult.photo_url });
+          setForm({ ...form, photo_url: uploadResult.photo_url });
+          if (onUpdate) onUpdate();
+        }
+        toast.showToast("Image mise à jour", ToastType.SUCCESS);
       }
-      toast.showToast("Image ajoutée", ToastType.SUCCESS);
+      toast.showToast("Animal modifié avec succès", ToastType.SUCCESS);
+    } catch (error) {
+      console.log("Erreur lors de la modification :", error);
+      toast.showToast("Erreur lors de la modification", ToastType.ERROR);
     }
-    toast.showToast("Animal modifié", ToastType.SUCCESS);
-  } catch (error) {
-    console.error("Erreur lors de la modification :", error);
-    toast.showToast("Erreur lors de la modification", ToastType.ERROR);
-  }
-};
+  };
 
-const handleDelete = async () => {
-  try {
+  const handleDelete = async () => {
+    try {
+      await deletePet(pet.id);
+      setEditMode(false);
+      if (onUpdate) onUpdate();
+      if (onClose) onClose();
+      toast.showToast("Animal supprimé avec succès", ToastType.SUCCESS);
+    } catch (error) {
+      console.log("Erreur lors de la suppression :", error);
+      toast.showToast("Erreur lors de la suppression", ToastType.ERROR);
+    }
+  };
 
-    await deletePet(pet.id);
-    setEditMode(false);
-    if (onUpdate) onUpdate();
-    if (onClose) onClose();
-    toast.showToast("Animal supprimé", ToastType.SUCCESS);
-  } catch (error) {
-    console.error("Erreur lors de la suppression :", error);
-    toast.showToast("Erreur lors de la suppression", ToastType.ERROR);
-  }
-};
+  const handledeletephoto = async () => {
+    try {
+      if (!pet.photo_url) {
+        toast.showToast("Aucune photo à supprimer", ToastType.WARNING);
+        return;
+      }
+      setImage(null);
+      setForm({ ...form, photo_url: "" });
+      await deletePhotoprofilPet(pet.id);
+      if (onUpdate) onUpdate();
+      toast.showToast("Photo supprimée", ToastType.SUCCESS);
+    } catch (error) {
+      console.log("Erreur lors de la suppression de la photo :", error);
+      toast.showToast(
+        "Erreur lors de la suppression de la photo",
+        ToastType.ERROR
+      );
+      return;
+    }
+  };
+
+  const renderField = (
+    label: string,
+    value: string | number | boolean | undefined
+  ) => (
+    <View style={styles.fieldContainer}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <Text style={styles.fieldValue}>
+        {typeof value === "boolean"
+          ? value
+            ? "Oui"
+            : "Non"
+          : value || "Non renseigné"}
+      </Text>
+    </View>
+  );
+
+  const renderEditField = (
+    label: string,
+    key: keyof Pet,
+    placeholder: string = "",
+    keyboardType: "default" | "numeric" = "default",
+    multiline: boolean = false
+  ) => (
+    <View style={styles.editFieldContainer}>
+      <Text style={styles.editFieldLabel}>{label}</Text>
+      <TextInput
+        style={[styles.input, multiline && styles.multilineInput]}
+        value={
+          typeof form[key] === "number"
+            ? String(form[key])
+            : (form[key] as string) || ""
+        }
+        onChangeText={(text) =>
+          handleChange(key, keyboardType === "numeric" ? Number(text) : text)
+        }
+        placeholder={placeholder}
+        keyboardType={keyboardType}
+        multiline={multiline}
+        placeholderTextColor="#999"
+      />
+    </View>
+  );
+
+  const renderToggleField = (label: string, key: keyof Pet) => {
+    const value = Boolean(form[key]); // Convertir explicitement en booléen
+
+    return (
+      <View style={styles.editFieldContainer}>
+        <Text style={styles.editFieldLabel}>{label}</Text>
+        <View style={styles.toggleContainer}>
+          <TouchableOpacity
+            style={[styles.toggle, value && styles.toggleActive]}
+            onPress={() => handleChange(key, !value)}
+          >
+            <View
+              style={[styles.toggleThumb, value && styles.toggleThumbActive]}
+            />
+          </TouchableOpacity>
+          <Text style={styles.toggleText}>{value ? "Oui" : "Non"}</Text>
+        </View>
+      </View>
+    );
+  };
 
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Ionicons name="close" size={32} color="black" />
+            <Ionicons name="close" size={28} color="#666" />
           </TouchableOpacity>
-          <ScrollView contentContainerStyle={{ alignItems: 'center' }}>
-            {pet.photo_url ? (
-              <Image source={{ uri: pet.photo_url }} style={styles.image} resizeMode="contain" />
-            ) : (
-              <Ionicons name="paw" size={60} color="black" style={styles.image} />
-            )}
+
+          <ScrollView
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Pet Image */}
+            <View style={styles.imageContainer}>
+              {image || form.photo_url || pet.photo_url ? (
+                <Image
+                  source={{ uri: image || form.photo_url || pet.photo_url }}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={styles.placeholderImage}>
+                  <Ionicons name="paw" size={60} color="#ccc" />
+                </View>
+              )}
+            </View>
+
             {editMode ? (
-              <>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Nom</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.name || ''}
-                    onChangeText={text => handleChange('name', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Race</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.breed || ''}
-                    onChangeText={text => handleChange('breed', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Espèce</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.species || ''}
-                    onChangeText={text => handleChange('species', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Genre</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.gender || ''}
-                    onChangeText={text => handleChange('gender', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Couleur</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.color || ''}
-                    onChangeText={text => handleChange('color', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Âge</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.age ? String(form.age) : ''}
-                    onChangeText={text => handleChange('age', Number(text))}
-                    placeholder=""
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Poids</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.weight ? String(form.weight) : ''}
-                    onChangeText={text => handleChange('weight', Number(text))}
-                    placeholder=""
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Allergie</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.allergy || ''}
-                    onChangeText={text => handleChange('allergy', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Régime</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0 }]}
-                    value={form.diet || ''}
-                    onChangeText={text => handleChange('diet', text)}
-                    placeholder=""
-                  />
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Castré</Text>
+              <View style={styles.editContainer}>
+                <Text style={styles.sectionTitle}>
+                  Modifier les informations
+                </Text>
+
+                {renderEditField("Nom", "name", "Nom de l'animal")}
+                {renderEditField("Race", "breed", "Race de l'animal")}
+                {renderEditField("Espèce", "species", "Chien, Chat, etc.")}
+                {renderEditField("Genre", "gender", "Mâle, Femelle")}
+                {renderEditField("Couleur", "color", "Couleur du pelage")}
+                {renderEditField("Âge", "age", "Âge en années", "numeric")}
+                {renderEditField(
+                  "Poids (kg)",
+                  "weight",
+                  "Poids en kg",
+                  "numeric"
+                )}
+                {renderEditField("Allergies", "allergy", "Allergies connues")}
+                {renderEditField(
+                  "Régime alimentaire",
+                  "diet",
+                  "Régime spécial"
+                )}
+                {renderToggleField("Castré/Stérilisé", "neutered")}
+                {renderEditField(
+                  "Description",
+                  "description",
+                  "Description générale",
+                  "default",
+                  true
+                )}
+
+                {/* Image Selection */}
+                <View style={styles.imageActions}>
                   <TouchableOpacity
-                    style={{
-                      width: 40,
-                      height: 30,
-                      borderRadius: 15,
-                      backgroundColor: form.neutered ? '#4CAF50' : '#ccc',
-                      justifyContent: 'center',
-                      alignItems: form.neutered ? 'flex-end' : 'flex-start',
-                      padding: 4,
+                    onPress={async () => {
+                      const result = await pickImageFromLibrary();
+                      if (result.uri) setImage(result.uri);
+                      else if (result.error)
+                        toast.showToast(result.error, ToastType.ERROR);
                     }}
-                    onPress={() => handleChange('neutered', !form.neutered)}
+                    style={styles.imageBtn}
                   >
-                    <View style={{
-                      width: 22,
-                      height: 22,
-                      borderRadius: 11,
-                      backgroundColor: '#fff',
-                    }} />
+                    <Ionicons name="camera" size={20} color="white" />
+                    <Text style={styles.imageBtnText}>Changer la photo</Text>
                   </TouchableOpacity>
-                  <Text style={{ marginLeft: 8 }}>{form.neutered ? 'Oui' : 'Non'}</Text>
-                </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 10 }}>
-                  <Text style={{ width: 90 }}>Description</Text>
-                  <TextInput
-                    style={[styles.input, { flex: 1, marginBottom: 0, height: 60 }]}
-                    value={form.description || ''}
-                    onChangeText={text => handleChange('description', text)}
-                    placeholder=""
-                    multiline
-                  />
-                </View>
-                {editMode && (
-                  <>
+
+                  {(image || form.photo_url) && (
                     <TouchableOpacity
-                      onPress={async () => {
-                        const result = await pickImageFromLibrary();
-                        if (result.uri) setImage(result.uri);
-                        else if (result.error) toast.showToast(result.error, ToastType.ERROR);
+                      onPress={() => {
+                        handledeletephoto();
                       }}
-                      style={{
-                        backgroundColor: "#facc15",
-                        paddingVertical: 12,
-                        paddingHorizontal: 20,
-                        borderRadius: 9999,
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        marginBottom: 12,
-                      }}
+                      style={styles.removeImageBtn}
                     >
-                      <Ionicons name="images" size={24} color="white" />
-                      <Text style={{ color: "white", marginLeft: 8, fontWeight: "bold" }}>
-                        Choisir une photo
+                      <Ionicons name="trash-outline" size={18} color="white" />
+                      <Text style={styles.imageBtnText}>
+                        Supprimer la photo
                       </Text>
                     </TouchableOpacity>
-                    {image && (
-                      <Text style={{ marginBottom: 8, color: "#555" }}>
-                        Image sélectionnée
-                      </Text>
-                    )}
-                  </>
-                )}
+                  )}
+                </View>
+              </View>
+            ) : (
+              <View style={styles.detailsContainer}>
+                <Text style={styles.petName}>{pet.name}</Text>
+                <View style={styles.fieldsContainer}>
+                  {renderField("Race", pet.breed)}
+                  {renderField("Espèce", pet.species)}
+                  {renderField("Genre", pet.gender)}
+                  {renderField("Couleur", pet.color)}
+                  {renderField("Âge", pet.age ? `${pet.age} ans` : undefined)}
+                  {renderField(
+                    "Poids",
+                    pet.weight ? `${pet.weight} kg` : undefined
+                  )}
+                  {renderField("Allergies", pet.allergy)}
+                  {renderField("Régime", pet.diet)}
+                  {renderField("Castré/Stérilisé", pet.neutered)}
+                  {renderField("Description", pet.description)}
+
+                  <TouchableOpacity
+                    style={[
+                      styles.editBtn,
+                      { backgroundColor: "#D946EF", marginTop: 16 },
+                    ]}
+                    onPress={() => setAlbumVisible(true)}
+                  >
+                    <Ionicons name="images" size={18} color="white" />
+                    <Text style={styles.editBtnText}>Album photo</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </ScrollView>
+
+          {/* Action Buttons */}
+          <View style={styles.buttonContainer}>
+            {editMode ? (
+              <>
+                <TouchableOpacity
+                  style={styles.cancelBtn}
+                  onPress={() => setEditMode(false)}
+                >
+                  <Text style={styles.cancelBtnText}>Annuler</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.saveBtn} onPress={handleSave}>
+                  <Ionicons name="checkmark" size={20} color="white" />
+                  <Text style={styles.saveBtnText}>Enregistrer</Text>
+                </TouchableOpacity>
               </>
             ) : (
               <>
-                <Text style={styles.name}>{pet.name}</Text>
-                <Text>Race : {pet.breed}</Text>
-                <Text>Espèce : {pet.species}</Text>
-                <Text>Genre : {pet.gender}</Text>
-                <Text>Couleur : {pet.color}</Text>
-                <Text>Age : {pet.age}</Text>
-                <Text>Poids : {pet.allergy}</Text>
-                <Text>Allergie : {pet.allergy}</Text>
-                <Text>Régime : {pet.allergy}</Text>
-                <Text>Castré : {pet.neutered ? "Oui" : "Non"}</Text>
-                <Text>Description : {pet.allergy}</Text>
+                <TouchableOpacity
+                  style={styles.editBtn}
+                  onPress={() => setEditMode(true)}
+                >
+                  <Ionicons name="pencil" size={18} color="white" />
+                  <Text style={styles.editBtnText}>Modifier</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.deleteBtn}
+                  onPress={handleDelete}
+                >
+                  <Ionicons name="trash" size={18} color="white" />
+                  <Text style={styles.deleteBtnText}>Supprimer</Text>
+                </TouchableOpacity>
               </>
             )}
-          </ScrollView>
-          <View style={styles.buttonRow}>
-            {editMode ? (
-              <TouchableOpacity style={styles.editBtn} onPress={handleSave}>
-                <Text style={styles.btnText}>Enregistrer</Text>
-              </TouchableOpacity>
-            ) : (
-              <TouchableOpacity style={styles.editBtn} onPress={() => setEditMode(true)}>
-                <Text style={styles.btnText}>Modifier</Text>
-              </TouchableOpacity>
-            )}
-            <TouchableOpacity style={styles.deleteBtn} onPress={handleDelete}>
-              <Text style={styles.btnText}>Supprimer</Text>
-            </TouchableOpacity>
           </View>
         </View>
       </View>
+      <AlbumPhotoPetModale
+        visible={albumVisible}
+        onClose={() => setAlbumVisible(false)}
+        pet={pet}
+      />
     </Modal>
   );
 }
@@ -275,72 +351,250 @@ const handleDelete = async () => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
   },
   modal: {
-    width: 300,
-    minHeight: 450,
-    maxHeight: '80%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
-    paddingTop: 40,
+    width: "100%",
+    maxWidth: 400,
+    maxHeight: "90%",
+    minHeight: 550,
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    overflow: "hidden",
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 20,
   },
   closeBtn: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
-    zIndex: 2,
+    position: "absolute",
+    top: 15,
+    right: 15,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  scrollContent: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+    paddingBottom: 20,
+  },
+  imageContainer: {
+    alignItems: "center",
+    marginBottom: 24,
   },
   image: {
-    width: 180,
-    height: 180,
-    // borderRadius: 40,
-    marginBottom: 16,
-    backgroundColor: '#eee',
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "#f5f5f5",
   },
-  name: {
-    fontSize: 22,
-    fontWeight: 'bold',
+  placeholderImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  detailsContainer: {
+    alignItems: "center",
+  },
+  petName: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  fieldsContainer: {
+    width: "100%",
+  },
+  fieldContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    marginBottom: 8,
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+  },
+  fieldLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#555",
+    flex: 1,
+  },
+  fieldValue: {
+    fontSize: 16,
+    color: "#333",
+    flex: 1,
+    textAlign: "right",
+  },
+  editContainer: {
+    width: "100%",
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 20,
+    textAlign: "center",
+  },
+  editFieldContainer: {
+    marginBottom: 16,
+  },
+  editFieldLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#555",
     marginBottom: 8,
   },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-    marginTop: 16,
+  input: {
+    borderWidth: 1,
+    borderColor: "#e1e5e9",
+    borderRadius: 12,
+    padding: 14,
+    fontSize: 16,
+    backgroundColor: "#fafbfc",
+    color: "#333",
+  },
+  multilineInput: {
+    height: 80,
+    textAlignVertical: "top",
+  },
+  toggleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  toggle: {
+    width: 50,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#e1e5e9",
+    justifyContent: "center",
+    padding: 2,
+  },
+  toggleActive: {
+    backgroundColor: "#4CAF50",
+  },
+  toggleThumb: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    alignSelf: "flex-start",
+  },
+  toggleThumbActive: {
+    alignSelf: "flex-end",
+  },
+  toggleText: {
+    fontSize: 14,
+    color: "#666",
+  },
+  imageActions: {
+    marginTop: 8,
+    gap: 12,
+  },
+  imageBtn: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  removeImageBtn: {
+    backgroundColor: "#FF3B30",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+  },
+  imageBtnText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    padding: 24,
+    gap: 12,
+    backgroundColor: "#f8f9fa",
   },
   editBtn: {
     flex: 1,
-    backgroundColor: '#4CAF50',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    marginRight: 8,
+    backgroundColor: "#007AFF",
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  editBtnText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
   },
   deleteBtn: {
     flex: 1,
-    backgroundColor: '#F44336',
-    borderRadius: 8,
-    padding: 12,
-    alignItems: 'center',
-    marginLeft: 8,
+    backgroundColor: "#FF3B30",
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
   },
-  btnText: {
-    color: '#fff',
-    fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 8,
-    marginBottom: 10,
+  deleteBtnText: {
+    color: "white",
+    fontWeight: "600",
     fontSize: 16,
-    backgroundColor: '#fafafa',
+  },
+  cancelBtn: {
+    flex: 1,
+    backgroundColor: "transparent",
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#007AFF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelBtnText: {
+    color: "#007AFF",
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  saveBtn: {
+    flex: 1,
+    backgroundColor: "#34C759",
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  saveBtnText: {
+    color: "white",
+    fontWeight: "600",
+    fontSize: 16,
   },
 });

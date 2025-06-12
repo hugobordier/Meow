@@ -262,7 +262,7 @@ const SearchBarMap: React.FC<SearchBarMapProps> = ({
             }
           }
         } catch (error) {
-          console.error("Error searching cities:", error);
+          console.log("Error searching cities:", error);
           setCitySuggestions([]);
         } finally {
           setIsSearching(false);

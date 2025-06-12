@@ -1,13 +1,16 @@
 import { api } from "./api";
 import { User } from "@/types/type";
+import axios from "axios";
+
+const API_URL = process.env.EXPO_PUBLIC_API_URL;
 
 export const getAllUsers = async () => {
-  try{
+  try {
     const response = await api.get("/User");
     return response.data.data;
-  }catch (error:any){
-    console.error("err recup users", error);
-    throw(error.response?.data || {message: "erreur recup uses"});
+  } catch (error: any) {
+    console.log("err recup users", error);
+    throw error.response?.data || { message: "erreur recup uses" };
   }
 };
 
@@ -31,7 +34,7 @@ export const updateProfilePicture = async (image: string) => {
     });
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de l'upload:", error);
+    console.log("Erreur lors de l'upload:", error);
     throw error;
   }
 };
@@ -41,7 +44,7 @@ export const deleteProfilePicture = async () => {
     const response = await api.delete("/User/profilePicture");
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de l'upload:", error);
+    console.log("Erreur lors de l'upload:", error);
     throw error;
   }
 };
@@ -67,7 +70,7 @@ export const updateDocId = async (image: string) => {
     return response.data;
   } catch (error: any) {
     console.log(error);
-    console.error("Erreur lors de l'upload:", error.data);
+    console.log("Erreur lors de l'upload:", error.data);
     throw error.response.data;
   }
 };
@@ -98,21 +101,31 @@ export const updateUser = async (data: Partial<User>) => {
     const response = await api.patch("/User/update", sanitizedData);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la mise à jour de l'utilisateur:", error);
+    console.log("Erreur lors de la mise à jour de l'utilisateur:", error);
     throw (
       error.response?.data || { message: "Une erreur inconnue est survenue" }
     );
   }
 };
 
-export const getUserById = async (userId: string) => {
+export const getUserById = async (userId: string): Promise<User> => {
   try {
     const response = await api.get(`/User/${userId}`);
-    return response.data;
+    return response.data.data;
   } catch (error: any) {
-    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    console.log("Erreur lors de la récupération de l'utilisateur:", error);
     throw (
       error.response?.data || { message: "Une erreur inconnue est survenue" }
     );
+  }
+};
+
+export const deleteUser = async (userId: string) => {
+  try {
+    await axios.delete(`${API_URL}/users/${userId}`);
+    return true;
+  } catch (error) {
+    console.log("Erreur lors de la suppression du compte:", error);
+    throw error;
   }
 };

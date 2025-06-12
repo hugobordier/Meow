@@ -50,7 +50,7 @@ export const searchCityByName = async (
       };
     });
   } catch (error) {
-    console.error("Erreur recherche ville OpenCage:", error);
+    console.log("Erreur recherche ville OpenCage:", error);
     return [];
   }
 };

@@ -103,7 +103,7 @@ const DocumentScanCamera = ({ onClose }: DocumentScanCameraProps) => {
 
         setCapturedImage(photo.uri);
       } catch (error) {
-        console.error("Erreur lors de la capture de la photo :", error);
+        console.log("Erreur lors de la capture de la photo :", error);
         setErrorMessage("Erreur lors de la capture de la photo");
       }
     }

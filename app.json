@@ -16,9 +16,13 @@
       },
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Cette application a besoin d'accéder à votre position pour afficher votre emplacement sur la carte et calculer des itinéraires.",
-        "UIBackgroundModes": ["audio", "audio"],
+        "UIBackgroundModes": [
+          "audio",
+          "audio"
+        ],
         "NSMicrophoneUsageDescription": "Cette app utilise le micro pour le mode fantin hehe.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSUserNotificationUsageDescription": "Cette app veut t’envoyer des notifications, promis c’est pas pour spammer 🙃"
       }
     },
     "android": {
@@ -63,11 +67,16 @@
           "recordAudioAndroid": true
         }
       ],
+      "expo-notifications",
       "expo-font",
       "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {}
+    },
+    "owner": "kikipaul"
   }
 }

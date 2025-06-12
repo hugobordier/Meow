@@ -116,7 +116,7 @@ const Maps = () => {
           longitudeDelta: 0.01,
         });
       } catch (error) {
-        console.error("Error getting location:", error);
+        console.log("Error getting location:", error);
       }
     })();
   }, []);
@@ -139,7 +139,7 @@ const Maps = () => {
           }
         );
       } catch (error) {
-        console.warn("Erreur lors de la géolocalisation :", error);
+        console.log("Erreur lors de la géolocalisation :", error);
       }
     };
 
@@ -170,7 +170,7 @@ const Maps = () => {
   };
 
   const centerOnMarker = (latitude: number, longitude: number) => {
-    bottomSheetRef.current?.snapToIndex(1);
+    bottomSheetRef.current?.snapToIndex(0);
     if (mapRef.current && bottomSheetRef.current) {
       mapRef.current.animateToRegion(
         {
@@ -216,7 +216,7 @@ const Maps = () => {
 
       setPetsitter(res.petsitters);
     } catch (e) {
-      console.error("Erreur getPetSitter :", e);
+      console.log("Erreur getPetSitter :", e);
       setPetsitter([]);
     } finally {
       setIsLoading(false);
@@ -249,7 +249,7 @@ const Maps = () => {
     setSelectedPetSitter(ps);
     showTooltip(ps.petsitter.id);
     setTimeout(() => {
-      bottomSheetRef.current?.snapToIndex(1);
+      bottomSheetRef.current?.snapToIndex(0);
     }, 50);
   };
 
@@ -308,14 +308,14 @@ const Maps = () => {
                       centerOnMarker(latitude, longitude);
                       openPetSitterDetails(ps);
                     }}
-                    
-                   
                   >
-                    
-                    <View style={{ 
-                      alignItems: Platform.OS === "android" ? "flex-start" : "center",
-                      justifyContent: "center",
-                    }}>
+                    <View
+                      style={{
+                        alignItems:
+                          Platform.OS === "android" ? "flex-start" : "center",
+                        justifyContent: "center",
+                      }}
+                    >
                       {/* Tooltip */}
                       {tooltipVisible === ps.petsitter.id && (
                         <Animated.View

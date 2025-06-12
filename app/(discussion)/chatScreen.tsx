@@ -198,7 +198,7 @@ const ChatScreen = () => {
                 }} />
               )}
             </View>
-          ))
+            ))
           }
           </View>
         </>
@@ -247,7 +247,7 @@ const ChatScreen = () => {
                 }catch(err){
                   console.error("Erreur pendant la connexion au socket :", err);
                 } finally {
-                  setLoading(false); // ✅ sera appelé même si erreur
+                  setLoading(false); // sera appelé même si erreur
                 }
             
               }}

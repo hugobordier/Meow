@@ -11,11 +11,11 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/context/ToastContext";
 import { BottomSheetModalProvider } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { NotificationProvider } from "@/context/NotificationContext";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const colorScheme = useColorScheme();
   const [loaded] = useFonts({
     "Jakarta-Bold": require("../assets/fonts/PlusJakartaSans-Bold.ttf"),
     "Jakarta-ExtraBold": require("../assets/fonts/PlusJakartaSans-ExtraBold.ttf"),
@@ -38,24 +38,23 @@ export default function RootLayout() {
     <BottomSheetModalProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <AuthProvider>
+          <NotificationProvider>
           <ToastProvider>
             <Stack
               screenOptions={{
                 animation: "none",
               }}
-            >
+            ><Stack.Screen name="index" options={{ headerShown: false }} />
               <Stack.Screen name="(auth)" options={{ headerShown: false }} />
               <Stack.Screen name="(home)" options={{ headerShown: false }} />
-              <Stack.Screen
-                name="(settings)"
-                options={{ headerShown: false }}
-              />
+           
               <Stack.Screen name="settings" options={{ headerShown: false }} />
-              <Stack.Screen name="index" options={{ headerShown: false }} />
+              
               <Stack.Screen name="+not-found" />
             </Stack>
-            <StatusBar style="auto" />
-          </ToastProvider>
+              <StatusBar style="auto" />
+            </ToastProvider>
+          </NotificationProvider>
         </AuthProvider>
       </GestureHandlerRootView>
     </BottomSheetModalProvider>
