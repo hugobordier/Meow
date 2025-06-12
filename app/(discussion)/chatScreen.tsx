@@ -18,7 +18,7 @@ import { jwtDecode } from "jwt-decode";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const getUserIdFromToken = async (): Promise<string | null> => { //id sender
+export const getUserIdFromToken = async (): Promise<string | null> => { //id sender
   const token = await AsyncStorage.getItem("accessToken");
   if (!token) return null;
   const decoded: any = jwtDecode(token);
@@ -194,7 +194,18 @@ if (messages.length === 0 && !isUserListVisible) {
 
                   console.log("socket.id =", socket.id);
 
-                const roomID = generateRoomID(myUserId, recipientUserId);
+                  const myUserId = await getUserIdFromToken();
+                  console.log("myUserId =", myUserId);
+
+                  const recipientUserId = await getUserIdFromUsername(user);
+
+                  if (!myUserId || !recipientUserId) {
+                    alert("Impossible de récupérer l'id de l'utilisateur ou du destinataire !");
+                    setLoading(false);
+                    return;
+                  }
+                  
+                  const roomID = generateRoomID(myUserId, recipientUserId);
                   socket.emit("join", roomID);
                   setSelectedUser(user);
                   setIsUserListVisible(false);
