@@ -58,6 +58,31 @@ const TIME_SLOTS_OPTIONS = [
   { label: 'Soir (18h-00h)', value: 'Soir' },
   { label: 'Nuit (00h-6h)', value: 'Nuit' }
 ];
+const ANIMAL_TYPES_OPTIONS = [
+  { label: 'Chat', value: 'Chat' },
+  { label: 'Chien', value: 'Chien' },
+  { label: 'Oiseau', value: 'Oiseau' },
+  { label: 'Rongeur', value: 'Rongeur' },
+  { label: 'Reptile', value: 'Reptile' },
+  { label: 'Poisson', value: 'Poisson' },
+  { label: 'Furet', value: 'Furet' },
+  { label: 'Cheval', value: 'Cheval' },
+  { label: 'Autre', value: 'Autre' }
+];
+
+const SERVICES_OPTIONS = [
+  { label: 'Promenade', value: 'Promenade' },
+  { label: 'Alimentation', value: 'Alimentation' },
+  { label: 'Jeux', value: 'Jeux' },
+  { label: 'Soins', value: 'Soins' },
+  { label: 'Toilettage', value: 'Toilettage' },
+  { label: 'Dressage', value: 'Dressage' },
+  { label: 'Garderie', value: 'Garderie' },
+  { label: 'Médication', value: 'Médication' },
+  { label: 'Nettoyage', value: 'Nettoyage' },
+  { label: 'Transport', value: 'Transport' }
+];
+
 
 const ModifProfile: React.FC = () => {
   const router = useRouter();
@@ -88,15 +113,11 @@ const ModifProfile: React.FC = () => {
   const [experience, setExperience] = useState<string | null>(
     petsitter?.experience?.toString() || ""
   );
-  const [animal_types, setAnimal_types] = useState<string | null>(
-    Array.isArray(petsitter?.animal_types)
-      ? petsitter.animal_types.join(", ")
-      : petsitter?.animal_types || ""
+  const [animal_types, setAnimal_types] = useState<string[]>(
+    Array.isArray(petsitter?.animal_types) ? petsitter.animal_types : []
   );
-  const [services, setServices] = useState<string>(
-    Array.isArray(petsitter?.services)
-      ? petsitter.services.join(", ")
-      : petsitter?.services || ""
+  const [services, setServices] = useState<string[]>(
+    Array.isArray(petsitter?.services) ? petsitter.services : []
   );
   const [available_days, setAvailable_days] = useState<string[]>(
     Array.isArray(petsitter?.available_days) ? petsitter.available_days : []
@@ -171,14 +192,13 @@ const ModifProfile: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const cleanedData: any = { // Utilisation de 'any' temporairement pour simplifier, idéalement typer plus précisément
+      const cleanedData: any = {
         id: user.id,
         username: username.trim(),
         lastName: lastName.trim(),
         firstName: firstName.trim(),
         email: email.trim(),
         ...(age && { age: parseInt(age) }),
-        // Utiliser la chaîne de caractères directement pour le backend
         ...(birthDate && { birthDate: birthDate }),
         ...(gender && { gender }),
         ...(city && { city: city.trim() }),
@@ -189,23 +209,18 @@ const ModifProfile: React.FC = () => {
         ...(phone && { phoneNumber: phone.trim() }),
         ...(identityDoc && { identityDocument: identityDoc }),
         ...(insuranceCertificate && { insuranceCertificate }),
-      };
-
-      if (petsitter) {
-        cleanedData.petsitterData = {
-          hourly_rate: parseFloat(hourly_rate), // Convertir en nombre
+        // Modification des clés pour correspondre au backend
+        ...(petsitter && {
+          hourly_rate: parseFloat(hourly_rate),
           experience: experience,
-          // S'assurer que animal_types est un tableau de chaînes, même s'il vient d'une chaîne
-          animal_types: animal_types ? animal_types.split(',').map(type => type.trim()) : [],
-          // S'assurer que services est un tableau de chaînes
-          services: services ? services.split(',').map(service => service.trim()) : [],
-          available_days: available_days, // Déjà un tableau
-          available_slots: available_slots, // Déjà un tableau
-          latitude: parseFloat(latitude), // Convertir en nombre
-          longitude: parseFloat(longitude) // Convertir en nombre
-        };
-      }
-
+          animal_types: animal_types,
+          services: services,
+          available_days: available_days,
+          available_slots: available_slots,
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        })
+      };
 
       console.log("Données envoyées:", cleanedData);
       const response = await updateUser(cleanedData);
@@ -531,17 +546,73 @@ const ModifProfile: React.FC = () => {
     },
     {
       label: "Types d'animaux",
-      value: animal_types || "",
-      setter: setAnimal_types as (value: string) => void,
-      multiline: true,
-      hint: <Text style={styles.hint}>Séparez les types d'animaux par des virgules</Text>
+      value: animal_types.join(", "),
+      customInput: (
+        <View style={styles.optionsContainer}>
+          {ANIMAL_TYPES_OPTIONS.map((option) => (
+            <Pressable
+              //key={option.value}
+              style={[
+                styles.optionButton,
+                animal_types.includes(option.value) && styles.optionButtonSelected,
+                isDark ? styles.optionButtonDark : styles.optionButtonLight,
+                isDark && animal_types.includes(option.value) && styles.optionButtonSelectedDark
+              ]}
+              onPress={() => {
+                setAnimal_types(prev =>
+                  prev.includes(option.value)
+                    ? prev.filter(type => type !== option.value)
+                    : [...prev, option.value]
+                );
+              }}
+            >
+              <Text style={[
+                styles.optionButtonText,
+                animal_types.includes(option.value) && styles.optionButtonTextSelected,
+                isDark ? styles.optionButtonTextDark : styles.optionButtonTextLight,
+                isDark && animal_types.includes(option.value) && styles.optionButtonTextSelectedDark
+              ]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )
     },
     {
       label: "Services proposés",
-      value: services,
-      setter: setServices as (value: string) => void,
-      multiline: true,
-      hint: <Text style={styles.hint}>Séparez les services par des virgules</Text>
+      value: services.join(", "),
+      customInput: (
+        <View style={styles.optionsContainer}>
+          {SERVICES_OPTIONS.map((option) => (
+            <Pressable
+              //key={option.value}
+              style={[
+                styles.optionButton,
+                services.includes(option.value) && styles.optionButtonSelected,
+                isDark ? styles.optionButtonDark : styles.optionButtonLight,
+                isDark && services.includes(option.value) && styles.optionButtonSelectedDark
+              ]}
+              onPress={() => {
+                setServices(prev =>
+                  prev.includes(option.value)
+                    ? prev.filter(service => service !== option.value)
+                    : [...prev, option.value]
+                );
+              }}
+            >
+              <Text style={[
+                styles.optionButtonText,
+                services.includes(option.value) && styles.optionButtonTextSelected,
+                isDark ? styles.optionButtonTextDark : styles.optionButtonTextLight,
+                isDark && services.includes(option.value) && styles.optionButtonTextSelectedDark
+              ]}>
+                {option.label}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+      )
     },
     {
       label: "Jours disponibles",
@@ -550,7 +621,7 @@ const ModifProfile: React.FC = () => {
         <View style={styles.optionsContainer}>
           {DAYS_OPTIONS.map((option) => (
             <Pressable
-              key={option.value}
+              //key={option.value}
               style={[
                 styles.optionButton,
                 available_days.includes(option.value) && styles.optionButtonSelected,
@@ -585,7 +656,7 @@ const ModifProfile: React.FC = () => {
         <View style={styles.optionsContainer}>
           {TIME_SLOTS_OPTIONS.map((option) => (
             <Pressable
-              key={option.value}
+              //key={option.value}
               style={[
                 styles.optionButton,
                 available_slots.includes(option.value) && styles.optionButtonSelected,

@@ -20,7 +20,7 @@ const Profil: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, setUser, logout } = useAuthContext();
+  const { user, setUser, logout, petsitter, setPetsitter } = useAuthContext();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
@@ -34,13 +34,27 @@ const Profil: React.FC = () => {
     );
   }
 
-  const InfoRow = ({ label, value, required = false }: { label: string, value: string | null, required?: boolean }) => (
+  const InfoRow = ({ 
+    label, 
+    value, 
+    required = false 
+  }: { 
+    label: string, 
+    value: string | number | null, // Ajout du type number
+    required?: boolean 
+  }) => (
     <View style={styles.infoRow}>
       <Text style={[styles.infoLabel, isDark ? styles.textDark : styles.textLight]}>
         {label} {required && <Text style={styles.required}>*</Text>}
       </Text>
-      <Text style={value ? [styles.infoValue, isDark ? styles.infoValueDark : styles.infoValueLight] : [styles.infoValueEmpty, isDark ? styles.infoValueEmptyDark : styles.infoValueEmptyLight]}>
-        {value || "Non renseigné"}
+      <Text 
+        style={
+          value 
+            ? [styles.infoValue, isDark ? styles.infoValueDark : styles.infoValueLight] 
+            : [styles.infoValueEmpty, isDark ? styles.infoValueEmptyDark : styles.infoValueEmptyLight]
+        }
+      >
+        {value?.toString() || "Non renseigné"}
       </Text>
     </View>
   );
@@ -168,6 +182,44 @@ const Profil: React.FC = () => {
           )}
         </View>
 
+        {/* Section Petsitter */}
+        {petsitter && petsitter.hourly_rate !== null && (
+          <>
+          <Text style={[styles.sectionTitle, isDark ? styles.textDark : styles.textLight]}>
+            Informations Petsitter
+          </Text>
+          <View style={[styles.infoSection, isDark ? styles.infoSectionDark : styles.infoSectionLight]}>
+            <InfoRow
+              label="Tarif horaire"
+              value={petsitter?.hourly_rate ? `${petsitter.hourly_rate}€/h` : null} 
+              required
+            />
+            <InfoRow
+              label="Expérience"
+              value={petsitter.experience ?? null}
+            />
+            <InfoRow
+              label="Types d'animaux"
+              // Assurez-vous que .join() est utilisé pour les tableaux
+              value={petsitter.animal_types?.length ? petsitter.animal_types.join(", ") : null}
+            />
+            <InfoRow
+              label="Services proposés"
+              value={petsitter.services?.length ? petsitter.services.join(", ") : null}
+            />
+            <InfoRow
+              label="Jours disponibles"
+              value={petsitter.available_days?.length ? petsitter.available_days.join(", ") : null}
+            />
+            <InfoRow
+              label="Créneaux horaires"
+              value={petsitter.available_slots?.length ? petsitter.available_slots.join(", ") : null}
+            />
+            {/* Ajoutez ici d'autres champs si nécessaire */}
+          </View>
+          </>
+        )}
+
         {/* Section vérification */}
         <View style={[styles.verificationSection, isDark ? styles.verificationSectionDark : styles.verificationSectionLight]}>
           <Text style={[styles.verificationTitle, isDark ? styles.verificationTitleDark : styles.verificationTitleLight]}>Vérification de l'identité</Text>
@@ -183,7 +235,7 @@ const Profil: React.FC = () => {
             )}
           </View>
         </View>
-
+        
         {/* Bouton modifier le profil */}
         <Pressable
           onPress={() => router.push("/modifprofile")}
