@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Modal, View, Text, StyleSheet, Image, TouchableOpacity, TextInput, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Pet } from '@/types/pets';
-import { deletePet, updatePet } from '@/services/pet.service';
+import { deletePet, deletePhotoprofilPet, updatePet } from '@/services/pet.service';
 import { ToastType, useToast } from "@/context/ToastContext";
 import { pickImageFromLibrary } from "@/utils/imagePicker";
 import { updatePhotoprofilPet } from '@/services/pet.service';
@@ -75,6 +75,25 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
       console.error("Erreur lors de la suppression :", error);
       toast.showToast("Erreur lors de la suppression", ToastType.ERROR);
     }
+  };
+
+  const handledeletephoto = async () => {
+    try {
+      if (!pet.photo_url) {
+        toast.showToast("Aucune photo à supprimer", ToastType.WARNING);
+        return;
+      }
+      setImage(null);
+      setForm({ ...form, photo_url: "" });
+      await deletePhotoprofilPet(pet.id);
+      if (onUpdate) onUpdate();
+      toast.showToast("Photo supprimée", ToastType.SUCCESS);
+    } catch (error) {
+      console.error("Erreur lors de la suppression de la photo :", error);
+      toast.showToast("Erreur lors de la suppression de la photo", ToastType.ERROR);
+      return;
+    }
+
   };
 
   const renderField = (label: string, value: string | number | boolean | undefined) => (
@@ -185,14 +204,12 @@ export default function PetDetailModal({ visible, onClose, pet, onUpdate }: Prop
 
                   {(image || form.photo_url) && (
                     <TouchableOpacity
-                      onPress={() => {
-                        setImage(null);
-                        setForm({ ...form, photo_url: "" });
+                      onPress={() => { handledeletephoto()
                       }}
                       style={styles.removeImageBtn}
                     >
                       <Ionicons name="trash-outline" size={18} color="white" />
-                      <Text style={styles.imageBtnText}>Supprimer</Text>
+                      <Text style={styles.imageBtnText}>Supprimer la photo</Text>
                     </TouchableOpacity>
                   )}
                 </View>
