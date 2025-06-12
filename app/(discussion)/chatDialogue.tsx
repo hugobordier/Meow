@@ -42,7 +42,11 @@ const ChatDialogue = () => {
       console.warn("Socket pas connecté");
       return;
     }
-
+    console.log("Socket connecté?", socket && socket.connected);
+    console.log("Message à envoyer:", {
+      to: recipientId,
+      message: inputText,
+    });
     socket.emit("message", {
       to: recipientId,
       message: inputText,
