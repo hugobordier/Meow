@@ -53,9 +53,13 @@ export default function HomeScreen() {
   const [listPets, setListPets] = useState<Pet[] | null>([]);
   const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [visibleReceveid, setvisibleReceveid] = useState(2);
+  const [visibleUserRequests, setVisibleUserRequests] = useState(2);
 
   const initializeData = useCallback(async () => {
     try {
+      setvisibleReceveid(2);
+      setvisibleReceveid(2);
       setListPets([]);
       setUserRequests([]);
       setReceivedRequests([]);
@@ -235,6 +239,14 @@ export default function HomeScreen() {
         console.log("Erreur lors du rafraîchissement des animaux :", error);
       }
     }
+  };
+
+  const showMoreRecevied = () => {
+    setvisibleReceveid((prev) => prev + 2);
+  };
+
+  const showMoreUserRequests = () => {
+    setVisibleUserRequests((prev) => prev + 2);
   };
 
   return (
@@ -442,14 +454,29 @@ export default function HomeScreen() {
                     Aucune demande reçue pour le moment.
                   </Text>
                 ) : (
-                  receivedRequests.map((request) => (
-                    <RequestCard
-                      key={request.id}
-                      request={request}
-                      requestbool={true}
-                      onDelete={handleDeleteRequest}
-                    />
-                  ))
+                  <>
+                    {receivedRequests
+                      .slice(0, visibleReceveid)
+                      .map((request) => (
+                        <RequestCard
+                          key={request.id}
+                          request={request}
+                          requestbool={true}
+                          onDelete={handleDeleteRequest}
+                        />
+                      ))}
+
+                    {visibleReceveid < receivedRequests.length && (
+                      <TouchableOpacity
+                        onPress={showMoreRecevied}
+                        className="mt-3 p-3 rounded-lg bg-[#cce4ff] dark:bg-[#d8b4fe]"
+                      >
+                        <Text className="text-center text-black dark:text-black">
+                          Afficher plus
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </>
                 )}
               </>
             ) : (
@@ -471,14 +498,29 @@ export default function HomeScreen() {
                         Aucune demande envoyée pour le moment.
                       </Text>
                     ) : (
-                      userRequests.map((request) => (
-                        <RequestCard
-                          key={request.id}
-                          request={request}
-                          requestbool={false}
-                          onDelete={handleDeleteRequest}
-                        />
-                      ))
+                      <>
+                        {userRequests
+                          .slice(0, visibleUserRequests)
+                          .map((request) => (
+                            <RequestCard
+                              key={request.id}
+                              request={request}
+                              requestbool={false}
+                              onDelete={handleDeleteRequest}
+                            />
+                          ))}
+
+                        {visibleUserRequests < userRequests.length && (
+                          <TouchableOpacity
+                            onPress={showMoreUserRequests}
+                            className="mt-3 p-3 rounded-lg bg-[#cce4ff] dark:bg-[#d8b4fe]"
+                          >
+                            <Text className="text-center text-black dark:text-black">
+                              Afficher plus
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </>
                     )}
                   </View>
                 )}
@@ -508,14 +550,27 @@ export default function HomeScreen() {
                   Aucune demande envoyée pour le moment.
                 </Text>
               ) : (
-                userRequests.map((request) => (
-                  <RequestCard
-                    key={request.id}
-                    request={request}
-                    requestbool={false}
-                    onDelete={handleDeleteRequest}
-                  />
-                ))
+                <>
+                  {userRequests.slice(0, visibleUserRequests).map((request) => (
+                    <RequestCard
+                      key={request.id}
+                      request={request}
+                      requestbool={false}
+                      onDelete={handleDeleteRequest}
+                    />
+                  ))}
+
+                  {visibleUserRequests < userRequests.length && (
+                    <TouchableOpacity
+                      onPress={showMoreUserRequests}
+                      className="mt-3 p-3 rounded-lg bg-[#cce4ff] dark:bg-[#d8b4fe]"
+                    >
+                      <Text className="text-center text-black dark:text-black">
+                        Afficher plus
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </>
               )}
             </View>
           </View>
@@ -588,25 +643,6 @@ export default function HomeScreen() {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
-        </View>
-
-        {/* Promo Banner */}
-        <View className="mt-6 mb-4">
-          <View className="h-32 bg-orange-500 dark:bg-orange-600 mx-4 rounded-lg p-4 flex-row items-center">
-            <View className="flex-1">
-              <Text className="text-white text-lg font-bold">pet corner</Text>
-              <Text className="text-white text-3xl font-bold mt-1">Gold</Text>
-              <Text className="text-white text-xl font-bold mt-1">10%</Text>
-              <Text className="text-white font-bold">cashback</Text>
-            </View>
-            <Image
-              source={{
-                uri: "https://www.purina.co.uk/sites/default/files/2022-07/Can-Cats-and-Dogs-Live-Together.jpg",
-              }}
-              className="w-24 h-24"
-              style={{ borderRadius: 12 }}
-            />
           </View>
         </View>
       </ScrollView>

@@ -1,18 +1,12 @@
-import React, { useEffect, useMemo, useState } from "react";
+"use client";
+
+import type React from "react";
+import { useEffect, useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, Image, Pressable } from "react-native";
-import BottomSheet, {
-  BottomSheetView,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import { PetSitterReviewResponse, ResponsePetsitter } from "@/types/type";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import type { PetSitterReviewResponse, ResponsePetsitter } from "@/types/type";
 import { useColorScheme } from "react-native";
-import {
-  FontAwesome,
-  MaterialIcons,
-  Ionicons,
-  AntDesign,
-} from "@expo/vector-icons";
-import { ScrollView } from "react-native-gesture-handler";
+import { FontAwesome, MaterialIcons, Ionicons } from "@expo/vector-icons";
 import SectionCard from "./SectionCard";
 import ReviewCard from "./ReviewCard";
 import {
@@ -20,7 +14,7 @@ import {
   postRatingForPetSitter,
   postReviewForPetSitter,
 } from "@/services/petsitterRating.service";
-import { Modal, TextInput, Alert, Dimensions } from "react-native";
+import { Alert } from "react-native";
 import RatingModal from "@/components/RatingModal";
 import CommentModal from "@/components/CommentModal";
 import { ToastType, useToast } from "@/context/ToastContext";
@@ -238,15 +232,16 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
         height: 4,
       }}
     >
-      <BottomSheetView style={{ flex: 1 }}>
-        <View style={{ height: 4 }}></View>
-
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ padding: 16 }}
-          showsVerticalScrollIndicator={false}
-          bounces={true}
+      <>
+        <BottomSheetScrollView
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingBottom: 100, // Augmenter l'espace en bas pour le bouton
+          }}
+          showsVerticalScrollIndicator={true}
         >
+          <View style={{ height: 4 }}></View>
+
           <Pressable style={{ flex: 1 }} onPress={expandBottomSheet}>
             <SectionCard>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -762,8 +757,9 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
               )}
             </SectionCard>
           </Pressable>
-        </ScrollView>
+        </BottomSheetScrollView>
 
+        {/* Bouton Contacter en bas, à l'intérieur du BottomSheet mais pas en position absolue */}
         <View
           style={{
             padding: 16,
@@ -806,27 +802,28 @@ const PetSitterBottomSheet: React.FC<PetSitterBottomSheetProps> = ({
             </TouchableOpacity>
           </View>
         </View>
-        {/* Modals */}
-        <RatingModal
-          visible={ratingModalVisible}
-          onClose={() => setRatingModalVisible(false)}
-          onSubmit={handleRatingSubmit}
-        />
+      </>
 
-        <CommentModal
-          visible={commentModalVisible}
-          onClose={() => setCommentModalVisible(false)}
-          onSubmit={handleCommentSubmit}
-        />
+      {/* Modals */}
+      <RatingModal
+        visible={ratingModalVisible}
+        onClose={() => setRatingModalVisible(false)}
+        onSubmit={handleRatingSubmit}
+      />
 
-        <ContactPetSitterModal
-          visible={contactModalVisible}
-          onClose={() => setContactModalVisible(false)}
-          petSitterName={user.firstName}
-          hourlyRate={parseFloat(petsitter.hourly_rate)}
-          petSitterId={petsitter.id}
-        />
-      </BottomSheetView>
+      <CommentModal
+        visible={commentModalVisible}
+        onClose={() => setCommentModalVisible(false)}
+        onSubmit={handleCommentSubmit}
+      />
+
+      <ContactPetSitterModal
+        visible={contactModalVisible}
+        onClose={() => setContactModalVisible(false)}
+        petSitterName={user.firstName}
+        hourlyRate={Number.parseFloat(petsitter.hourly_rate)}
+        petSitterId={petsitter.id}
+      />
     </BottomSheet>
   );
 };
