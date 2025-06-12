@@ -8,11 +8,12 @@ import {
   useColorScheme,
   StatusBar,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   deleteProfilePicture,
   updateProfilePicture,
@@ -22,7 +23,6 @@ import type { User } from "@/types/type";
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
 import { useRouter } from "expo-router";
 import PetAddModale from "@/components/PetAddModale";
-import { useEffect } from "react";
 import type { Pet } from "@/types/pets";
 import { getPetsForAUser } from "@/services/pet.service";
 import PetDetailModale from "@/components/PetDetailModale";
@@ -39,6 +39,7 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(false);
   const [loadingReceived, setLoadingReceived] = useState(false);
   const [loadingSend, setLoadingSend] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // Pour le pull-to-refresh
   const { user, setUser, petsitter, setPetsitter } = useAuthContext();
   const { showToast } = useToast();
   const colorScheme = useColorScheme();
@@ -49,6 +50,56 @@ export default function HomeScreen() {
   const [receivedRequests, setReceivedRequests] = useState<
     PetsittingRequestResponse[]
   >([]);
+  const [listPets, setListPets] = useState<Pet[] | null>([]);
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const initializeData = useCallback(async () => {
+    try {
+      setListPets([]);
+      setUserRequests([]);
+      setReceivedRequests([]);
+
+      if (user?.id) {
+        const response = await getPetsForAUser();
+        console.log("Liste des animaux :", response.data);
+        setListPets(response.data);
+      }
+
+      setLoadingSend(true);
+      console.log("on appelle les request");
+      const userData = await getUserPetsittingRequests();
+      console.log("User Requests:", userData);
+      setUserRequests(userData);
+      setLoadingSend(false);
+
+      if (petsitter) {
+        setLoadingReceived(true);
+        const receivedData = await getPetsitterReceivedRequests();
+        setReceivedRequests(receivedData);
+        setLoadingReceived(false);
+      }
+    } catch (error) {
+      console.log("Erreur lors de l'initialisation :", error);
+      setLoadingSend(false);
+      setLoadingReceived(false);
+    }
+  }, [user?.id, petsitter]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await initializeData();
+    } catch (error) {
+      console.log("Erreur lors du refresh :", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [initializeData]);
+
+  useEffect(() => {
+    initializeData();
+  }, [initializeData]);
 
   const handleDeleteRequest = (requestId: string) => {
     setUserRequests((prevRequests) =>
@@ -135,7 +186,6 @@ export default function HomeScreen() {
         error.message || "Impossible de prendre une photo.",
         ToastType.ERROR
       );
-    } finally {
     }
   };
 
@@ -159,7 +209,6 @@ export default function HomeScreen() {
   const handleNavigationListePets = async () => {
     try {
       setLoading(true);
-
       router.push("/(home)/(main)/ListePets");
     } catch (error) {
       console.log("Erreur de navigation :", error);
@@ -167,65 +216,6 @@ export default function HomeScreen() {
       setLoading(false);
     }
   };
-
-  const [listPets, setListPets] = useState<Pet[] | null>([]);
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-
-  useEffect(() => {
-    if (user?.id) {
-      getPetsForAUser()
-        .then((response) => {
-          setListPets(response.data);
-        })
-        .catch((error) => {
-          console.log("Erreur lors du chargement des animaux :", error);
-        });
-    }
-  }, []);
-
-  useEffect(() => {
-    const fetchUserRequests = async () => {
-      try {
-        setLoadingSend(true);
-        const data = await getUserPetsittingRequests();
-        setUserRequests(data);
-      } catch (error) {
-        console.log(
-          "Erreur lors de la récupération des demandes utilisateur :",
-          error
-        );
-      } finally {
-        setLoadingSend(false);
-      }
-    };
-
-    fetchUserRequests();
-  }, []);
-
-  useEffect(() => {
-    const fetchReceivedRequests = async () => {
-      try {
-        setLoadingReceived(true);
-        const data = await getPetsitterReceivedRequests();
-        console.log("Received Requests:", data);
-        setReceivedRequests(data);
-      } catch (error) {
-        console.log(
-          "Erreur lors de la récupération des demandes petsitter :",
-          error
-        );
-      } finally {
-        setLoadingReceived(false);
-      }
-    };
-
-    if (petsitter) {
-      fetchReceivedRequests();
-    } else {
-      setLoadingReceived(false);
-    }
-  }, [petsitter]);
 
   const handlePressPet = (pet: Pet) => {
     setSelectedPet(pet);
@@ -257,7 +247,20 @@ export default function HomeScreen() {
         backgroundColor="transparent"
         translucent
       />
-      <ScrollView className="flex-1">
+      <ScrollView
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#ec4899"]} // Couleur fuchsia pour Android
+            tintColor="#ec4899" // Couleur fuchsia pour iOS
+            title="Actualisation..."
+            titleColor={isDark ? "#ffffff" : "#000000"}
+            progressBackgroundColor={isDark ? "#374151" : "#ffffff"}
+          />
+        }
+      >
         {/* User Profile */}
         <View className="flex-row items-center px-4 mt-4 w-full">
           <ProfilePictureZoomable
@@ -450,7 +453,6 @@ export default function HomeScreen() {
                 )}
               </>
             ) : (
-              // Demandes envoyées par l'utilisateur
               <>
                 {loadingSend ? (
                   <View className="py-4 items-center justify-center">
@@ -463,7 +465,7 @@ export default function HomeScreen() {
                     </Text>
                   </View>
                 ) : (
-                  <View className="mt-2 px-4">
+                  <View className="px-4">
                     {userRequests.length === 0 ? (
                       <Text className="text-gray-500 dark:text-gray-400 text-base">
                         Aucune demande envoyée pour le moment.

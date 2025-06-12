@@ -81,12 +81,14 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
   useEffect(() => {
     const fetchUser = async () => {
       setLoading(true);
+
       try {
         let fetched;
 
         if (requestbool) {
           fetched = await getUserById(userId);
         } else {
+          console.log("Fetching petsitter by ID:", userId);
           const result = await getUserByPetSitterId(userId);
           setPetsitter(result.petSitter);
           fetched = result.user;
