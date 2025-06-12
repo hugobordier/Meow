@@ -157,7 +157,7 @@ async function registerForPushNotificationsAsync(): Promise<string | null> {
     console.log("✨ Token généré avec succès");
     return tokenData.data;
   } catch (error) {
-    console.error("❌ Erreur lors de la génération du token:", error);
+    console.log("❌ Erreur lors de la génération du token:", error);
     return null;
   }
 }
