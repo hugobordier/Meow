@@ -1,45 +1,174 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import React, { useRef } from "react";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  useColorScheme,
+  findNodeHandle,
+  UIManager,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { ArrowLeft } from "lucide-react-native";
-import {useRouter} from "expo-router";
+import { useRouter } from "expo-router";
 
 const securityOption = [
-    { title: "Discussions signalées"},
-    { title: "Personnes bloquées"},
-    { title: "Localisation" },
-    { title: "Confirmation de lecture" },
-    { title: "Vérouillage de l'application" },
+  { title: "Discussions signalées", key: "reported" },
+  { title: "Personnes bloquées", key: "blocked" },
+  { title: "Localisation", key: "location" },
+  { title: "Confirmation de lecture", key: "read" },
+  { title: "Verrouillage de l'application", key: "lock" },
 ];
 
-const security = () => {
-    const router = useRouter();
+const SecurityScreen = () => {
+  const router = useRouter();
+  const isDark = useColorScheme() === "dark";
 
-    return (
-        <SafeAreaView className="flex-1 bg-white">
-            {/* Header */}
-            <View className="flex-row items-center px-4 py-3 border-b border-gray-200">
-                <TouchableOpacity onPress={() => router.back()}>
-                    <ArrowLeft size={24} className="text-black" />
-                </TouchableOpacity>
-                <Text className="flex-1 text-center text-xl font-bold">MEOW</Text>
-            </View>
+  const backgroundColor = isDark ? "#0f172a" : "#ffffff";
+  const borderColor = isDark ? "#334155" : "#e5e7eb";
+  const textColor = isDark ? "#f8fafc" : "#111827";
+  const subTextColor = isDark ? "#94a3b8" : "#6b7280";
 
-            <Text className="text-lg font-semibold text-center mt-4 mb-2">Confidentialité et securité</Text>
+  const scrollRef = useRef<ScrollView>(null);
+  const sectionRefs = {
+    reported: useRef(null),
+    blocked: useRef(null),
+    location: useRef(null),
+    read: useRef(null),
+    lock: useRef(null),
+  };
 
-            {/* Liste des paramètres */}
-            <ScrollView className="px-4">
-                {securityOption.map((item, index) => (
-                    <TouchableOpacity
-                        key={index}
-                        className="flex-row items-center justify-between py-4 border-b border-gray-200"
-                    >
-                        <Text className="text-base text-black">{item.title}</Text>
-                    </TouchableOpacity>
-                ))}
-            </ScrollView>
-        </SafeAreaView>
-    );
+  const scrollToSection = (key: string) => {
+    //@ts-ignore
+    const sectionRef = sectionRefs[key];
+    const scrollNode = findNodeHandle(scrollRef.current);
+    const targetNode = findNodeHandle(sectionRef.current);
+
+    if (scrollNode && targetNode) {
+      UIManager.measureLayout(
+        targetNode,
+        scrollNode,
+        () => {
+          console.warn("Failed to measure layout.");
+        },
+        (x, y) => {
+          scrollRef.current?.scrollTo({ y, animated: true });
+        }
+      );
+    }
+  };
+
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor }}>
+      {/* Header */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: 16,
+          paddingVertical: 12,
+          borderBottomWidth: 1,
+          borderColor,
+        }}
+      >
+        <TouchableOpacity onPress={() => router.back()}>
+          <ArrowLeft size={24} color={textColor} />
+        </TouchableOpacity>
+        <Text
+          style={{
+            flex: 1,
+            textAlign: "center",
+            fontSize: 20,
+            fontWeight: "bold",
+            color: textColor,
+          }}
+        >
+          MEOW
+        </Text>
+      </View>
+
+      <Text
+        style={{
+          fontSize: 18,
+          fontWeight: "600",
+          textAlign: "center",
+          marginTop: 16,
+          marginBottom: 8,
+          color: textColor,
+        }}
+      >
+        Confidentialité et sécurité
+      </Text>
+
+      <ScrollView ref={scrollRef} style={{ paddingHorizontal: 16 }}>
+        {securityOption.map((item, index) => (
+          <TouchableOpacity
+            key={index}
+            onPress={() => scrollToSection(item.key)}
+            style={{
+              flexDirection: "row",
+              justifyContent: "space-between",
+              alignItems: "center",
+              paddingVertical: 16,
+              borderBottomWidth: 1,
+              borderColor,
+            }}
+          >
+            <Text style={{ fontSize: 16, color: textColor }}>{item.title}</Text>
+          </TouchableOpacity>
+        ))}
+
+        {securityOption.map((item) => (
+          <View
+            key={item.key}
+            //@ts-ignore
+            ref={sectionRefs[item.key]}
+            style={{
+              paddingVertical: 24,
+              borderBottomWidth: 1,
+              borderColor,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 16,
+                fontWeight: "bold",
+                color: textColor,
+                marginBottom: 8,
+              }}
+            >
+              🔒 {item.title}
+            </Text>
+            <Text
+              style={{
+                fontSize: 14,
+                lineHeight: 22,
+                color: subTextColor,
+              }}
+            >
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed ut
+              perspiciatis unde omnis iste natus error sit voluptatem
+              accusantium doloremque laudantium. Aliquam erat volutpat. Quisque
+              varius tellus sit amet est pulvinar, vitae pharetra augue
+              bibendum.
+            </Text>
+          </View>
+        ))}
+
+        <Text
+          style={{
+            fontSize: 12,
+            fontStyle: "italic",
+            marginVertical: 24,
+            textAlign: "center",
+            color: subTextColor,
+          }}
+        >
+          Dernière mise à jour : Aujourd’hui 🐾
+        </Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
 };
 
-export default security;
+export default SecurityScreen;
