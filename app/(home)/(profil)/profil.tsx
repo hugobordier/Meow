@@ -26,7 +26,7 @@ const Profil: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
-  console.log("Profil component rendered,petsitter:", petsitter.data.petsitter.latitude );
+  //console.log("Profil component rendered,petsitter:", petsitter.data.petsitter.latitude );
   if (!user) {
     return (
       <SafeAreaView style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>

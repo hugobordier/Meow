@@ -116,7 +116,7 @@ export const getUserById = async (userId: string): Promise<User> => {
     const response = await api.get(`/User/${userId}`);
     return response.data.data;
   } catch (error: any) {
-    console.log("Erreur lors de la récupération de l'utilisateur:", error);
+    console.log("Erreur lors de la récupération de l utilisateur:", error);
     throw (
       error.response?.data || { message: "Une erreur inconnue est survenue" }
     );
