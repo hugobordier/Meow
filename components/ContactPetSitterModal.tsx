@@ -1,4 +1,7 @@
-import React, { useRef, useState } from "react";
+"use client";
+
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -7,14 +10,16 @@ import {
   TextInput,
   Dimensions,
   Animated,
+  Image,
 } from "react-native";
 import { useColorScheme } from "react-native";
 import { ScrollView } from "react-native-gesture-handler";
 import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { ToastType, useToast } from "@/context/ToastContext";
 import Slider from "@react-native-community/slider";
-import { create } from "lodash";
 import { createPetsittingRequest } from "@/services/requestPetsitter.service";
+import type { Pet } from "@/types/type";
+import { getPetsForAUser } from "@/services/pet.service";
 
 interface ContactPetSitterModalProps {
   visible: boolean;
@@ -43,6 +48,24 @@ const ContactPetSitterModal: React.FC<ContactPetSitterModalProps> = ({
   const [expiryDate, setExpiryDate] = useState("");
   const [cvv, setCvv] = useState("");
   const [showTooltip, setShowTooltip] = useState(false);
+  const [listPets, setListPets] = useState<Pet[] | null>([]);
+  const [selectedPets, setSelectedPets] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        if (petSitterId) {
+          const response = await getPetsForAUser();
+          console.log("Liste des animaux :", response.data);
+          setListPets(response.data);
+        }
+      } catch (error) {
+        console.error("Erreur lors de la récupération des animaux :", error);
+      }
+    };
+
+    fetchPets();
+  }, []);
 
   const shakeAnimation = () => {
     const anim = useRef(new Animated.Value(0)).current;
@@ -139,6 +162,7 @@ const ContactPetSitterModal: React.FC<ContactPetSitterModalProps> = ({
         await createPetsittingRequest({
           petsitter_id: petSitterId,
           message: message || defaultMessage,
+          petidtable: selectedPets,
         });
         showToast("Paiement effectué avec succès !", ToastType.SUCCESS);
       } catch (error) {
@@ -152,6 +176,7 @@ const ContactPetSitterModal: React.FC<ContactPetSitterModalProps> = ({
         setCvv("");
         setMinutes(120);
         setDecideLater(false);
+        setSelectedPets([]);
         setStep("message");
         onClose();
       }
@@ -277,6 +302,107 @@ const ContactPetSitterModal: React.FC<ContactPetSitterModalProps> = ({
                     textAlignVertical: "top",
                   }}
                 />
+                <Text
+                  style={{
+                    marginBottom: 8,
+                    color: isDark ? "#d1d5db" : "#4b5563",
+                    fontSize: 16,
+                  }}
+                >
+                  Sélectionnez vos animaux
+                </Text>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{
+                    paddingVertical: 8,
+                    paddingHorizontal: 4,
+                    gap: 12,
+                  }}
+                  style={{
+                    marginBottom: 16,
+                  }}
+                >
+                  {listPets && listPets.length > 0 ? (
+                    listPets.map((pet) => (
+                      <TouchableOpacity
+                        key={pet.id}
+                        onPress={() => {
+                          setSelectedPets((prev) =>
+                            prev.includes(pet.id)
+                              ? prev.filter((id) => id !== pet.id)
+                              : [...prev, pet.id]
+                          );
+                        }}
+                        style={{
+                          width: 80,
+                          alignItems: "center",
+                          backgroundColor: selectedPets.includes(pet.id)
+                            ? isDark
+                              ? "rgba(59, 130, 246, 0.3)"
+                              : "rgba(59, 130, 246, 0.1)"
+                            : "transparent",
+                          borderRadius: 12,
+                          padding: 8,
+                          borderWidth: selectedPets.includes(pet.id) ? 2 : 0,
+                          borderColor: isDark ? "#60a5fa" : "#3b82f6",
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: 60,
+                            height: 60,
+                            borderRadius: 30,
+                            backgroundColor: isDark ? "#4b5563" : "#e5e7eb",
+                            marginBottom: 4,
+                            overflow: "hidden",
+                            justifyContent: "center",
+                            alignItems: "center",
+                          }}
+                        >
+                          {pet.photo_url ? (
+                            <Image
+                              source={{ uri: pet.photo_url }}
+                              style={{ width: 60, height: 60 }}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <MaterialIcons
+                              name="pets"
+                              size={30}
+                              color={isDark ? "#9ca3af" : "#6b7280"}
+                            />
+                          )}
+                        </View>
+                        <Text
+                          style={{
+                            color: isDark ? "#ffffff" : "#111827",
+                            fontSize: 12,
+                            fontWeight: selectedPets.includes(pet.id)
+                              ? "600"
+                              : "400",
+                            textAlign: "center",
+                          }}
+                          numberOfLines={1}
+                        >
+                          {pet.name}
+                        </Text>
+                      </TouchableOpacity>
+                    ))
+                  ) : (
+                    <View
+                      style={{
+                        padding: 16,
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text style={{ color: isDark ? "#9ca3af" : "#6b7280" }}>
+                        Aucun animal trouvé
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
 
                 <View
                   style={{

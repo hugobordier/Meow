@@ -13,6 +13,7 @@ import {
   useColorScheme,
   Modal,
   Pressable,
+  ScrollView,
 } from "react-native";
 import {
   deletePetsittingRequest,
@@ -21,9 +22,10 @@ import {
 } from "@/services/requestPetsitter.service";
 import { getUserById } from "@/services/user.service";
 import { getUserByPetSitterId } from "@/services/petsitter.service";
-import type { PetSitter, User } from "@/types/type";
+import type { Pet, PetSitter, User } from "@/types/type";
 import { ToastType, useToast } from "@/context/ToastContext";
 import { Ionicons } from "@expo/vector-icons";
+import { getPetById } from "@/services/pet.service";
 
 if (
   Platform.OS === "android" &&
@@ -75,6 +77,8 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const [Pets, setPets] = useState<Pet[]>([]);
+  const [petLoading, setPetLoading] = useState(true);
 
   const userId = requestbool ? request.user_id : request.petsitter_id;
 
@@ -102,6 +106,41 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
     };
 
     fetchUser();
+  }, [userId, requestbool]);
+
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        if (!request.petidtable || request.petidtable.length === 0) {
+          setPets([]);
+          return;
+        }
+
+        const petsPromises = request.petidtable.map((petId) =>
+          getPetById(petId)
+        );
+        const petsData = await Promise.all(petsPromises);
+
+        const validPets = petsData.filter((pet) => pet !== null);
+        setPets(validPets);
+
+        if (validPets.length < request.petidtable.length) {
+          console.warn(
+            `⚠️ Certains animaux n'ont pas pu être récupérés (${
+              request.petidtable.length - validPets.length
+            } manquant(s))`
+          );
+        }
+
+        console.log("✅ Fetched pets:", validPets);
+      } catch (error) {
+        console.error("❌ Erreur lors de la récupération des animaux :", error);
+      } finally {
+        setPetLoading(false);
+      }
+    };
+
+    fetchPets();
   }, [userId, requestbool]);
 
   if (loading) return <SkeletonCard />;
@@ -286,7 +325,55 @@ const RequestCard = ({ request, requestbool, onDelete }: RequestCardProps) => {
               </Text>
             </TouchableOpacity>
           )}
+          {Pets.length > 0 && !petLoading && (
+            <View style={{ marginTop: 16 }}>
+              <Text
+                style={{
+                  fontSize: 16,
+                  fontWeight: "600",
+                  marginBottom: 8,
+                  color: isDark ? "#f8fafc" : "#111827",
+                }}
+              >
+                🐾 Animaux concernés :
+              </Text>
 
+              <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                {Pets.map((pet) => (
+                  <View
+                    key={pet.id}
+                    style={{
+                      alignItems: "center",
+                      marginRight: 16,
+                      padding: 8,
+                      backgroundColor: isDark ? "#1e293b" : "#f1f5f9",
+                      borderRadius: 12,
+                    }}
+                  >
+                    <Image
+                      source={{ uri: pet.photo_url }} // ou `pet.photoUrl` si c’est le bon champ
+                      style={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: 999,
+                        marginBottom: 6,
+                        backgroundColor: "#e5e7eb",
+                      }}
+                      resizeMode="cover"
+                    />
+                    <Text
+                      style={{
+                        fontSize: 13,
+                        color: isDark ? "#cbd5e1" : "#374151",
+                      }}
+                    >
+                      {pet.name}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+          )}
           <Text
             style={[styles.locationText, isDark && styles.locationTextDark]}
           >

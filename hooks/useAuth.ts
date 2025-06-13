@@ -48,6 +48,7 @@ export const useAuth = () => {
           socket.on("connect", () => {
             console.log("🔌 Reconnexion socket automatique");
             socket.emit("register", data.data.username);
+            console.log("✅ Socket connecté");
           });
         }
       } catch (error: any) {

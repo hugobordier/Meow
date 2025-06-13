@@ -3,6 +3,7 @@ import { api } from "./api";
 export interface PetsittingRequest {
   petsitter_id: string;
   message: string;
+  petidtable?: string[];
 }
 
 export interface PetsittingRequestResponse {
@@ -10,6 +11,7 @@ export interface PetsittingRequestResponse {
   user_id: string;
   petsitter_id: string;
   statusdemande: "pending" | "accepted" | "refused";
+  petidtable: string[];
   message: string;
   createdAt: Date;
   updatedAt: Date;
@@ -21,6 +23,7 @@ export const createPetsittingRequest = async (
   data: CreatePetsittingRequestInput
 ) => {
   try {
+    console.log("Creating petsitting request with data:", data);
     const response = await api.post("/Amis", data);
     return response.data;
   } catch (error: any) {

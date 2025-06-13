@@ -35,13 +35,14 @@ export const getPetsForAUser = async (): Promise<ApiResponsePet> => {
 
 export const getPetById = async (petID: string) => {
   try {
-    const response = await api.get(`/PetsRoutes/${petID}`);
+    const response = await api.get(`/PetsRoutes/ByID/${petID}`);
     return response.data;
   } catch (error: any) {
-    console.log("Erreur lors de la récupération du pet:", error);
-    throw (
-      error.response?.data || { message: "Une erreur inconnue est survenue" }
+    console.log(
+      "⚠️ Pet introuvable ou erreur lors de la récupération :",
+      error
     );
+    return null;
   }
 };
 
