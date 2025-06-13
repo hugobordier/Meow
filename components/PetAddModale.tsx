@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Modal,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import {
@@ -50,6 +51,8 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
   });
   const [image, setImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   const handleChange = (key: string, value: any) => {
     setForm({ ...form, [key]: value });
@@ -135,18 +138,24 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
     key: string,
     placeholder: string,
     keyboardType: "default" | "numeric" = "default",
-    multiline: boolean = false
+    multiline = false
   ) => (
     <View style={styles.inputContainer}>
-      <Text style={styles.inputLabel}>{label}</Text>
+      <Text style={[styles.inputLabel, isDarkMode && styles.inputLabelDark]}>
+        {label}
+      </Text>
       <TextInput
-        style={[styles.input, multiline && styles.multilineInput]}
+        style={[
+          styles.input,
+          multiline && styles.multilineInput,
+          isDarkMode && styles.inputDark,
+        ]}
         value={(form as any)[key]}
         onChangeText={(text) => handleChange(key, text)}
         placeholder={placeholder}
         keyboardType={keyboardType}
         multiline={multiline}
-        placeholderTextColor="#999"
+        placeholderTextColor={isDarkMode ? "#777" : "#999"}
       />
     </View>
   );
@@ -225,20 +234,34 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <View style={styles.overlay}>
-        <View style={styles.modal}>
+      <View style={[styles.overlay, isDarkMode && styles.overlayDark]}>
+        <View style={[styles.modal, isDarkMode && styles.modalDark]}>
           <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Ionicons name="close" size={28} color="#666" />
+            <Ionicons
+              name="close"
+              size={28}
+              color={isDarkMode ? "#999" : "#666"}
+            />
           </TouchableOpacity>
 
           <ScrollView
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={[
+              styles.scrollContent,
+              isDarkMode && styles.scrollContentDark,
+            ]}
             showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.title}>Ajouter un animal</Text>
+            <Text style={[styles.title, isDarkMode && styles.titleDark]}>
+              Ajouter un animal
+            </Text>
 
             {/* Image Selection */}
-            <View style={styles.imageSection}>
+            <View
+              style={[
+                styles.imageSection,
+                isDarkMode && styles.imageSectionDark,
+              ]}
+            >
               {image ? (
                 <View style={styles.selectedImageContainer}>
                   <Image
@@ -319,7 +342,12 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
           </ScrollView>
 
           {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
+          <View
+            style={[
+              styles.buttonContainer,
+              isDarkMode && styles.buttonContainerDark,
+            ]}
+          >
             <TouchableOpacity
               style={styles.cancelBtn}
               onPress={onClose}
@@ -328,7 +356,10 @@ export default function PetAddModal({ visible, onClose, onAdd }: Props) {
               <Text style={styles.cancelBtnText}>Annuler</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={[styles.addBtn, isLoading && styles.addBtnDisabled]}
+              style={[
+                isDarkMode ? styles.addBtnDark : styles.addBtn,
+                isLoading && styles.addBtnDisabled,
+              ]}
               onPress={handleSave}
               disabled={isLoading}
             >
@@ -358,9 +389,10 @@ const styles = StyleSheet.create({
   },
   modal: {
     flex: 1,
-    width: "100%",
-    maxWidth: 400,
-    minHeight: 550,
+    width: "95%",
+    maxWidth: "95%",
+    minHeight: "90%",
+    maxHeight: "90%",
     backgroundColor: "#fff",
     borderRadius: 20,
     overflow: "hidden",
@@ -438,7 +470,7 @@ const styles = StyleSheet.create({
     width: "100%",
   },
   imageBtn: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#94C5F8",
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 12,
@@ -448,7 +480,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   removeImageBtn: {
-    backgroundColor: "#FF3B30",
+    backgroundColor: "#FFAFAF",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 12,
@@ -536,18 +568,28 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: "#007AFF",
+    borderColor: "#94C5F8",
     alignItems: "center",
     justifyContent: "center",
   },
   cancelBtnText: {
-    color: "#007AFF",
+    color: "#94C5F8",
     fontWeight: "600",
     fontSize: 16,
   },
   addBtn: {
     flex: 1,
-    backgroundColor: "#34C759",
+    backgroundColor: "#B5EAD7",
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+  addBtnDark: {
+    flex: 1,
+    backgroundColor: "#5cf148",
     paddingVertical: 14,
     borderRadius: 12,
     flexDirection: "row",
@@ -579,8 +621,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#fafbfc",
   },
   genderButtonSelected: {
-    backgroundColor: "#D946EF",
-    borderColor: "#D946EF",
+    backgroundColor: "#C7CEEA",
+    borderColor: "#C7CEEA",
   },
   genderButtonText: {
     color: "#333",
@@ -588,5 +630,31 @@ const styles = StyleSheet.create({
   },
   genderButtonTextSelected: {
     color: "#fff",
+  },
+  overlayDark: {
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalDark: {
+    backgroundColor: "#121212",
+  },
+  scrollContentDark: {
+    backgroundColor: "#121212",
+  },
+  titleDark: {
+    color: "#f0f0f0",
+  },
+  imageSectionDark: {
+    backgroundColor: "#1e1e1e",
+  },
+  inputDark: {
+    backgroundColor: "#2a2a2a",
+    borderColor: "#444",
+    color: "#f0f0f0",
+  },
+  inputLabelDark: {
+    color: "#e0e0e0",
+  },
+  buttonContainerDark: {
+    backgroundColor: "#1e1e1e",
   },
 });

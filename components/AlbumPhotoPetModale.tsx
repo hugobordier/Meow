@@ -1,4 +1,6 @@
-import React, { use } from "react";
+"use client";
+
+import React, { useEffect } from "react";
 import {
   Modal,
   View,
@@ -7,11 +9,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  useColorScheme,
 } from "react-native";
-import { Pet } from "../types/pets";
+import type { Pet } from "../types/pets";
 import { getAllImagesForaPet } from "@/services/pet.service";
-import { PetImage } from "@/types/petImage";
-import { useEffect } from "react";
+import type { PetImage } from "@/types/petImage";
 import { deletePetImage } from "@/services/pet.service";
 import { Ionicons } from "@expo/vector-icons";
 import { pickImageFromLibrary } from "@/utils/imagePicker";
@@ -31,16 +33,19 @@ export default function AlbumPhotoPetModale({
   pet,
   onUpdate,
 }: Props) {
-  if (!pet) return null;
   const [listImages, setListImages] = React.useState<PetImage[]>([]);
   const [image, setImage] = React.useState<string | null>(null);
   const toast = useToast();
+  const colorScheme = useColorScheme();
+  const isDarkMode = colorScheme === "dark";
 
   useEffect(() => {
     if (visible && pet) {
       handleChgtPhotosPet();
     }
   }, [visible, pet]);
+
+  if (!pet) return null;
 
   const handleChgtPhotosPet = async () => {
     if (!pet) return;
@@ -55,6 +60,7 @@ export default function AlbumPhotoPetModale({
       setListImages([]);
     }
   };
+
   const handledeleteImage = async (imageId: string) => {
     try {
       const response = await deletePetImage(imageId);
@@ -96,12 +102,21 @@ export default function AlbumPhotoPetModale({
       onRequestClose={onClose}
     >
       <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Ionicons name="close" size={28} color="#666" />
+        <View style={[styles.modal, isDarkMode && styles.modalDark]}>
+          <TouchableOpacity
+            style={[styles.closeBtn, isDarkMode && styles.closeBtnDark]}
+            onPress={onClose}
+          >
+            <Ionicons
+              name="close"
+              size={28}
+              color={isDarkMode ? "#999" : "#666"}
+            />
           </TouchableOpacity>
 
-          <Text style={styles.title}>{pet.name}</Text>
+          <Text style={[styles.title, isDarkMode && styles.titleDark]}>
+            {pet.name}
+          </Text>
           {pet.photo_url ? (
             <Image source={{ uri: pet.photo_url }} style={styles.image} />
           ) : (
@@ -111,69 +126,44 @@ export default function AlbumPhotoPetModale({
           )}
 
           <Text
-            style={{
-              fontWeight: "bold",
-              fontSize: 16,
-              marginBottom: 10,
-              color: "#18181b",
-            }}
+            style={[styles.albumTitle, isDarkMode && styles.albumTitleDark]}
           >
             Album photo
           </Text>
+
           <ScrollView
             style={{ maxHeight: 320, width: "100%" }}
             contentContainerStyle={{ alignItems: "center" }}
           >
-            <View
-              style={{
-                flexDirection: "row",
-                flexWrap: "wrap",
-                justifyContent: "flex-start",
-                width: "100%",
-                marginBottom: 10,
-              }}
-            >
+            <View style={styles.albumGrid}>
               {listImages.length > 0 ? (
                 listImages.map((img) => (
-                  <View
-                    key={img.id}
-                    style={{
-                      alignItems: "center",
-                      marginBottom: 12,
-                      width: "33.33%",
-                    }}
-                  >
+                  <View key={img.id} style={styles.imageContainer}>
                     <Image
                       source={{ uri: img.url_image }}
-                      style={{
-                        width: 80,
-                        height: 80,
-                        borderRadius: 12,
-                        backgroundColor: "#eee",
-                      }}
+                      style={styles.albumImage}
                     />
                     <TouchableOpacity
                       onPress={() => handledeleteImage(img.id)}
-                      style={{ marginTop: 4 }}
+                      style={styles.deleteButton}
                     >
-                      <Ionicons name="trash" size={22} color="red" />
+                      <Ionicons name="trash" size={22} color="#FFAFAF" />
                     </TouchableOpacity>
                   </View>
                 ))
               ) : (
                 <Text
-                  style={{
-                    color: "#888",
-                    fontSize: 14,
-                    width: "100%",
-                    textAlign: "center",
-                  }}
+                  style={[
+                    styles.noImagesText,
+                    isDarkMode && styles.noImagesTextDark,
+                  ]}
                 >
                   Aucune photo d'album
                 </Text>
               )}
             </View>
           </ScrollView>
+
           <TouchableOpacity
             onPress={async () => {
               const result = await pickImageFromLibrary();
@@ -183,19 +173,9 @@ export default function AlbumPhotoPetModale({
                 toast.showToast(result.error, ToastType.ERROR);
               }
             }}
-            style={{
-              marginTop: 8,
-              marginBottom: 10,
-              backgroundColor: "#34C759",
-              borderRadius: 8,
-              paddingVertical: 12,
-              paddingHorizontal: 24,
-              alignItems: "center",
-            }}
+            style={styles.addButton}
           >
-            <Text style={{ color: "#fff", fontWeight: "bold", fontSize: 16 }}>
-              Ajouter une image
-            </Text>
+            <Text style={styles.addButtonText}>Ajouter une image</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -217,11 +197,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: 300,
   },
+  modalDark: {
+    backgroundColor: "#121212",
+  },
   title: {
     fontSize: 22,
     fontWeight: "bold",
     marginBottom: 18,
     color: "#18181b",
+  },
+  titleDark: {
+    color: "#f0f0f0",
   },
   image: {
     width: 180,
@@ -255,7 +241,63 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  closeBtnDark: {
+    backgroundColor: "#333",
+  },
   closeBtnText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  albumTitle: {
+    fontWeight: "bold",
+    fontSize: 16,
+    marginBottom: 10,
+    color: "#18181b",
+  },
+  albumTitleDark: {
+    color: "#f0f0f0",
+  },
+  albumGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+    width: "100%",
+    marginBottom: 10,
+  },
+  imageContainer: {
+    alignItems: "center",
+    marginBottom: 12,
+    width: "33.33%",
+  },
+  albumImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 12,
+    backgroundColor: "#eee",
+  },
+  deleteButton: {
+    marginTop: 4,
+  },
+  noImagesText: {
+    color: "#888",
+    fontSize: 14,
+    width: "100%",
+    textAlign: "center",
+  },
+  noImagesTextDark: {
+    color: "#aaa",
+  },
+  addButton: {
+    marginTop: 8,
+    marginBottom: 10,
+    backgroundColor: "#B5EAD7",
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    alignItems: "center",
+  },
+  addButtonText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,

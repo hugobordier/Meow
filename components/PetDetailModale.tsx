@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+"use client";
+
+import { useState, useEffect } from "react";
 import {
   Modal,
   View,
@@ -8,9 +10,10 @@ import {
   TouchableOpacity,
   TextInput,
   ScrollView,
+  useColorScheme,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import { Pet } from "@/types/pets";
+import type { Pet } from "@/types/pets";
 import {
   deletePet,
   deletePhotoprofilPet,
@@ -19,7 +22,6 @@ import {
 import { ToastType, useToast } from "@/context/ToastContext";
 import { pickImageFromLibrary } from "@/utils/imagePicker";
 import { updatePhotoprofilPet } from "@/services/pet.service";
-import { useColorScheme } from "react-native";
 import AlbumPhotoPetModale from "./AlbumPhotoPetModale";
 
 type Props = {
@@ -120,9 +122,11 @@ export default function PetDetailModal({
     label: string,
     value: string | number | boolean | undefined
   ) => (
-    <View style={styles.fieldContainer}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <Text style={styles.fieldValue}>
+    <View style={[styles.fieldContainer, isDark && styles.fieldContainerDark]}>
+      <Text style={[styles.fieldLabel, isDark && styles.fieldLabelDark]}>
+        {label}
+      </Text>
+      <Text style={[styles.fieldValue, isDark && styles.fieldValueDark]}>
         {typeof value === "boolean"
           ? value
             ? "Oui"
@@ -135,14 +139,22 @@ export default function PetDetailModal({
   const renderEditField = (
     label: string,
     key: keyof Pet,
-    placeholder: string = "",
+    placeholder = "",
     keyboardType: "default" | "numeric" = "default",
-    multiline: boolean = false
+    multiline = false
   ) => (
     <View style={styles.editFieldContainer}>
-      <Text style={styles.editFieldLabel}>{label}</Text>
+      <Text
+        style={[styles.editFieldLabel, isDark && styles.editFieldLabelDark]}
+      >
+        {label}
+      </Text>
       <TextInput
-        style={[styles.input, multiline && styles.multilineInput]}
+        style={[
+          styles.input,
+          multiline && styles.multilineInput,
+          isDark && styles.inputDark,
+        ]}
         value={
           typeof form[key] === "number"
             ? String(form[key])
@@ -154,7 +166,7 @@ export default function PetDetailModal({
         placeholder={placeholder}
         keyboardType={keyboardType}
         multiline={multiline}
-        placeholderTextColor="#999"
+        placeholderTextColor={isDark ? "#777" : "#999"}
       />
     </View>
   );
@@ -164,7 +176,11 @@ export default function PetDetailModal({
 
     return (
       <View style={styles.editFieldContainer}>
-        <Text style={styles.editFieldLabel}>{label}</Text>
+        <Text
+          style={[styles.editFieldLabel, isDark && styles.editFieldLabelDark]}
+        >
+          {label}
+        </Text>
         <View style={styles.toggleContainer}>
           <TouchableOpacity
             style={[styles.toggle, value && styles.toggleActive]}
@@ -174,7 +190,9 @@ export default function PetDetailModal({
               style={[styles.toggleThumb, value && styles.toggleThumbActive]}
             />
           </TouchableOpacity>
-          <Text style={styles.toggleText}>{value ? "Oui" : "Non"}</Text>
+          <Text style={[styles.toggleText, isDark && styles.toggleTextDark]}>
+            {value ? "Oui" : "Non"}
+          </Text>
         </View>
       </View>
     );
@@ -183,9 +201,12 @@ export default function PetDetailModal({
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
-        <View style={styles.modal}>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Ionicons name="close" size={28} color="#666" />
+        <View style={[styles.modal, isDark && styles.modalDark]}>
+          <TouchableOpacity
+            style={[styles.closeBtn, isDark && styles.closeBtnDark]}
+            onPress={onClose}
+          >
+            <Ionicons name="close" size={28} color={isDark ? "#aaa" : "#666"} />
           </TouchableOpacity>
 
           <ScrollView
@@ -201,15 +222,29 @@ export default function PetDetailModal({
                   resizeMode="cover"
                 />
               ) : (
-                <View style={styles.placeholderImage}>
-                  <Ionicons name="paw" size={60} color="#ccc" />
+                <View
+                  style={[
+                    styles.placeholderImage,
+                    isDark && styles.placeholderImageDark,
+                  ]}
+                >
+                  <Ionicons
+                    name="paw"
+                    size={60}
+                    color={isDark ? "#555" : "#ccc"}
+                  />
                 </View>
               )}
             </View>
 
             {editMode ? (
               <View style={styles.editContainer}>
-                <Text style={styles.sectionTitle}>
+                <Text
+                  style={[
+                    styles.sectionTitle,
+                    isDark && styles.sectionTitleDark,
+                  ]}
+                >
                   Modifier les informations
                 </Text>
 
@@ -272,7 +307,9 @@ export default function PetDetailModal({
               </View>
             ) : (
               <View style={styles.detailsContainer}>
-                <Text style={styles.petName}>{pet.name}</Text>
+                <Text style={[styles.petName, isDark && styles.petNameDark]}>
+                  {pet.name}
+                </Text>
                 <View style={styles.fieldsContainer}>
                   {renderField("Race", pet.breed)}
                   {renderField("Espèce", pet.species)}
@@ -304,11 +341,16 @@ export default function PetDetailModal({
           </ScrollView>
 
           {/* Action Buttons */}
-          <View style={styles.buttonContainer}>
+          <View
+            style={[
+              styles.buttonContainer,
+              isDark && styles.buttonContainerDark,
+            ]}
+          >
             {editMode ? (
               <>
                 <TouchableOpacity
-                  style={styles.cancelBtn}
+                  style={[styles.cancelBtn, isDark && styles.cancelBtnDark]}
                   onPress={() => setEditMode(false)}
                 >
                   <Text style={styles.cancelBtnText}>Annuler</Text>
@@ -370,6 +412,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 20,
   },
+  modalDark: {
+    backgroundColor: "#1c1c1e",
+    shadowColor: "#000",
+  },
   closeBtn: {
     position: "absolute",
     top: 15,
@@ -381,6 +427,9 @@ const styles = StyleSheet.create({
     backgroundColor: "#f5f5f5",
     justifyContent: "center",
     alignItems: "center",
+  },
+  closeBtnDark: {
+    backgroundColor: "#2c2c2e",
   },
   scrollContent: {
     paddingTop: 60,
@@ -405,6 +454,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  placeholderImageDark: {
+    backgroundColor: "#2c2c2e",
+  },
   detailsContainer: {
     alignItems: "center",
   },
@@ -414,6 +466,9 @@ const styles = StyleSheet.create({
     color: "#333",
     marginBottom: 20,
     textAlign: "center",
+  },
+  petNameDark: {
+    color: "#fff",
   },
   fieldsContainer: {
     width: "100%",
@@ -428,17 +483,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9fa",
     borderRadius: 12,
   },
+  fieldContainerDark: {
+    backgroundColor: "#2c2c2e",
+  },
   fieldLabel: {
     fontSize: 16,
     fontWeight: "600",
     color: "#555",
     flex: 1,
   },
+  fieldLabelDark: {
+    color: "#bbb",
+  },
   fieldValue: {
     fontSize: 16,
     color: "#333",
     flex: 1,
     textAlign: "right",
+  },
+  fieldValueDark: {
+    color: "#fff",
   },
   editContainer: {
     width: "100%",
@@ -450,6 +514,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: "center",
   },
+  sectionTitleDark: {
+    color: "#fff",
+  },
   editFieldContainer: {
     marginBottom: 16,
   },
@@ -459,6 +526,9 @@ const styles = StyleSheet.create({
     color: "#555",
     marginBottom: 8,
   },
+  editFieldLabelDark: {
+    color: "#bbb",
+  },
   input: {
     borderWidth: 1,
     borderColor: "#e1e5e9",
@@ -467,6 +537,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
     backgroundColor: "#fafbfc",
     color: "#333",
+  },
+  inputDark: {
+    borderColor: "#3a3a3c",
+    backgroundColor: "#2c2c2e",
+    color: "#fff",
   },
   multilineInput: {
     height: 80,
@@ -502,6 +577,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
+  toggleTextDark: {
+    color: "#aaa",
+  },
   imageActions: {
     marginTop: 8,
     gap: 12,
@@ -536,6 +614,9 @@ const styles = StyleSheet.create({
     padding: 24,
     gap: 12,
     backgroundColor: "#f8f9fa",
+  },
+  buttonContainerDark: {
+    backgroundColor: "#2c2c2e",
   },
   editBtn: {
     flex: 1,
@@ -576,6 +657,9 @@ const styles = StyleSheet.create({
     borderColor: "#007AFF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  cancelBtnDark: {
+    borderColor: "#0A84FF",
   },
   cancelBtnText: {
     color: "#007AFF",
