@@ -116,7 +116,7 @@ const Maps = () => {
           longitudeDelta: 0.01,
         });
       } catch (error) {
-        console.error("Error getting location:", error);
+        console.log("Error getting location:", error);
       }
     })();
   }, []);
@@ -139,7 +139,7 @@ const Maps = () => {
           }
         );
       } catch (error) {
-        console.warn("Erreur lors de la géolocalisation :", error);
+        console.log("Erreur lors de la géolocalisation :", error);
       }
     };
 
@@ -216,7 +216,7 @@ const Maps = () => {
 
       setPetsitter(res.petsitters);
     } catch (e) {
-      console.error("Erreur getPetSitter :", e);
+      console.log("Erreur getPetSitter :", e);
       setPetsitter([]);
     } finally {
       setIsLoading(false);

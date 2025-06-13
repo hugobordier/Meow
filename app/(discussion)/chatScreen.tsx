@@ -9,7 +9,7 @@ import {
   TouchableOpacity,
   ScrollView
 } from "react-native";
-import { createSocket, getSocket, waitForSocketConnection } from "@/services/socket";
+import { getSocket, waitForSocketConnection } from "@/services/socket";
 import {SegmentedControl} from "segmented-control-rn";
 import { getAllUsers } from "@/services/user.service";
 import { useRouter } from "expo-router";
@@ -18,7 +18,7 @@ import { jwtDecode } from "jwt-decode";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-const getUserIdFromToken = async (): Promise<string | null> => { //id sender
+export const getUserIdFromToken = async (): Promise<string | null> => { //id sender
   const token = await AsyncStorage.getItem("accessToken");
   if (!token) return null;
   const decoded: any = jwtDecode(token);
@@ -74,8 +74,11 @@ const ChatScreen = () => {
   const [allUsers, setAllUsers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [isUserListVisible, setIsUserListVisible] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+  const [searchUser, setSearchUser] = useState("");
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
   const [joinRoom,setJoinRoom] = useState("");
+  const [username, setUsername] = useState("");
   const [messages, setMessages] = useState<{ user: string; text: string }[]>(
     []
   );
@@ -94,41 +97,28 @@ const ChatScreen = () => {
     };
   
   useEffect(() => {
-  const init = async () => {
-    const createdSocket = await createSocket(); // Crée le socket
 
-    if (!createdSocket) {
-      console.warn("❌ Socket non créé !");
+    fetchUsers();
+    if (!socket) {
+      console.warn("⚠️ Socket non disponible (non connecté)");
       return;
     }
+    
+    socket.on("connect", () => { //"on" signifie ecoute un event
+      const fullUrl = `wss://${socket.io.opts.hostname}${socket.io.opts.path}`;
+      console.log("📲 Client connecté à :", fullUrl);
+      
+     fetchUsers();
+    });
 
-    try {
-      await waitForSocketConnection(createdSocket); // ⏳ Attend la connexion
+    //socket.on("online-users", (userList)=> {
+      //console.log("User online:", userList);
+      //setAllUsers(userList);//remplir les user (la liste)
+    //});
 
-      console.log("✅ Socket connecté :", createdSocket.id);
-
-      createdSocket.on("connect", () => {
-        const fullUrl = `wss://${createdSocket.io.opts.hostname}${createdSocket.io.opts.path}`;
-        console.log("📲 Client connecté à :", fullUrl);
-      });
-
-      createdSocket.on("message", (msg) => {
-        setMessages((prev) => [...prev, msg]);
-      });
-
-      createdSocket.on("receive_message", ({ sender, message }) => {
-        console.log(`📩 Msg reçu de ${sender}: ${message}`);
-        setMessages((prev) => [...prev, { user: `[privé] ${sender}`, text: message }]);
-      });
-
-      await fetchUsers();
-    } catch (err) {
-      console.error("❌ Erreur de connexion socket :", err);
-    }
-  };
-
-  init(); // Ne pas oublier d’appeler la fonction !
-}, []);
+    //For private messages
+    
+  }, []);
 
   const sendMessage = () => {
     
@@ -143,18 +133,21 @@ const ChatScreen = () => {
   };
 
   // Si aucune discussion
-if (messages.length === 0 && !isUserListVisible) {
-  return (
-    <View className="flex-1 justify-center items-center">
-      <Text className="mb-5 text-base">Aucune discussion pour le moment</Text>
-      <TouchableOpacity className="p-3 bg-black rounded-lg"
-        onPress={() => setIsUserListVisible(true)}
-      >
-        <Text className="text-white">Commencer une discussion</Text>
-      </TouchableOpacity>
-    </View>
-  );
-}
+  if (messages.length === 0 && !isUserListVisible && !isSearchVisible) {
+    return (
+      <View className="flex-1 justify-center items-center">
+        <Text className="mb-5 text-base">Aucune discussion pour le moment</Text>
+        <TouchableOpacity className="p-3 bg-black rounded-lg"
+          onPress={() => setIsUserListVisible(true)}>
+          <Text className="text-white">Commencer une discussion</Text>
+        </TouchableOpacity>
+        <TouchableOpacity className="mt-3 p-3 bg-black rounded-lg"
+          onPress={() => setIsSearchVisible(true)}>
+            <Text className="text-white">Rechercher un ami</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
 
   return (
@@ -166,11 +159,48 @@ if (messages.length === 0 && !isUserListVisible) {
       </Text>
       {message.length > 0 && (
         <>
-      <SegmentedControl
-        onChange={(index) => setActiveIndex(index)}
-        segments={segments}
-        selectedIndex={activeIndex}
-      />
+          <SegmentedControl
+            onChange={(index) => setActiveIndex(index)}
+            segments={segments}
+            selectedIndex={activeIndex}
+          />
+        <View className="mt-4">
+          {[
+            {
+              id: 1,
+              username: "starryskies23",
+              time: "1j",
+              message: "Votre offre m’intéresse",
+              avatar: "https://randomuser.me/api/portraits/women/44.jpg", // ou remplace par une icône/local file
+              unread: true,
+            },
+            {
+              id: 2,
+              username: "nebula nomad",
+              time: "1j",
+              message: "A aimé votre message",
+              avatar: "https://randomuser.me/api/portraits/men/36.jpg",
+              unread: false,
+            },
+          ].map(item => (
+            <View key={item.id} style={{ flexDirection: "row", alignItems: "center", marginBottom: 18 }}>
+              
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontWeight: "bold" }}>
+                  {item.username} <Text style={{ color: "#888", fontSize: 12 }}>{item.time}</Text>
+                </Text>
+                <Text style={{ color: "#444" }}>{item.message}</Text>
+              </View>
+              {item.unread && (
+                <View style={{
+                  width: 8, height: 8, borderRadius: 4,
+                  backgroundColor: "red", marginLeft: 8
+                }} />
+              )}
+            </View>
+            ))
+          }
+          </View>
         </>
       )}
       {isUserListVisible && (
@@ -180,21 +210,26 @@ if (messages.length === 0 && !isUserListVisible) {
             <TouchableOpacity
               key={index}
               onPress={async () => {
+                const socket = getSocket();
+                console.log("socket.id =", socket?.id);
+                
+                if (!socket) return;
                 setLoading(true);
-                try {
-                  let socket = getSocket();
-
-    
-                  if (!socket || !socket.connected) {
-                  console.log("🔄 Recréation de la socket...");
-                  socket = await createSocket();
-                  if (!socket) throw new Error("Échec de création du socket");
+                try{
                   await waitForSocketConnection(socket);
-                }
 
-                  console.log("socket.id =", socket.id);
+                  const myUserId = await getUserIdFromToken();
+                  console.log("myUserId =", myUserId);
 
-                const roomID = generateRoomID(myUserId, recipientUserId);
+                  const recipientUserId = await getUserIdFromUsername(user);
+
+                  if (!myUserId || !recipientUserId) {
+                    alert("Impossible de récupérer l'id de l'utilisateur ou du destinataire !");
+                    setLoading(false);
+                    return;
+                  }
+                  
+                  const roomID = generateRoomID(myUserId, recipientUserId);
                   socket.emit("join", roomID);
                   setSelectedUser(user);
                   setIsUserListVisible(false);
@@ -212,7 +247,7 @@ if (messages.length === 0 && !isUserListVisible) {
                 }catch(err){
                   console.error("Erreur pendant la connexion au socket :", err);
                 } finally {
-                  setLoading(false); // ✅ sera appelé même si erreur
+                  setLoading(false); // sera appelé même si erreur
                 }
             
               }}
@@ -223,7 +258,33 @@ if (messages.length === 0 && !isUserListVisible) {
           ))}
         </View>
       )}
-    </View>
+      {isSearchVisible && (
+        <View className="mt-4 ml-2">
+          <TextInput
+            placeholder="Find a user"
+            value={searchUser}
+            onChangeText={setSearchUser}
+            className="border border-gray-400 p-2 rounded mb-4"
+            autoFocus
+          />
+          <Button title="Retour" onPress={() => { setIsSearchVisible(false); setSearchUser(""); }} />
+          <FlatList
+            data={allUsers.filter(user => user.toLowerCase().includes(searchUser.toLowerCase()))}
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={async () => {
+            
+                }}
+                className="py-[6px]"
+              >
+                <Text>{item}</Text>
+              </TouchableOpacity>
+            )}
+          />
+          </View>
+        )}
+      </View>
   );
 };
 

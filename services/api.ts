@@ -154,7 +154,7 @@ api.interceptors.response.use(
 
         return api(originalRequest);
       } catch (refreshError) {
-        console.error("Erreur lors du rafraîchissement du token", refreshError);
+        console.log("Erreur lors du rafraîchissement du token", refreshError);
         processQueue(refreshError, null);
         isRefreshing = false;
 
@@ -200,7 +200,7 @@ export const logout = async () => {
 
     return true;
   } catch (error) {
-    console.error("Erreur lors de la déconnexion", error);
+    console.log("Erreur lors de la déconnexion", error);
     return false;
   }
 };

@@ -1,41 +1,121 @@
-import React from "react";
+"use client";
 import {
   View,
   Text,
   ScrollView,
   Image,
   TouchableOpacity,
-  TextInput,
   useColorScheme,
   StatusBar,
   ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { Ionicons, FontAwesome5, MaterialIcons } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
 import * as ImagePicker from "expo-image-picker";
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   deleteProfilePicture,
   updateProfilePicture,
 } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
-import { User } from "@/types/type";
+import type { User } from "@/types/type";
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
 import { useRouter } from "expo-router";
 import PetAddModale from "@/components/PetAddModale";
-import { useEffect } from "react";
-import { Pet } from "@/types/pets";
+import type { Pet } from "@/types/pets";
 import { getPetsForAUser } from "@/services/pet.service";
 import PetDetailModale from "@/components/PetDetailModale";
+import {
+  getPetsitterReceivedRequests,
+  getUserPetsittingRequests,
+  type PetsittingRequestResponse,
+} from "@/services/requestPetsitter.service";
+import RequestCard from "@/components/RequestCard";
+
 export default function HomeScreen() {
   const [addPetModalVisible, setAddPetModalVisible] = useState(false);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [loadingReceived, setLoadingReceived] = useState(false);
+  const [loadingSend, setLoadingSend] = useState(false);
+  const [refreshing, setRefreshing] = useState(false); // Pour le pull-to-refresh
   const { user, setUser, petsitter, setPetsitter } = useAuthContext();
-  console.log("petsitter", petsitter);
   const { showToast } = useToast();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+  const [userRequests, setUserRequests] = useState<PetsittingRequestResponse[]>(
+    []
+  );
+  const [receivedRequests, setReceivedRequests] = useState<
+    PetsittingRequestResponse[]
+  >([]);
+  const [listPets, setListPets] = useState<Pet[] | null>([]);
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [visibleReceveid, setvisibleReceveid] = useState(2);
+  const [visibleUserRequests, setVisibleUserRequests] = useState(2);
+
+  const initializeData = useCallback(async () => {
+    try {
+      setvisibleReceveid(2);
+      setvisibleReceveid(2);
+      setListPets([]);
+      setUserRequests([]);
+      setReceivedRequests([]);
+
+      if (user?.id) {
+        const response = await getPetsForAUser();
+        console.log("Liste des animaux :", response.data);
+        setListPets(response.data);
+      }
+
+      setLoadingSend(true);
+      console.log("on appelle les request");
+      const userData = await getUserPetsittingRequests();
+      console.log("User Requests:", userData);
+      setUserRequests(userData);
+      setLoadingSend(false);
+
+      if (petsitter) {
+        setLoadingReceived(true);
+        const receivedData = await getPetsitterReceivedRequests();
+        setReceivedRequests(receivedData);
+        setLoadingReceived(false);
+      }
+    } catch (error) {
+      console.log("Erreur lors de l'initialisation :", error);
+      setLoadingSend(false);
+      setLoadingReceived(false);
+    }
+  }, [user?.id, petsitter]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await initializeData();
+    } catch (error) {
+      console.log("Erreur lors du refresh :", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [initializeData]);
+
+  useEffect(() => {
+    initializeData();
+  }, [initializeData]);
+
+  const handleDeleteRequest = (requestId: string) => {
+    setUserRequests((prevRequests) =>
+      prevRequests.filter((request) => request.id !== requestId)
+    );
+
+    setReceivedRequests((prevRequests) =>
+      prevRequests.filter((request) => request.id !== requestId)
+    );
+
+    showToast("Demande supprimée avec succès", ToastType.SUCCESS);
+  };
 
   const handleOpenPhotoLibrary = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -69,7 +149,7 @@ export default function HomeScreen() {
         );
       }
     } catch (error: any) {
-      console.error("Erreur lors de la sélection d'image:", error);
+      console.log("Erreur lors de la sélection d'image:", error);
       showToast(
         error.message || "Erreur lors de la sélection d'image",
         ToastType.ERROR
@@ -105,12 +185,11 @@ export default function HomeScreen() {
         showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
       }
     } catch (error: any) {
-      console.error("Erreur lors de la prise de photo:", error);
+      console.log("Erreur lors de la prise de photo:", error);
       showToast(
         error.message || "Impossible de prendre une photo.",
         ToastType.ERROR
       );
-    } finally {
     }
   };
 
@@ -134,29 +213,13 @@ export default function HomeScreen() {
   const handleNavigationListePets = async () => {
     try {
       setLoading(true);
-
       router.push("/(home)/(main)/ListePets");
     } catch (error) {
-      console.error("Erreur de navigation :", error);
+      console.log("Erreur de navigation :", error);
     } finally {
       setLoading(false);
     }
   };
-
-  const [listPets, setListPets] = useState<Pet[] | null>([]);
-  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  useEffect(() => {
-    if (user?.id) {
-      getPetsForAUser()
-        .then((response) => {
-          setListPets(response.data);
-        })
-        .catch((error) => {
-          console.log("Erreur lors du chargement des animaux :", error);
-        });
-    }
-  }, []);
 
   const handlePressPet = (pet: Pet) => {
     setSelectedPet(pet);
@@ -173,9 +236,17 @@ export default function HomeScreen() {
           if (updatedPet) setSelectedPet(updatedPet);
         }
       } catch (error) {
-        console.error("Erreur lors du rafraîchissement des animaux :", error);
+        console.log("Erreur lors du rafraîchissement des animaux :", error);
       }
     }
+  };
+
+  const showMoreRecevied = () => {
+    setvisibleReceveid((prev) => prev + 2);
+  };
+
+  const showMoreUserRequests = () => {
+    setVisibleUserRequests((prev) => prev + 2);
   };
 
   return (
@@ -188,9 +259,22 @@ export default function HomeScreen() {
         backgroundColor="transparent"
         translucent
       />
-      <ScrollView className="flex-1">
+      <ScrollView
+        className="flex-1"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#ec4899"]} // Couleur fuchsia pour Android
+            tintColor="#ec4899" // Couleur fuchsia pour iOS
+            title="Actualisation..."
+            titleColor={isDark ? "#ffffff" : "#000000"}
+            progressBackgroundColor={isDark ? "#374151" : "#ffffff"}
+          />
+        }
+      >
         {/* User Profile */}
-        <View className="flex-row items-center px-4 mt-4">
+        <View className="flex-row items-center px-4 mt-4 w-full">
           <ProfilePictureZoomable
             onDeletePhoto={onDeletePhoto}
             profilePicture={user?.profilePicture}
@@ -198,22 +282,29 @@ export default function HomeScreen() {
             onTakePhoto={handleOpenCamera}
           />
 
-          <View className="ml-3">
+          <View className="ml-3 flex-1">
             <Text className="text-lg font-semibold text-black dark:text-white">
               Bonjour, {user?.username} !
             </Text>
             {user?.city && user?.country && (
               <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                {user?.city}
-                {user?.city && user?.country ? ", " : ""} {user?.country}
+                {user.city}, {user.country}
               </Text>
             )}
           </View>
-          <View className="ml-auto">
-            <Text className="text-gray-500 dark:text-gray-400 text-sm">
-              Localisation
-            </Text>
-          </View>
+
+          {petsitter && (
+            <View className="ml-2 items-center max-w-[90px]">
+              <View className="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900 items-center justify-center">
+                <Text className="text-xl text-green-800 dark:text-green-300">
+                  🐶
+                </Text>
+              </View>
+              <Text className="text-[10px] text-green-700 dark:text-green-300 mt-1 text-center leading-tight">
+                Compte pet-sitter{"\n"}activé
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Your Pets Section */}
@@ -248,7 +339,7 @@ export default function HomeScreen() {
             </TouchableOpacity>
             {!listPets ? (
               <View className="flex-row">
-                {[0, 1, 2, 3].map((i) => (
+                {[0, 1, 2, 3, 4].map((i) => (
                   <View key={i} className="items-center mr-4">
                     <View className="w-16 h-16 rounded-full bg-gray-300 dark:bg-gray-700 animate-pulse" />
                     <View className="w-12 h-3 rounded mt-1 bg-gray-300 dark:bg-gray-700 animate-pulse" />
@@ -263,7 +354,7 @@ export default function HomeScreen() {
               </View>
             ) : (
               <View className="flex-row">
-                {[0, 1, 2, 3].map((i) =>
+                {[0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) =>
                   listPets[i] ? (
                     <TouchableOpacity
                       key={listPets[i].id}
@@ -346,7 +437,7 @@ export default function HomeScreen() {
           </Text>
 
           <View className="mt-3 bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm">
-            {loading ? (
+            {loadingReceived ? (
               <View className="py-8 items-center justify-center">
                 <ActivityIndicator
                   size="large"
@@ -357,194 +448,133 @@ export default function HomeScreen() {
                 </Text>
               </View>
             ) : petsitter ? (
-              // Demandes reçues par le petsitter
               <>
-                {/* Request 1 - Client */}
-                <View className="flex-row items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/women/22.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Sophie Lambert
-                      </Text>
-                      <View className="ml-2 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-blue-700 dark:text-blue-300">
-                          Nouveau client
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde de 2 chats • 20-25 Mars 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      Votre tarif: {petsitter.hourly_rate}€/h • {user?.city}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-yellow-400 mr-1" />
-                    <Text className="text-sm text-yellow-700 dark:text-yellow-300">
-                      À confirmer
-                    </Text>
-                  </View>
-                </View>
+                {receivedRequests.length === 0 ? (
+                  <Text className="text-gray-500 dark:text-gray-400 text-base">
+                    Aucune demande reçue pour le moment.
+                  </Text>
+                ) : (
+                  <>
+                    {receivedRequests
+                      .slice(0, visibleReceveid)
+                      .map((request) => (
+                        <RequestCard
+                          key={request.id}
+                          request={request}
+                          requestbool={true}
+                          onDelete={handleDeleteRequest}
+                        />
+                      ))}
 
-                {/* Request 2 - Client */}
-                <View className="flex-row items-center">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/men/45.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Thomas Dubois
-                      </Text>
-                      <View className="ml-2 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-green-700 dark:text-green-300">
-                          Client fidèle
+                    {visibleReceveid < receivedRequests.length && (
+                      <TouchableOpacity
+                        onPress={showMoreRecevied}
+                        className="mt-3 p-3 rounded-lg bg-[#cce4ff] dark:bg-[#d8b4fe]"
+                      >
+                        <Text className="text-center text-black dark:text-black">
+                          Afficher plus
                         </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde d'un chien • 1-5 Avril 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      Votre tarif: {petsitter.hourly_rate}€/h • {user?.city}
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                    <Text className="text-sm text-green-700 dark:text-green-300">
-                      Accepté
-                    </Text>
-                  </View>
-                </View>
+                      </TouchableOpacity>
+                    )}
+                  </>
+                )}
               </>
             ) : (
-              // Demandes envoyées par l'utilisateur
               <>
-                {/* Request 1 */}
-                <View className="flex-row items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-3">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/men/41.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Jean-Paul Dupuis
+                {loadingSend ? (
+                  <View className="py-4 items-center justify-center">
+                    <ActivityIndicator
+                      size="large"
+                      color={isDark ? "#9333ea" : "#7c3aed"}
+                    />
+                    <Text className=" text-gray-500 dark:text-gray-400">
+                      Chargement des demandes...
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="px-4">
+                    {userRequests.length === 0 ? (
+                      <Text className="text-gray-500 dark:text-gray-400 text-base">
+                        Aucune demande envoyée pour le moment.
                       </Text>
-                      <View className="ml-2 bg-blue-100 dark:bg-blue-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-blue-700 dark:text-blue-300">
-                          Petsitter certifié
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde de Rex • 15-20 Mars 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      25€/jour • Paris 15ème
-                    </Text>
-                  </View>
-                  <View className="flex-row items-center bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-yellow-400 mr-1" />
-                    <Text className="text-sm text-yellow-700 dark:text-yellow-300">
-                      En attente
-                    </Text>
-                  </View>
-                </View>
+                    ) : (
+                      <>
+                        {userRequests
+                          .slice(0, visibleUserRequests)
+                          .map((request) => (
+                            <RequestCard
+                              key={request.id}
+                              request={request}
+                              requestbool={false}
+                              onDelete={handleDeleteRequest}
+                            />
+                          ))}
 
-                {/* Request 2 */}
-                <View className="flex-row items-center">
-                  <Image
-                    source={{
-                      uri: "https://randomuser.me/api/portraits/women/67.jpg",
-                    }}
-                    className="w-12 h-12 rounded-full"
-                  />
-                  <View className="ml-3 flex-1">
-                    <View className="flex-row items-center">
-                      <Text className="text-gray-800 dark:text-white font-medium text-base">
-                        Marie Delarue
-                      </Text>
-                      <View className="ml-2 bg-green-100 dark:bg-green-900 px-2 py-0.5 rounded">
-                        <Text className="text-xs text-green-700 dark:text-green-300">
-                          4.8 ★ (56 avis)
-                        </Text>
-                      </View>
-                    </View>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                      Garde de Minou • 10-12 Mars 2024
-                    </Text>
-                    <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                      30€/jour • Bordeaux Centre
-                    </Text>
+                        {visibleUserRequests < userRequests.length && (
+                          <TouchableOpacity
+                            onPress={showMoreUserRequests}
+                            className="mt-3 p-3 rounded-lg bg-[#cce4ff] dark:bg-[#d8b4fe]"
+                          >
+                            <Text className="text-center text-black dark:text-black">
+                              Afficher plus
+                            </Text>
+                          </TouchableOpacity>
+                        )}
+                      </>
+                    )}
                   </View>
-                  <View className="flex-row items-center bg-red-100 dark:bg-red-900 px-2 py-1 rounded-full">
-                    <View className="w-2 h-2 rounded-full bg-red-500 mr-1" />
-                    <Text className="text-sm text-red-700 dark:text-red-300">
-                      Refusé
-                    </Text>
-                  </View>
-                </View>
+                )}
               </>
             )}
           </View>
         </View>
 
-        {petsitter && (
+        {loadingSend ? (
+          <View className="py-8 items-center justify-center">
+            <ActivityIndicator
+              size="large"
+              color={isDark ? "#9333ea" : "#7c3aed"}
+            />
+            <Text className="mt-2 text-gray-500 dark:text-gray-400">
+              Chargement des demandes...
+            </Text>
+          </View>
+        ) : petsitter ? (
           <View className="mt-6 px-4">
             <Text className="text-lg font-semibold text-black dark:text-white">
               Vos Demandes en cours
             </Text>
-
             <View className="mt-3 bg-white dark:bg-slate-800 rounded-lg p-3 shadow-sm">
-              {/* Request 3 */}
-              <View className="flex-row items-center">
-                <Image
-                  source={{
-                    uri: "https://randomuser.me/api/portraits/men/32.jpg",
-                  }}
-                  className="w-12 h-12 rounded-full"
-                />
-                <View className="ml-3 flex-1">
-                  <View className="flex-row items-center">
-                    <Text className="text-gray-800 dark:text-white font-medium text-base">
-                      Lucas Martin
-                    </Text>
-                    <View className="ml-2 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded">
-                      <Text className="text-xs text-purple-700 dark:text-purple-300">
-                        Nouveau petsitter
+              {userRequests.length === 0 ? (
+                <Text className="text-gray-500 dark:text-gray-400 text-base">
+                  Aucune demande envoyée pour le moment.
+                </Text>
+              ) : (
+                <>
+                  {userRequests.slice(0, visibleUserRequests).map((request) => (
+                    <RequestCard
+                      key={request.id}
+                      request={request}
+                      requestbool={false}
+                      onDelete={handleDeleteRequest}
+                    />
+                  ))}
+
+                  {visibleUserRequests < userRequests.length && (
+                    <TouchableOpacity
+                      onPress={showMoreUserRequests}
+                      className="mt-3 p-3 rounded-lg bg-[#cce4ff] dark:bg-[#d8b4fe]"
+                    >
+                      <Text className="text-center text-black dark:text-black">
+                        Afficher plus
                       </Text>
-                    </View>
-                  </View>
-                  <Text className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-                    Visite de Bella • 18-25 Mars 2024
-                  </Text>
-                  <Text className="text-gray-500 dark:text-gray-400 text-sm">
-                    15€/visite • Lyon 6ème
-                  </Text>
-                </View>
-                <View className="flex-row items-center bg-green-100 dark:bg-green-900 px-2 py-1 rounded-full">
-                  <View className="w-2 h-2 rounded-full bg-green-500 mr-1" />
-                  <Text className="text-sm text-green-700 dark:text-green-300">
-                    Accepté
-                  </Text>
-                </View>
-              </View>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
             </View>
           </View>
-        )}
+        ) : null}
 
         {/* Services */}
         <View className="mt-6 px-1">
@@ -575,29 +605,16 @@ export default function HomeScreen() {
                 bg: "bg-gray-300 dark:bg-gray-600",
                 label: "Notifications",
               },
-              {
-                icon: <FontAwesome5 name="user-plus" size={20} color="white" />,
-                bg: "bg-yellow-400",
-                label: "Parrainage",
-              },
-              {
-                icon: <FontAwesome5 name="percent" size={20} color="white" />,
-                bg: "bg-gray-300 dark:bg-gray-600",
-                label: "Promotions",
-              },
-              {
-                icon: (
-                  <MaterialIcons name="support-agent" size={20} color="white" />
-                ),
-                bg: "bg-gray-300 dark:bg-gray-600",
-                label: "Support",
-              },
             ].map((item, index) => (
               <TouchableOpacity
                 key={index}
                 className="items-center mb-6"
-                style={{ width: "25%" }} // 4 colonnes = 100 / 4
-                onPress={() => handleNavigationListePets()}
+                style={{ width: "25%" }}
+                onPress={() => {
+                  if (item.label === "Mes animaux") {
+                    handleNavigationListePets();
+                  }
+                }}
               >
                 <View
                   className={`w-14 h-14 rounded-full items-center justify-center ${item.bg}`}
@@ -609,25 +626,6 @@ export default function HomeScreen() {
                 </Text>
               </TouchableOpacity>
             ))}
-          </View>
-        </View>
-
-        {/* Promo Banner */}
-        <View className="mt-6 mb-4">
-          <View className="h-32 bg-orange-500 dark:bg-orange-600 mx-4 rounded-lg p-4 flex-row items-center">
-            <View className="flex-1">
-              <Text className="text-white text-lg font-bold">pet corner</Text>
-              <Text className="text-white text-3xl font-bold mt-1">Gold</Text>
-              <Text className="text-white text-xl font-bold mt-1">10%</Text>
-              <Text className="text-white font-bold">cashback</Text>
-            </View>
-            <Image
-              source={{
-                uri: "https://www.purina.co.uk/sites/default/files/2022-07/Can-Cats-and-Dogs-Live-Together.jpg",
-              }}
-              className="w-24 h-24"
-              style={{ borderRadius: 12 }}
-            />
           </View>
         </View>
       </ScrollView>

@@ -16,11 +16,6 @@ import { getSocket } from "@/services/socket";
 const socket = getSocket();
 const settingsOptions = [
   {
-    title: "Mode sombre",
-    value: "Système",
-    screen: "/settings/dark_mode" as const,
-  },
-  {
     title: "Statut en ligne",
     value: "Activé",
     screen: "/settings/online" as const,
@@ -29,17 +24,11 @@ const settingsOptions = [
     title: "Confidentialité et sécurité",
     screen: "/settings/security" as const,
   },
-  {
-    title: "Notifications et sons",
-    value: "Activé",
-    screen: "/settings/notif" as const,
-  },
   { title: "Stockage et données", screen: "/settings/data" as const },
   {
     title: "Mention légales et politiques",
     screen: "/settings/policy" as const,
   },
-  { title: "Gérer le compte", screen: "/settings/manage" as const },
 ];
 
 const HomeSettings = () => {
@@ -93,7 +82,9 @@ const HomeSettings = () => {
           className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
           <Text className="text-base text-black dark:text-white">
-            {fantinMode ? "🎵 Mode Fantin Activé" : "Activer le Mode Fantin"}
+            {fantinMode
+              ? "🎵 Mode Fantin Activé 🔊"
+              : "🎶 Activer le Mode Fantin"}
           </Text>
         </TouchableOpacity>
 
@@ -102,7 +93,7 @@ const HomeSettings = () => {
           className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
           <Text className="text-base text-black dark:text-white">
-            {noAds ? "Mode Sans Pub Activé" : "Activer le Mode Sans Pub"}
+            {noAds ? "🧘 Mode Easy Activé ✨" : "🚫 Activer le Mode No Easy"}
           </Text>
         </TouchableOpacity>
 
@@ -115,9 +106,9 @@ const HomeSettings = () => {
             } else {
               console.log("Aucun socket actif");
             }
-          
-            await logout()
-        }}
+
+            await logout();
+          }}
           className="flex-row items-center justify-between py-4"
         >
           <Text className="text-base text-red-500 dark:text-red-400 font-semibold">

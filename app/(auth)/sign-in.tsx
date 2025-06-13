@@ -86,13 +86,15 @@ const SignInScreen = () => {
         const socket = await createSocket();
 
         if (!socket) {
-          console.error("❌ Socket non initialisé");
+          console.log("❌ Socket non initialisé");
           showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
           return;
         }
 
         try {
-          const petsitterResponse = await api.get(`/Petsitter/user/${user.data.id}`);
+          const petsitterResponse = await api.get(
+            `/Petsitter/user/${user.data.id}`
+          );
           if (petsitterResponse.data) {
             setPetsitter(petsitterResponse.data);
             console.log("✅ Profil petsitter trouvé");
@@ -101,7 +103,6 @@ const SignInScreen = () => {
           console.log(" Pas de profil petsitter pour cet utilisateur");
           setPetsitter(null);
         }
-
 
         socket.on("connect", () => {
           console.log("✅ Socket maintenant connecté");
@@ -113,7 +114,7 @@ const SignInScreen = () => {
         showToast("Connexion réussie avec succès", ToastType.SUCCESS);
       }
     } catch (error: any) {
-      console.error(error);
+      console.log(error);
       showToast(error.message || "Une erreur s'est produite", ToastType.ERROR);
     } finally {
       setLoading(false);
@@ -121,6 +122,7 @@ const SignInScreen = () => {
   };
 
   const handleRedirect = (user: User) => {
+    console.log("USSERR", user);
     router.dismissAll();
     const userCreationDate = new Date(user.createdAt);
     const oneDayAgo = new Date();
@@ -159,7 +161,7 @@ const SignInScreen = () => {
       );
 
       if (result.type === "success") {
-        console.log(result);
+        console.log("RESULIT", result);
         const url = new URL(result.url);
         const accessToken = url.searchParams.get("accessToken");
         const refreshToken = url.searchParams.get("refreshToken");
@@ -169,12 +171,24 @@ const SignInScreen = () => {
           await AsyncStorage.setItem("accessToken", accessToken!);
           await AsyncStorage.setItem("refreshToken", refreshToken!);
           const user = await getUserById(userId!);
-          console.log(user);
+          console.log("bah user ?", user);
           if (user as User) {
-            setUser(user.data);
+            //@ts-ignore
+            setUser(user);
+          }
+
+          const socket = await createSocket();
+
+          if (!socket) {
+            console.log("❌ Socket non initialisé");
+            showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
+            return;
           }
           try {
-            const petsitterResponse = await api.get(`/Petsitter/user/${user.data.id}`);
+            const petsitterResponse = await api.get(
+              //@ts-ignore
+              `/Petsitter/user/${user.id}`
+            );
             if (petsitterResponse.data) {
               setPetsitter(petsitterResponse.data);
               console.log("✅ Profil petsitter trouvé");
@@ -183,8 +197,16 @@ const SignInScreen = () => {
             console.log(" Pas de profil petsitter pour cet utilisateur");
             setPetsitter(null);
           }
-          console.log("user.data", user.data);
-          handleRedirect(user.data);
+
+          socket.on("connect", () => {
+            console.log("✅ Socket maintenant connecté");
+            console.log("Voici", socket.id);
+            socket.emit("register", user.username);
+          });
+          //@ts-ignore
+          console.log("user.data", user);
+          //@ts-ignore
+          handleRedirect(user);
         }
       } else {
         showToast("Erreur pendant la connexion avec Google", ToastType.ERROR);

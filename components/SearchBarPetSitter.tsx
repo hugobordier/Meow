@@ -23,7 +23,7 @@ import type {
 } from "@/types/type";
 import { type CityResult, searchCityByName } from "@/utils/serrchCityByName";
 import { ScrollView } from "react-native-gesture-handler";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 
 type SearchBarPetSitterProps = {
   onSearch?: (params: PetSitterQueryParams) => void;
@@ -46,9 +46,17 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     useState<boolean>(false);
   const [citySuggestions, setCitySuggestions] = useState<CityResult[]>([]);
   const [isSearching, setIsSearching] = useState<boolean>(false);
-  const [selectedLocation, setSelectedLocation] = useState<'current' | 'city' | 'none'>('current');
-  const [selectedCoordinates, setSelectedCoordinates] = useState<{longitude: number, latitude: number} | null>(null);
-  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<
+    "current" | "city" | "none"
+  >("current");
+  const [selectedCoordinates, setSelectedCoordinates] = useState<{
+    longitude: number;
+    latitude: number;
+  } | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
   const [locationPermission, setLocationPermission] = useState<boolean>(false);
   const [filters, setFilters] = useState<PetSitterQueryParams>({
     minRate: 0,
@@ -77,9 +85,9 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
           latitude,
           longitude,
         });
-        setFilters({...filters, longitude: longitude, latitude: latitude});
+        setFilters({ ...filters, longitude: longitude, latitude: latitude });
       } catch (error) {
-        console.error("Error getting location:", error);
+        console.log("Error getting location:", error);
       }
     })();
   }, []);
@@ -107,7 +115,7 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
 
   const suggestionHeight = suggestionAnim.interpolate({
     inputRange: [0, 1],
-    outputRange: [0, 250], 
+    outputRange: [0, 250],
   });
 
   const suggestionOpacity = suggestionAnim.interpolate({
@@ -150,7 +158,7 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     Thursday: "Jeudi",
     Friday: "Vendredi",
     Saturday: "Samedi",
-    Sunday: "Dimanche"
+    Sunday: "Dimanche",
   };
 
   const availableTimeSlots: AvailabilityInterval[] = [
@@ -294,7 +302,7 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
             }
           }
         } catch (error) {
-          console.error("Error searching cities:", error);
+          console.log("Error searching cities:", error);
           setCitySuggestions([]);
         } finally {
           setIsSearching(false);
@@ -327,16 +335,11 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
 
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-      
+
       setUserLocation({ latitude, longitude });
-     
-      
     } catch (error) {
-      console.error("Error getting location:", error);
-      Alert.alert(
-        "Erreur",
-        "Impossible d'obtenir votre position actuelle."
-      );
+      console.log("Error getting location:", error);
+      Alert.alert("Erreur", "Impossible d'obtenir votre position actuelle.");
     }
   };
 
@@ -345,11 +348,15 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
     hideCitySuggestions();
     if (selectedCity && onSearchCity) {
       onSearchCity(selectedCity.longitude, selectedCity.latitude);
-      setFilters({...filters, longitude: selectedCity.longitude, latitude: selectedCity.latitude});
-      setSelectedLocation('city');
+      setFilters({
+        ...filters,
+        longitude: selectedCity.longitude,
+        latitude: selectedCity.latitude,
+      });
+      setSelectedLocation("city");
       setSelectedCoordinates({
         longitude: selectedCity.longitude,
-        latitude: selectedCity.latitude
+        latitude: selectedCity.latitude,
       });
     }
   };
@@ -619,10 +626,10 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
         <Animated.View
           style={{
             position: "absolute",
-            top: '100%',
-            left: '4%',
-            right: '4%',
-            width: '92%',
+            top: "100%",
+            left: "4%",
+            right: "4%",
+            width: "92%",
             backgroundColor: getBgColor(),
             opacity: suggestionOpacity,
             height: suggestionHeight,
@@ -734,10 +741,10 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
         <Animated.View
           style={{
             position: "absolute",
-            top: '100%',
-            left: '4%',
-            right: '4%',
-            width: '92%',
+            top: "100%",
+            left: "4%",
+            right: "4%",
+            width: "92%",
             backgroundColor: getBgColor(),
             opacity: filterOpacity,
             height: filterHeight,
@@ -791,7 +798,14 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
           <ScrollView style={{ flex: 1, padding: 16 }}>
             {/* Filtre de distance */}
             <View style={{ marginBottom: 16 }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <View
+                style={{
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 8,
+                }}
+              >
                 <Text
                   style={{
                     fontSize: 14,
@@ -801,17 +815,21 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
                 >
                   Distance
                 </Text>
-                <View style={{ 
-                  backgroundColor: getAccentColor(),
-                  paddingHorizontal: 12,
-                  paddingVertical: 4,
-                  borderRadius: 9999,
-                }}>
-                  <Text style={{ 
-                    color: "white",
-                    fontWeight: "500",
-                    fontSize: 14,
-                  }}>
+                <View
+                  style={{
+                    backgroundColor: getAccentColor(),
+                    paddingHorizontal: 12,
+                    paddingVertical: 4,
+                    borderRadius: 9999,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "white",
+                      fontWeight: "500",
+                      fontSize: 14,
+                    }}
+                  >
                     {filters.radius} km
                   </Text>
                 </View>
@@ -826,44 +844,63 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
                     color: getTextColor(),
                   }}
                 >
-                  Rechercher depuis : 
+                  Rechercher depuis :
                 </Text>
-                <View style={{ flexDirection: 'row', gap: 8 }}>
+                <View style={{ flexDirection: "row", gap: 8 }}>
                   <Pressable
                     onPress={() => {
-                      if (selectedLocation === 'current') {
-                        setSelectedLocation('none');
+                      if (selectedLocation === "current") {
+                        setSelectedLocation("none");
                         setSelectedCoordinates(null);
-                        setFilters({...filters, longitude: undefined, latitude: undefined});
+                        setFilters({
+                          ...filters,
+                          longitude: undefined,
+                          latitude: undefined,
+                        });
                       } else {
-                        setSelectedLocation('current');
+                        setSelectedLocation("current");
                         setSelectedCoordinates(userLocation); //revenir
-                        setFilters({...filters, longitude: userLocation?.longitude, latitude: userLocation?.latitude});
+                        setFilters({
+                          ...filters,
+                          longitude: userLocation?.longitude,
+                          latitude: userLocation?.latitude,
+                        });
                       }
                     }}
                     style={{
                       flex: 1,
-                      backgroundColor: selectedLocation === 'current' ? getAccentColor() : getInputBgColor(),
+                      backgroundColor:
+                        selectedLocation === "current"
+                          ? getAccentColor()
+                          : getInputBgColor(),
                       paddingVertical: 10,
                       paddingHorizontal: 12,
                       borderRadius: 8,
                       borderWidth: 1,
                       borderColor: getBorderColor(),
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <Feather
                       name="map-pin"
                       size={16}
-                      color={selectedLocation === 'current' ? 'white' : getTextColor()}
+                      color={
+                        selectedLocation === "current"
+                          ? "white"
+                          : getTextColor()
+                      }
                       style={{ marginRight: 8 }}
                     />
                     <Text
                       style={{
-                        color: selectedLocation === 'current' ? 'white' : getTextColor(),
-                        fontWeight: selectedLocation === 'current' ? '500' : 'normal',
+                        color:
+                          selectedLocation === "current"
+                            ? "white"
+                            : getTextColor(),
+                        fontWeight:
+                          selectedLocation === "current" ? "500" : "normal",
                       }}
                     >
                       Ma position
@@ -872,43 +909,60 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
 
                   <Pressable
                     onPress={() => {
-                      if (selectedLocation === 'city') {
-                        setSelectedLocation('none');
+                      if (selectedLocation === "city") {
+                        setSelectedLocation("none");
                         setSelectedCoordinates(null);
-                        setFilters({...filters, longitude: undefined, latitude: undefined});
+                        setFilters({
+                          ...filters,
+                          longitude: undefined,
+                          latitude: undefined,
+                        });
                       } else if (selectedCoordinates) {
-                        setSelectedLocation('city');
-                        if (onSearchCity) onSearchCity(selectedCoordinates.longitude, selectedCoordinates.latitude);
+                        setSelectedLocation("city");
+                        if (onSearchCity)
+                          onSearchCity(
+                            selectedCoordinates.longitude,
+                            selectedCoordinates.latitude
+                          );
                       } else {
                         showCityResults();
                       }
                     }}
                     style={{
                       flex: 1,
-                      backgroundColor: selectedLocation === 'city' ? getAccentColor() : getInputBgColor(),
+                      backgroundColor:
+                        selectedLocation === "city"
+                          ? getAccentColor()
+                          : getInputBgColor(),
                       paddingVertical: 10,
                       paddingHorizontal: 12,
                       borderRadius: 8,
                       borderWidth: 1,
                       borderColor: getBorderColor(),
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
+                      flexDirection: "row",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
                     <Feather
                       name="map"
                       size={16}
-                      color={selectedLocation === 'city' ? 'white' : getTextColor()}
+                      color={
+                        selectedLocation === "city" ? "white" : getTextColor()
+                      }
                       style={{ marginRight: 8 }}
                     />
                     <Text
                       style={{
-                        color: selectedLocation === 'city' ? 'white' : getTextColor(),
-                        fontWeight: selectedLocation === 'city' ? '500' : 'normal',
+                        color:
+                          selectedLocation === "city"
+                            ? "white"
+                            : getTextColor(),
+                        fontWeight:
+                          selectedLocation === "city" ? "500" : "normal",
                       }}
                     >
-                      {city || 'Choisir une ville'}
+                      {city || "Choisir une ville"}
                     </Text>
                   </Pressable>
                 </View>
@@ -1125,7 +1179,9 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
                     key={timeSlot}
                     onPress={() => toggleTimeSlot(timeSlot)}
                     style={{
-                      backgroundColor: filters.availability_intervals?.includes(timeSlot)
+                      backgroundColor: filters.availability_intervals?.includes(
+                        timeSlot
+                      )
                         ? getAccentColor()
                         : getInputBgColor(),
                       paddingHorizontal: 16,
@@ -1138,10 +1194,14 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
                     <Text
                       style={{
                         fontSize: 14,
-                        color: filters.availability_intervals?.includes(timeSlot)
+                        color: filters.availability_intervals?.includes(
+                          timeSlot
+                        )
                           ? "white"
                           : getTextColor(),
-                        fontWeight: filters.availability_intervals?.includes(timeSlot)
+                        fontWeight: filters.availability_intervals?.includes(
+                          timeSlot
+                        )
                           ? "500"
                           : "normal",
                       }}
@@ -1196,4 +1256,3 @@ const SearchBarPetSitter: React.FC<SearchBarPetSitterProps> = ({
 };
 
 export default SearchBarPetSitter;
-

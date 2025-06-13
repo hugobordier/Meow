@@ -1,27 +1,37 @@
-import { ApiResponsePet, PetQueryParams,PaginationParams } from "@/types/type";
+import { ApiResponsePet, ApiResponsePetImage } from "@/types/type";
+
 import { api } from "./api";
 import { Pet } from "@/types/pets";
 
-export const createPet =async (data:Partial<Pet>)=>{
-    try {
-    const response = await api.post("/PetsRoutes", data,);
+export const createPet = async (data: Partial<Pet>) => {
+  try {
+    const response = await api.post("/PetsRoutes", data);
     console.log(response.data);
     return response.data;
   } catch (error: any) {
     throw error.response?.data?.message || "Échec de la création du pet";
   }
-}
+};
 
-export const getPetsForAUser = async (
-): Promise<ApiResponsePet> => {
-  try{
+export const getPetsForAUser = async (): Promise<ApiResponsePet> => {
+  try {
     const response = await api.get(`/PetsRoutes/user`);
     return response.data;
-  }catch (error:any){
+  } catch (error: any) {
     console.log("erreur lors de la récupération des pets", error);
-    throw(error.response?.data || {message: "erreur lors de la récupération des pets"});
+    return {
+      success: false,
+      message: "Erreur lors de la récupération des pets",
+      data: [],
+      pagination: {
+        currentPage: "1",
+        itemsPerPage: "10",
+        totalItems: "0",
+        totalPages: "1",
+      },
+    };
   }
-    }
+};
 
 export const getPetById = async (petID: string) => {
   try {
@@ -35,12 +45,9 @@ export const getPetById = async (petID: string) => {
   }
 };
 
+const forbiddenFields = ["photo_url"];
 
-const forbiddenFields = [
-  "photo_url",
-];
-
-export const updatePet = async (userID:string,data: Partial<Pet>) => {
+export const updatePet = async (userID: string, data: Partial<Pet>) => {
   try {
     const sanitizedData = Object.keys(data).reduce((acc, key) => {
       if (!forbiddenFields.includes(key)) {
@@ -60,21 +67,17 @@ export const updatePet = async (userID:string,data: Partial<Pet>) => {
   }
 };
 
-
-
-export const deletePet = async (petID:string) => {
+export const deletePet = async (petID: string) => {
   try {
     const response = await api.delete(`/PetsRoutes/pets/${petID}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la suppression:", error);
+    console.log("Erreur lors de la suppression:", error);
     throw error;
   }
 };
 
-
-
-export const updatePhotoprofilPet = async (id:string,image: string) => {
+export const updatePhotoprofilPet = async (id: string, image: string) => {
   try {
     const formData = new FormData();
     const filename = image.split("/").pop() || "photo.jpg";
@@ -87,28 +90,33 @@ export const updatePhotoprofilPet = async (id:string,image: string) => {
       type,
     } as any);
 
-    const response = await api.patch(`/PetsRoutes/PhotoProfil/${id}`, formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
+    const response = await api.patch(
+      `/PetsRoutes/PhotoProfil/${id}`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de l'upload:", error);
+    console.log("Erreur lors de l'upload:", error);
     throw error;
   }
 };
 
-export const deletePhotoprofilPet = async (id:string) => {
+export const deletePhotoprofilPet = async (id: string) => {
   try {
     const response = await api.delete(`/PetsRoutes/PhotoProfil/${id}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la suppression:", error);
+    console.log("Erreur lors de la suppression:", error);
     throw error;
   }
 };
-export const createPetImage = async (imageId:string,image: string) => {
+
+export const createPetImage = async (petId: string, image: string) => {
   try {
     const formData = new FormData();
     const filename = image.split("/").pop() || "photo.jpg";
@@ -121,24 +129,54 @@ export const createPetImage = async (imageId:string,image: string) => {
       type,
     } as any);
 
-    const response = await api.post(`/PetImage/${imageId}`, formData, {
+    const response = await api.post(`/PetImage/${petId}`, formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     });
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de l'upload:", error);
+    console.log("Erreur lors de l'upload:", error);
     throw error;
   }
 };
 
-export const deletePetImage = async (imageId:string) => {
+export const deletePetImage = async (
+  imageId: string
+): Promise<ApiResponsePetImage> => {
   try {
     const response = await api.delete(`/PetImage/${imageId}`);
     return response.data;
   } catch (error: any) {
-    console.error("Erreur lors de la suppression:", error);
+    console.log("Erreur lors de la suppression:", error);
     throw error;
+  }
+};
+
+export const getAllImagesForaPet = async (
+  petId: string
+): Promise<ApiResponsePetImage> => {
+  try {
+    const response = await api.get(`/PetImage/${petId}`);
+    return response.data;
+  } catch (error: any) {
+    console.log("erreur lors de la récupération des images pet", error);
+    throw (
+      error.response?.data || {
+        message: "erreur lors de la récupération des images pet",
+      }
+    );
+  }
+};
+
+export const getPetImageByid = async (id: string) => {
+  try {
+    const response = await api.get(`/PetImage/OneImage/${id}`);
+    return response.data;
+  } catch (error: any) {
+    console.log("Erreur lors de la récupération du petimage:", error);
+    throw (
+      error.response?.data || { message: "Une erreur inconnue est survenue" }
+    );
   }
 };

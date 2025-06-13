@@ -14,10 +14,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
+
 import { deleteUser } from '@/services/user.service';
 import { getPetSitters } from '@/services/petsitter.service';
-
-
 
 const Profil: React.FC = () => {
   const router = useRouter();
@@ -38,6 +37,7 @@ const Profil: React.FC = () => {
     );
   }
 
+
   const InfoRow = ({ 
     label, 
     value, 
@@ -46,11 +46,13 @@ const Profil: React.FC = () => {
     label: string, 
     value: string | number | null, // Ajout du type number
     required?: boolean 
+
   }) => (
     <View style={styles.infoRow}>
       <Text style={[styles.infoLabel, isDark ? styles.textDark : styles.textLight]}>
         {label} {required && <Text style={styles.required}>*</Text>}
       </Text>
+
       <Text 
         style={
           value 
@@ -60,6 +62,7 @@ const Profil: React.FC = () => {
       >
         {value?.toString() || "Non renseigné"}
       </Text>
+
     </View>
   );
 
@@ -70,7 +73,7 @@ const Profil: React.FC = () => {
       [
         {
           text: "Annuler",
-          style: "cancel"
+          style: "cancel",
         },
         {
           text: "Supprimer",
@@ -79,19 +82,19 @@ const Profil: React.FC = () => {
             try {
               setIsLoading(true);
               if (!user?.id) {
-                throw new Error('User ID not found');
+                throw new Error("User ID not found");
               }
               await deleteUser(user.id);
               logout();
               router.replace("/");
             } catch (error) {
-              console.error('Erreur:', error);
+              console.log("Erreur:", error);
               Alert.alert("Erreur", "Impossible de supprimer le compte");
             } finally {
               setIsLoading(false);
             }
-          }
-        }
+          },
+        },
       ]
     );
     
@@ -107,7 +110,6 @@ const Profil: React.FC = () => {
         translucent
       />
       <ScrollView style={styles.scrollView}>
-
 
         {/* Photo de profil */}
         <View style={styles.profilePicContainer}>
@@ -131,7 +133,7 @@ const Profil: React.FC = () => {
         {/* Titre de section */}
         <Text style={[styles.sectionTitle, isDark ? styles.textDark : styles.textLight]}>Mon Profil</Text>
 
-        {/* Informations utilisateur */}
+
         <View style={[styles.infoSection, isDark ? styles.infoSectionDark : styles.infoSectionLight]}>
           <InfoRow
             label="Nom d'utilisateur"
@@ -181,6 +183,7 @@ const Profil: React.FC = () => {
             label="Bio"
             value={user.bio}
           />
+
           {user.rating && (
             <InfoRow
               label="Note moyenne"
@@ -236,9 +239,10 @@ const Profil: React.FC = () => {
           </>
         )}
 
-        {/* Section vérification */}
+
         <View style={[styles.verificationSection, isDark ? styles.verificationSectionDark : styles.verificationSectionLight]}>
           <Text style={[styles.verificationTitle, isDark ? styles.verificationTitleDark : styles.verificationTitleLight]}>Vérification de l'identité</Text>
+
           <View style={styles.verificationStatus}>
             {user.identityDocument ? (
               <Text style={[styles.verificationText, isDark ? styles.verifiedTextDark : styles.verifiedTextLight]}>
@@ -261,8 +265,9 @@ const Profil: React.FC = () => {
           <Text style={styles.editButtonText}>Modifier le profil</Text>
         </Pressable>
 
-        {/* Autres actions */}
+
         <View style={[styles.actionsSection, isDark ? styles.borderDark : styles.borderLight]}>
+
           <Pressable
             style={[styles.actionButton, styles.dangerButton]}
             onPress={handleDeleteAccount}
@@ -280,9 +285,11 @@ const Profil: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
   },
   containerLight: {
     backgroundColor: 'white',
+
   },
   containerDark: {
     backgroundColor: '#1F2937',
@@ -292,11 +299,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
+
     marginBottom: 24,
   },
   borderLight: {
@@ -307,11 +315,11 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
+    fontWeight: "bold",
+    color: "#111827",
   },
   profilePicContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   profilePic: {
@@ -324,40 +332,46 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 16,
+
   },
   verificationBadgeLight: {
     backgroundColor: '#F3F4F6',
+
   },
   verificationBadgeDark: {
     backgroundColor: '#374151',
   },
   verifiedText: {
     fontSize: 12,
-    color: '#059669',
-    fontWeight: '500',
+    color: "#059669",
+    fontWeight: "500",
   },
   unverifiedText: {
     fontSize: 12,
-    color: '#D97706',
-    fontWeight: '500',
+    color: "#D97706",
+    fontWeight: "500",
   },
   sectionTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
+    fontWeight: "bold",
+    textAlign: "center",
     marginBottom: 24,
+
   },
   textLight: {
     color: '#111827',
+
   },
   textDark: {
     color: 'white',
   },
   infoSection: {
+
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
+
   infoSectionLight: {
     backgroundColor: '#F9FAFB',
   },
@@ -404,14 +418,17 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   verificationSection: {
+
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
+
   },
   verificationSectionLight: {
     backgroundColor: '#F0FDF4',
     borderColor: '#BBF7D0',
+
   },
   verificationSectionDark: {
     backgroundColor: '#1C3B2F',
@@ -419,7 +436,9 @@ const styles = StyleSheet.create({
   },
   verificationTitle: {
     fontSize: 16,
+
     fontWeight: '600',
+
     marginBottom: 8,
   },
   verificationTitleLight: {
@@ -429,11 +448,13 @@ const styles = StyleSheet.create({
     color: '#22C55E',
   },
   verificationStatus: {
-    alignItems: 'center',
+    alignItems: "center",
   },
   verificationText: {
     fontSize: 14,
+
     fontWeight: '500',
+
   },
   verifiedTextLight: {
     color: '#059669',
@@ -443,7 +464,9 @@ const styles = StyleSheet.create({
   },
   verificationTextPending: {
     fontSize: 14,
+
     fontWeight: '500',
+
   },
   unverifiedTextLight: {
     color: '#D97706',
@@ -452,9 +475,11 @@ const styles = StyleSheet.create({
     color: '#FACC15',
   },
   editButton: {
+
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+
     paddingVertical: 14,
     borderRadius: 12,
     marginBottom: 24,
@@ -466,37 +491,39 @@ const styles = StyleSheet.create({
     backgroundColor: '#6D28D9',
   },
   editButtonText: {
-    color: 'white',
+    color: "white",
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
     marginLeft: 8,
   },
   actionsSection: {
     borderTopWidth: 1,
+
     paddingTop: 24,
   },
   actionButton: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
     borderBottomWidth: 1,
+
   },
   actionButtonText: {
     fontSize: 16,
-    color: '#374151',
+    color: "#374151",
   },
   dangerButton: {
     marginTop: 8,
   },
   dangerButtonText: {
     fontSize: 16,
-    color: '#EF4444',
+    color: "#EF4444",
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   required: {
     color: '#EF4444',

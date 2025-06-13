@@ -1,8 +1,10 @@
 import {
   ApiResponsePetsitter,
   PaginationParams,
+  PetSitter,
   PetSitterQueryParams,
   ResponsePetsitter,
+  User,
 } from "@/types/type";
 import { api } from "./api";
 
@@ -18,6 +20,7 @@ export const createPetSitter = async (hourly_rate: number) => {
   }
 };
 
+
 export const updatePetsitter = async (petsitterData: any) => {
   try {
     // Assuming 'api' already includes the Authorization header from context
@@ -31,6 +34,7 @@ export const updatePetsitter = async (petsitterData: any) => {
     throw (
       error.response?.data?.message || "Échec de la mise à jour du profil petsitter"
     );
+
   }
 };
 

@@ -51,7 +51,7 @@ export const postReviewForPetSitter = async (
     console.log(response.data.data);
     return response.data.data;
   } catch (error) {
-    console.error("Erreur lors de l'envoi de la review :", error);
+    console.log("Erreur lors de l'envoi de la review :", error);
     throw new Error("Échec de la création de l'avis");
   }
 };
@@ -68,7 +68,7 @@ export const postRatingForPetSitter = async (
     console.log(response.data.data);
     return response.data.data;
   } catch (error) {
-    console.error("Erreur lors de l'envoi de la review :", error);
+    console.log("Erreur lors de l'envoi de la review :", error);
     throw new Error("Échec de la création de l'avis");
   }
 };

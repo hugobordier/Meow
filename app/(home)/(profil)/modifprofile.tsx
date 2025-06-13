@@ -34,11 +34,11 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 
 
 const GENDER_OPTIONS = [
-  { label: 'Sélectionnez votre genre', value: '' },
-  { label: 'Homme', value: 'Male' },
-  { label: 'Femme', value: 'Female' },
-  { label: 'Hélicoptère', value: 'Helicopter' },
-  { label: 'Autre', value: 'Other' }
+  { label: "Sélectionnez votre genre", value: "" },
+  { label: "Homme", value: "Male" },
+  { label: "Femme", value: "Female" },
+  { label: "Hélicoptère", value: "Helicopter" },
+  { label: "Autre", value: "Other" },
 ];
 
 const DAYS_OPTIONS = [
@@ -85,9 +85,11 @@ const SERVICES_OPTIONS = [
 
 const ModifProfile: React.FC = () => {
   const router = useRouter();
+
   const { user, setUser, petsitter, setPetsitter } = useAuthContext();
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
+
 
   const [username, setUsername] = useState<string>(user?.username || "");
   const [lastName, setLastName] = useState<string>(user?.lastName || "");
@@ -95,9 +97,15 @@ const ModifProfile: React.FC = () => {
   const [email, setEmail] = useState<string>(user?.email || "");
   const [birthDate, setBirthDate] = useState<string>(user?.birthDate || "");
   const [phone, setPhone] = useState<string>(user?.phoneNumber || "");
-  const [profilePic, setProfilePic] = useState<string | null>(user?.profilePicture || null);
-  const [identityDoc, setIdentityDoc] = useState<string | null>(user?.identityDocument || null);
-  const [insuranceCertificate, setInsuranceCertificate] = useState<string | null>(user?.insuranceCertificate || null);
+  const [profilePic, setProfilePic] = useState<string | null>(
+    user?.profilePicture || null
+  );
+  const [identityDoc, setIdentityDoc] = useState<string | null>(
+    user?.identityDocument || null
+  );
+  const [insuranceCertificate, setInsuranceCertificate] = useState<
+    string | null
+  >(user?.insuranceCertificate || null);
   const [age, setAge] = useState<string>(user?.age?.toString() || "");
   const [gender, setGender] = useState<string>(user?.gender || "");
   const [city, setCity] = useState<string>(user?.city || "");
@@ -167,7 +175,10 @@ const ModifProfile: React.FC = () => {
       .map(([key]) => key);
 
     if (emptyFields.length > 0) {
-      Alert.alert("Erreur", `Les champs suivants sont requis : ${emptyFields.join(", ")}`);
+      Alert.alert(
+        "Erreur",
+        `Les champs suivants sont requis : ${emptyFields.join(", ")}`
+      );
       return false;
     }
 
@@ -176,6 +187,7 @@ const ModifProfile: React.FC = () => {
       Alert.alert("Erreur", "Format d'email invalide");
       return false;
     }
+
 
     // Validation des champs numériques pour petsitter
     if (petsitter) {
@@ -189,6 +201,7 @@ const ModifProfile: React.FC = () => {
       }
       if (longitude && isNaN(parseFloat(longitude))) {
         Alert.alert("Erreur", "La longitude doit être un nombre valide.");
+
         return false;
       }
     }
@@ -219,8 +232,10 @@ const ModifProfile: React.FC = () => {
     try {
       setIsLoading(true);
 
+
       // Données pour la mise à jour de l'utilisateur
       const userDataToUpdate: any = {
+
         id: user.id,
         username: username.trim(),
         lastName: lastName.trim(),
@@ -250,6 +265,7 @@ const ModifProfile: React.FC = () => {
       // Mettre à jour l'état de l'utilisateur dans le contexte
       setUser({
         ...user,
+
         ...userDataToUpdate,
         profilePicture: user.profilePicture // Garder la photo de profil car elle est gérée séparément
       });
@@ -298,8 +314,9 @@ const ModifProfile: React.FC = () => {
         "Profil mis à jour avec succès !",
         [{ text: "OK", onPress: () => router.back() }]
       );
+
     } catch (error: any) {
-      console.error("Erreur complète:", error);
+      console.log("Erreur complète:", error);
       Alert.alert(
         "Erreur",
         error.message || "Échec de la mise à jour du profil"
@@ -342,7 +359,9 @@ const ModifProfile: React.FC = () => {
         );
       }
     } catch (error: any) {
+
       console.error("Erreur lors de la sélection d'image:", error);
+
       showToast(
         error.message || "Erreur lors de la sélection d'image",
         ToastType.ERROR
@@ -377,7 +396,9 @@ const ModifProfile: React.FC = () => {
         showToast("Veuillez d'abord prendre une photo.", ToastType.WARNING);
       }
     } catch (error: any) {
+
       console.error("Erreur lors de la prise de photo:", error);
+
       showToast(
         error.message || "Impossible de prendre une photo.",
         ToastType.ERROR
@@ -403,7 +424,9 @@ const ModifProfile: React.FC = () => {
     }
   };
 
+
   const handleDocumentPicker = async (setDocument: (uri: string | null) => void) => {
+
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== "granted") {
@@ -426,7 +449,7 @@ const ModifProfile: React.FC = () => {
         showToast("Veuillez sélectionner un document", ToastType.WARNING);
       }
     } catch (error: any) {
-      console.error("Erreur lors de la sélection du document:", error);
+      console.log("Erreur lors de la sélection du document:", error);
       showToast(
         error.message || "Erreur lors de la sélection du document",
         ToastType.ERROR
@@ -768,6 +791,7 @@ const ModifProfile: React.FC = () => {
           />
         </View>
 
+
         {formFields.map((field: FormField, idx: number) => (
           <View key={idx}>
             <View style={styles.inputContainer}>
@@ -803,6 +827,7 @@ const ModifProfile: React.FC = () => {
           <Text style={[styles.verificationLabel, isDark ? styles.textDark : styles.textLight]}>
             Vérification d'identité
           </Text>
+
           <View style={styles.verificationStatus}>
             {isIdentityVerified ? (
               <View style={styles.verificationStatusContainer}>
@@ -822,9 +847,11 @@ const ModifProfile: React.FC = () => {
           onPress={() => handleDocumentPicker(setIdentityDoc)}
           style={[styles.fileUploadButton, isDark ? styles.fileUploadButtonDark : styles.fileUploadButtonLight]}
         >
+
           <AntDesign name="upload" size={20} color={isDark ? "#D1D5DB" : "#374151"} />
           <Text style={[styles.fileUploadText, isDark ? styles.textDark : styles.textLight]}>
             {identityDoc ? "Pièce d'identité sélectionnée ✓" : "Télécharger une pièce d'identité"}
+
           </Text>
         </Pressable>
 
@@ -832,9 +859,11 @@ const ModifProfile: React.FC = () => {
           onPress={() => handleDocumentPicker(setInsuranceCertificate)}
           style={[styles.fileUploadButton, isDark ? styles.fileUploadButtonDark : styles.fileUploadButtonLight]}
         >
+
           <AntDesign name="upload" size={20} color={isDark ? "#D1D5DB" : "#374151"} />
           <Text style={[styles.fileUploadText, isDark ? styles.textDark : styles.textLight]}>
             {insuranceCertificate ? "Attestation d'assurance sélectionnée ✓" : "Télécharger une attestation d'assurance"}
+
           </Text>
         </Pressable>
 
@@ -889,7 +918,9 @@ const ModifProfile: React.FC = () => {
           <Pressable
             onPress={handleSubmit}
             disabled={isLoading}
+
             style={[styles.button, styles.submitButton, isLoading && { opacity: 0.7 }, isDark ? styles.submitButtonDark : styles.submitButtonLight]}
+
           >
             <Text style={[styles.submitButtonText, isDark ? styles.submitButtonTextDark : styles.submitButtonTextLight]}>
               {isLoading ? "Mise à jour..." : "Valider"}
@@ -897,9 +928,11 @@ const ModifProfile: React.FC = () => {
           </Pressable>
         </View>
 
+
         <Text style={[styles.footerText, isDark ? styles.textDark : styles.textLight]}>
           En cliquant pour valider, vous acceptez la politique privée{"\n"}et les
           conditions générales.
+
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -909,9 +942,11 @@ const ModifProfile: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
   },
   containerLight: {
     backgroundColor: 'white',
+
   },
   containerDark: {
     backgroundColor: '#1F2937',
@@ -921,11 +956,12 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
+
     marginBottom: 24,
   },
   borderLight: {
@@ -936,10 +972,12 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
+
     fontWeight: 'bold',
   },
   textLight: {
     color: '#111827',
+
   },
   textDark: {
     color: 'white',
@@ -948,7 +986,7 @@ const styles = StyleSheet.create({
     width: 24,
   },
   profilePicContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 24,
   },
   profilePic: {
@@ -956,35 +994,39 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     marginBottom: 8,
-    backgroundColor: '#F3F4F6',
+    backgroundColor: "#F3F4F6",
   },
   profilePicText: {
     fontSize: 14,
-    color: '#6B7280',
-    textDecorationLine: 'underline',
+    color: "#6B7280",
+    textDecorationLine: "underline",
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
-    textAlign: 'center',
+    fontWeight: "600",
+    textAlign: "center",
     marginBottom: 24,
+
   },
   inputContainer: {
     marginBottom: 16,
   },
   inputLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 6,
+
   },
   required: {
-    color: '#EF4444',
+    color: "#EF4444",
   },
   textInput: {
+
     padding: 12,
     borderRadius: 8,
     fontSize: 16,
     borderWidth: 1,
+
   },
   textInputLight: {
     backgroundColor: 'white',
@@ -995,57 +1037,64 @@ const styles = StyleSheet.create({
     backgroundColor: '#374151',
     borderColor: '#4B5563',
     color: 'white',
+
   },
   passwordHint: {
     fontSize: 12,
-    color: '#6B7280',
+    color: "#6B7280",
     marginBottom: 20,
     lineHeight: 16,
     paddingHorizontal: 4,
   },
   verificationContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingVertical: 16,
     paddingHorizontal: 4,
     marginBottom: 16,
     borderBottomWidth: 1,
+
   },
   verificationLabel: {
     fontSize: 16,
     fontWeight: '500',
+
   },
   verificationStatus: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   verificationStatusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
   verifiedText: {
-    color: '#059669',
+    color: "#059669",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   unverifiedText: {
-    color: '#DC2626',
+    color: "#DC2626",
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   fileUploadButton: {
+
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+
     padding: 12,
     borderRadius: 8,
     marginBottom: 24,
     borderWidth: 1,
+
   },
   fileUploadButtonLight: {
     backgroundColor: '#F9FAFB',
     borderColor: '#E5E7EB',
+
   },
   fileUploadButtonDark: {
     backgroundColor: '#374151',
@@ -1053,10 +1102,11 @@ const styles = StyleSheet.create({
   },
   fileUploadText: {
     marginLeft: 8,
+
     fontSize: 14,
   },
   buttonContainer: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: 12,
     marginBottom: 16,
   },
@@ -1064,31 +1114,37 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 14,
     borderRadius: 8,
-    alignItems: 'center',
+    alignItems: "center",
   },
   cancelButton: {
+
     borderWidth: 1,
   },
   cancelButtonLight: {
     backgroundColor: '#F3F4F6',
     borderColor: '#D1D5DB',
+
   },
   cancelButtonDark: {
     backgroundColor: '#4B5563',
     borderColor: '#6B7280',
   },
   submitButton: {
+
   },
   submitButtonLight: {
     backgroundColor: '#111827',
+
   },
   submitButtonDark: {
     backgroundColor: '#6D28D9',
   },
   cancelButtonText: {
+
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
+
   cancelButtonTextLight: {
     color: '#374151',
   },
@@ -1096,8 +1152,9 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   submitButtonText: {
+
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "600",
   },
   submitButtonTextLight: {
     color: 'white',
@@ -1107,22 +1164,24 @@ const styles = StyleSheet.create({
   },
   footerText: {
     fontSize: 12,
+
     textAlign: 'center',
+
     lineHeight: 16,
   },
   pickerContainer: {
     borderWidth: 1,
-    borderColor: '#D1D5DB',
+    borderColor: "#D1D5DB",
     borderRadius: 8,
-    backgroundColor: 'white',
+    backgroundColor: "white",
   },
   picker: {
     height: 50,
-    width: '100%',
+    width: "100%",
   },
   genderContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: 8,
   },
   genderButton: {
@@ -1130,26 +1189,31 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 20,
     borderWidth: 1,
+
   },
   genderButtonLight: {
     borderColor: '#D1D5DB',
     backgroundColor: 'white',
+
   },
   genderButtonDark: {
     borderColor: '#4B5563',
     backgroundColor: '#374151',
   },
   genderButtonSelected: {
+
   },
   genderButtonSelectedLight: {
     backgroundColor: '#111827',
     borderColor: '#111827',
+
   },
   genderButtonSelectedDark: {
     backgroundColor: '#6D28D9',
     borderColor: '#6D28D9',
   },
   genderButtonText: {
+
     fontSize: 14,
   },
   genderButtonTextLight: {
@@ -1159,6 +1223,7 @@ const styles = StyleSheet.create({
     color: 'white',
   },
   genderButtonTextSelected: {
+
   },
   genderButtonTextSelectedLight: {
     color: 'white',
@@ -1236,3 +1301,4 @@ const styles = StyleSheet.create({
 });
 
 export default ModifProfile;
+

@@ -99,7 +99,7 @@ const RibVerif = () => {
   //       setStripeInitialized(true);
   //       console.log("Stripe initialized successfully");
   //     } catch (error) {
-  //       console.error("Failed to initialize Stripe", error);
+  //       console.log("Failed to initialize Stripe", error);
   //     }
   //   };
 
@@ -193,7 +193,7 @@ const RibVerif = () => {
       setIsValidated(true);
       showToast("RIB validé avec succès", ToastType.SUCCESS);
     } catch (error: any) {
-      console.error("Erreur lors de la validation du RIB:", error);
+      console.log("Erreur lors de la validation du RIB:", error);
       showToast(
         error?.message || "Une erreur est survenue lors de la mise à jour.",
         ToastType.ERROR

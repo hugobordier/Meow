@@ -42,7 +42,7 @@ const useFantinMusic = () => {
           console.log("🛑 Fantin music stopped");
         }
       } catch (error) {
-        console.error("Error stopping Fantin music:", error);
+        console.log("Error stopping Fantin music:", error);
       }
     };
 

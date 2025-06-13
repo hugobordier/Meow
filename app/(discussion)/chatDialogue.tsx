@@ -13,8 +13,12 @@ import { useLocalSearchParams } from "expo-router";
 import { useNavigation } from "@react-navigation/native";
 import { createSocket, getSocket, waitForSocketConnection } from "@/services/socket";
 import { useEffect } from "react";
+import { getUserById } from "@/services/user.service";
+import {getUserIdFromToken} from "./chatScreen";
 
 const ChatDialogue = () => {
+  const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [myUser, setMyUser] = useState<any>(null);
 
   const navigation = useNavigation();
   const { roomID, recipient, recipientId } = useLocalSearchParams<{
@@ -32,21 +36,23 @@ const ChatDialogue = () => {
   const sendMessage = async () => {
     const socket = getSocket();
     if (!inputText.trim()) return;
-
-    if (!inputText.trim()) return;
+ 
     
-    
-
     if (!socket || !socket.connected) {
       console.warn("Socket pas connecté");
       return;
     }
-
-    socket.emit("private_message", {
-      recipientId,
+    console.log("Socket connecté?", socket && socket.connected);
+    console.log("Message à envoyer:", {
+      to: recipientId,
       message: inputText,
     });
-
+    socket.emit("message", {
+      to: recipientId,
+      message: inputText,
+      
+    });
+    console.log(`Message envoyé: ${inputText}`);
     setMessages((prev) => [
       ...prev,
       {
@@ -59,16 +65,26 @@ const ChatDialogue = () => {
   };
 
   useEffect(() => {
+    getUserIdFromToken().then((id) => {
+      setMyUserId(id);
+      if (id) {
+        getUserById(id).then(setMyUser);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
     const socket = getSocket();
+    
 
     if (!socket || !socket.connected) {
       console.warn("Socket pas la");
       return;
     }
 
-    const handler = ({ sender, message }: { sender: string; message: string }) => {
-      console.log("Message reçu", sender, message);
 
+    const handler = ({ sender, message }: {sender: string, message: string}) => {
+      if (sender === myUserId) return;
       setMessages((prev) => [
         ...prev,
         {
@@ -77,13 +93,16 @@ const ChatDialogue = () => {
           fromMe: false,
         },
       ]);
+      console.log(`Message recu: ${message}`);
     };
+        
 
-
-    socket.on("receive_message", handler);
+    
+    socket.on("message", handler);
+    console.log(`Message recu: ${inputText}`);
 
     return () => {
-      socket.off("receive_message", handler);
+      socket.off("message", handler);
     };
   }, []);
   
