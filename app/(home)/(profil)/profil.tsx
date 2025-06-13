@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -7,43 +7,62 @@ import {
   Pressable,
   StyleSheet,
   Alert,
+  useColorScheme,
+  StatusBar,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
-import { deleteUser } from "@/services/user.service";
+
+import { deleteUser } from '@/services/user.service';
+import { getPetSitters } from '@/services/petsitter.service';
 
 const Profil: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, setUser, logout } = useAuthContext();
+  const { user, setUser, logout, petsitter, setPetsitter } = useAuthContext();
+  const colorScheme = useColorScheme();
+  const isDark = colorScheme === "dark";
 
+  console.log("Profil component rendered,petsitter:", petsitter.data.petsitter.latitude );
   if (!user) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>
         <View style={styles.loadingContainer}>
-          <Text>Chargement...</Text>
+          <Text style={isDark ? styles.textDark : styles.textLight}>Chargement...</Text>
         </View>
       </SafeAreaView>
     );
   }
 
-  const InfoRow = ({
-    label,
-    value,
-    required = false,
-  }: {
-    label: string;
-    value: string | null;
-    required?: boolean;
+
+  const InfoRow = ({ 
+    label, 
+    value, 
+    required = false 
+  }: { 
+    label: string, 
+    value: string | number | null, // Ajout du type number
+    required?: boolean 
+
   }) => (
     <View style={styles.infoRow}>
-      <Text style={styles.infoLabel}>
+      <Text style={[styles.infoLabel, isDark ? styles.textDark : styles.textLight]}>
         {label} {required && <Text style={styles.required}>*</Text>}
       </Text>
-      <Text style={styles.infoValue}>{value || "Non renseigné"}</Text>
+
+      <Text 
+        style={
+          value 
+            ? [styles.infoValue, isDark ? styles.infoValueDark : styles.infoValueLight] 
+            : [styles.infoValueEmpty, isDark ? styles.infoValueEmptyDark : styles.infoValueEmptyLight]
+        }
+      >
+        {value?.toString() || "Non renseigné"}
+      </Text>
+
     </View>
   );
 
@@ -78,11 +97,20 @@ const Profil: React.FC = () => {
         },
       ]
     );
+    
   };
+  
+
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor="transparent"
+        translucent
+      />
       <ScrollView style={styles.scrollView}>
+
         {/* Photo de profil */}
         <View style={styles.profilePicContainer}>
           <Image
@@ -93,7 +121,7 @@ const Profil: React.FC = () => {
             }
             style={styles.profilePic}
           />
-          <View style={styles.verificationBadge}>
+          <View style={[styles.verificationBadge, isDark ? styles.verificationBadgeDark : styles.verificationBadgeLight]}>
             {user.identityDocument ? (
               <Text style={styles.verifiedText}>✓ Profil vérifié</Text>
             ) : (
@@ -103,21 +131,59 @@ const Profil: React.FC = () => {
         </View>
 
         {/* Titre de section */}
-        <Text style={styles.sectionTitle}>Mon Profil</Text>
+        <Text style={[styles.sectionTitle, isDark ? styles.textDark : styles.textLight]}>Mon Profil</Text>
 
-        {/* Informations utilisateur */}
-        <View style={styles.infoSection}>
-          <InfoRow label="Nom d'utilisateur" value={user.username} required />
-          <InfoRow label="Nom" value={user.lastName} required />
-          <InfoRow label="Prénom" value={user.firstName} required />
-          <InfoRow label="Email" value={user.email} required />
-          <InfoRow label="Date de naissance" value={user.birthDate} />
-          <InfoRow label="Téléphone" value={user.phoneNumber} />
-          <InfoRow label="Ville" value={user.city} />
-          <InfoRow label="Pays" value={user.country} />
-          <InfoRow label="Adresse" value={user.address} />
-          <InfoRow label="Genre" value={user.gender} />
-          <InfoRow label="Bio" value={user.bio} />
+
+        <View style={[styles.infoSection, isDark ? styles.infoSectionDark : styles.infoSectionLight]}>
+          <InfoRow
+            label="Nom d'utilisateur"
+            value={user.username}
+            required
+          />
+          <InfoRow
+            label="Nom"
+            value={user.lastName}
+            required
+          />
+          <InfoRow
+            label="Prénom"
+            value={user.firstName}
+            required
+          />
+          <InfoRow
+            label="Email"
+            value={user.email}
+            required
+          />
+          <InfoRow
+            label="Date de naissance"
+            value={user.birthDate}
+          />
+          <InfoRow
+            label="Téléphone"
+            value={user.phoneNumber}
+          />
+          <InfoRow
+            label="Ville"
+            value={user.city}
+          />
+          <InfoRow
+            label="Pays"
+            value={user.country}
+          />
+          <InfoRow
+            label="Adresse"
+            value={user.address}
+          />
+          <InfoRow
+            label="Genre"
+            value={user.gender}
+          />
+          <InfoRow
+            label="Bio"
+            value={user.bio}
+          />
+
           {user.rating && (
             <InfoRow
               label="Note moyenne"
@@ -126,35 +192,82 @@ const Profil: React.FC = () => {
           )}
         </View>
 
-        {/* Section vérification */}
-        <View style={styles.verificationSection}>
-          <Text style={styles.verificationTitle}>
-            Vérification de l'identité
+        
+        {/* Section Petsitter */}
+        {petsitter && petsitter.hourly_rate !== null && (
+          <>
+          <Text style={[styles.sectionTitle, isDark ? styles.textDark : styles.textLight]}>
+            Informations Petsitter
           </Text>
+          <View style={[styles.infoSection, isDark ? styles.infoSectionDark : styles.infoSectionLight]}>
+            <InfoRow
+              label="Tarif horaire"
+              value={petsitter?.data?.petsitter?.hourly_rate ? `${petsitter.data.petsitter.hourly_rate}€/h` : null}
+
+              required
+            />
+            <InfoRow
+              label="Expérience"
+              value={petsitter?.data?.petsitter?.experience ?? null}
+            />
+            <InfoRow
+              label="Types d'animaux"
+              // Assurez-vous que .join() est utilisé pour les tableaux
+              value={petsitter?.data?.petsitter?.animal_types ? petsitter.data.petsitter.animal_types : null}
+            />
+            <InfoRow
+              label="Services proposés"
+              value={petsitter?.data?.petsitter?.services ? petsitter.data.petsitter.services: null}
+            />
+            <InfoRow
+              label="Jours disponibles"
+              value={petsitter?.data?.petsitter?.available_days ? petsitter.data.petsitter.available_days : null}
+            />
+            <InfoRow
+              label="Créneaux horaires"
+              value={petsitter?.data?.petsitter?.available_slots ? petsitter.data.petsitter.available_slots : null}
+            />
+            <InfoRow
+              label="Longitude"
+              value={petsitter?.data?.petsitter?.longitude ? petsitter.data.petsitter.longitude : null}
+            />
+            <InfoRow
+              label="Latitude"
+              value={petsitter?.data?.petsitter?.latitude ? petsitter.data.petsitter.latitude : null}
+            />
+          </View>
+          </>
+        )}
+
+
+        <View style={[styles.verificationSection, isDark ? styles.verificationSectionDark : styles.verificationSectionLight]}>
+          <Text style={[styles.verificationTitle, isDark ? styles.verificationTitleDark : styles.verificationTitleLight]}>Vérification de l'identité</Text>
+
           <View style={styles.verificationStatus}>
             {user.identityDocument ? (
-              <Text style={styles.verificationText}>
+              <Text style={[styles.verificationText, isDark ? styles.verifiedTextDark : styles.verifiedTextLight]}>
                 ✓ Document d'identité vérifié
               </Text>
             ) : (
-              <Text style={styles.verificationTextPending}>
+              <Text style={[styles.verificationTextPending, isDark ? styles.unverifiedTextDark : styles.unverifiedTextLight]}>
                 ⏳ Vérification en attente
               </Text>
             )}
           </View>
         </View>
-
+        
         {/* Bouton modifier le profil */}
         <Pressable
           onPress={() => router.push("/modifprofile")}
-          style={styles.editButton}
+          style={[styles.editButton, isDark ? styles.editButtonDark : styles.editButtonLight]}
         >
           <AntDesign name="edit" size={20} color="white" />
           <Text style={styles.editButtonText}>Modifier le profil</Text>
         </Pressable>
 
-        {/* Autres actions */}
-        <View style={styles.actionsSection}>
+
+        <View style={[styles.actionsSection, isDark ? styles.borderDark : styles.borderLight]}>
+
           <Pressable
             style={[styles.actionButton, styles.dangerButton]}
             onPress={handleDeleteAccount}
@@ -166,12 +279,20 @@ const Profil: React.FC = () => {
       </ScrollView>
     </SafeAreaView>
   );
+ 
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+
+  },
+  containerLight: {
+    backgroundColor: 'white',
+
+  },
+  containerDark: {
+    backgroundColor: '#1F2937',
   },
   scrollView: {
     paddingHorizontal: 16,
@@ -183,8 +304,14 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
+
     marginBottom: 24,
+  },
+  borderLight: {
+    borderBottomColor: '#E5E7EB',
+  },
+  borderDark: {
+    borderBottomColor: '#4B5563',
   },
   headerTitle: {
     fontSize: 20,
@@ -205,7 +332,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 16,
-    backgroundColor: "#F3F4F6",
+
+  },
+  verificationBadgeLight: {
+    backgroundColor: '#F3F4F6',
+
+  },
+  verificationBadgeDark: {
+    backgroundColor: '#374151',
   },
   verifiedText: {
     fontSize: 12,
@@ -222,71 +356,139 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     textAlign: "center",
     marginBottom: 24,
-    color: "#111827",
+
+  },
+  textLight: {
+    color: '#111827',
+
+  },
+  textDark: {
+    color: 'white',
   },
   infoSection: {
-    backgroundColor: "#F9FAFB",
+
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
   },
-  infoRow: {
-    marginBottom: 16,
+
+  infoSectionLight: {
+    backgroundColor: '#F9FAFB',
   },
-  infoLabel: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#374151",
-    marginBottom: 4,
-  },
-  required: {
-    color: "#EF4444",
+  infoSectionDark: {
+    backgroundColor: '#374151',
   },
   infoValue: {
     fontSize: 16,
-    color: "#111827",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "white",
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+    borderRadius: 0,
+  },
+  infoValueLight: {
+    color: '#111827',
+    backgroundColor: 'transparent',
+  },
+  infoValueDark: {
+    color: 'white',
+    backgroundColor: 'transparent',
+  },
+  infoValueEmpty: {
+    fontSize: 16,
+    paddingVertical: 4,
+    paddingHorizontal: 0,
+    borderRadius: 0,
+    fontStyle: 'italic',
+  },
+  infoValueEmptyLight: {
+    color: '#9CA3AF',
+    backgroundColor: 'transparent',
+  },
+  infoValueEmptyDark: {
+    color: '#9CA3AF',
+    backgroundColor: 'transparent',
+  },
+  infoRow: {
+    marginBottom: 20,
+  },
+  infoLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   verificationSection: {
-    backgroundColor: "#F0FDF4",
+
     borderRadius: 12,
     padding: 16,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#BBF7D0",
+
+  },
+  verificationSectionLight: {
+    backgroundColor: '#F0FDF4',
+    borderColor: '#BBF7D0',
+
+  },
+  verificationSectionDark: {
+    backgroundColor: '#1C3B2F',
+    borderColor: '#22C55E',
   },
   verificationTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#166534",
+
+    fontWeight: '600',
+
     marginBottom: 8,
+  },
+  verificationTitleLight: {
+    color: '#166534',
+  },
+  verificationTitleDark: {
+    color: '#22C55E',
   },
   verificationStatus: {
     alignItems: "center",
   },
   verificationText: {
     fontSize: 14,
-    color: "#059669",
-    fontWeight: "500",
+
+    fontWeight: '500',
+
+  },
+  verifiedTextLight: {
+    color: '#059669',
+  },
+  verifiedTextDark: {
+    color: '#4ADE80',
   },
   verificationTextPending: {
     fontSize: 14,
-    color: "#D97706",
-    fontWeight: "500",
+
+    fontWeight: '500',
+
+  },
+  unverifiedTextLight: {
+    color: '#D97706',
+  },
+  unverifiedTextDark: {
+    color: '#FACC15',
   },
   editButton: {
-    backgroundColor: "#111827",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
+
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+
     paddingVertical: 14,
     borderRadius: 12,
     marginBottom: 24,
+  },
+  editButtonLight: {
+    backgroundColor: '#111827',
+  },
+  editButtonDark: {
+    backgroundColor: '#6D28D9',
   },
   editButtonText: {
     color: "white",
@@ -296,7 +498,7 @@ const styles = StyleSheet.create({
   },
   actionsSection: {
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
+
     paddingTop: 24,
   },
   actionButton: {
@@ -305,7 +507,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#F3F4F6",
+
   },
   actionButtonText: {
     fontSize: 16,
@@ -322,6 +524,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  required: {
+    color: '#EF4444',
+    marginLeft: 4,
   },
 });
 

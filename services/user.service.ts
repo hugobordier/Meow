@@ -99,6 +99,7 @@ export const updateUser = async (data: Partial<User>) => {
     console.log("Sanitized data:", sanitizedData);
 
     const response = await api.patch("/User/update", sanitizedData);
+    console.log("User update response:", response.data);
     return response.data;
   } catch (error: any) {
     console.log("Erreur lors de la mise à jour de l'utilisateur:", error);

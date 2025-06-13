@@ -20,15 +20,21 @@ export const createPetSitter = async (hourly_rate: number) => {
   }
 };
 
-export const getUserByPetSitterId = async (
-  userId: string
-): Promise<{ petSitter: PetSitter; user: User }> => {
+
+export const updatePetsitter = async (petsitterData: any) => {
   try {
-    const response = await api.get(`/PetSitter/${userId}`);
-    console.log(response.data.data.petsitter.petsitter);
-    return response.data.data.petsitter;
+    // Assuming 'api' already includes the Authorization header from context
+    // If not, you might need to pass the token explicitly and set it in headers here.
+    console.log("Updating petsitter with data:", petsitterData);
+    const response = await api.patch("/Petsitter/{id}", petsitterData); // Or PUT, depending on your API
+    console.log("Petsitter update response:", response.data);
+    return response.data.data; // Assuming your API returns data in respon/se.data.data
   } catch (error: any) {
-    throw error.response?.data?.message || "Échec de la création du petsitter";
+    console.error("Error updating petsitter profile:", error.response?.data || error.message);
+    throw (
+      error.response?.data?.message || "Échec de la mise à jour du profil petsitter"
+    );
+
   }
 };
 
