@@ -9,8 +9,7 @@ import {
   Platform,
   Button,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { useNavigation } from "@react-navigation/native";
+import { useLocalSearchParams, useNavigation } from "expo-router";
 import { createSocket, getSocket, waitForSocketConnection } from "@/services/socket";
 import { useEffect } from "react";
 import { getUserById } from "@/services/user.service";

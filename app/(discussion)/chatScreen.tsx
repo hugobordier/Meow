@@ -171,7 +171,7 @@ const ChatScreen = () => {
               username: "starryskies23",
               time: "1j",
               message: "Votre offre m’intéresse",
-              avatar: "https://randomuser.me/api/portraits/women/44.jpg", // ou remplace par une icône/local file
+              avatar: "https://randomuser.me/api/portraits/women/44.jpg", 
               unread: true,
             },
             {
@@ -204,6 +204,7 @@ const ChatScreen = () => {
         </>
       )}
       {isUserListVisible && (
+        <ScrollView>
         <View className="mt-4 ml-2">
           <Text className="font-bold">Choisissez un utilisateurs</Text>
           {allUsers.map((user, index) => (
@@ -257,6 +258,7 @@ const ChatScreen = () => {
             </TouchableOpacity>
           ))}
         </View>
+        </ScrollView>
       )}
       {isSearchVisible && (
         <View className="mt-4 ml-2">
