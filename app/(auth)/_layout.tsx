@@ -1,6 +1,12 @@
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { LogBox } from 'react-native';
 
+LogBox.ignoreLogs([
+  'expo-notifications: Android Push notifications (remote notifications) functionality provided by expo-notifications was removed from Expo Go',
+  "The action 'POP_TO_TOP' was not handled by any navigator",
+    "Warning: useInsertionEffect must not schedule updates.",
+]);
 const Layout = () => {
   return (
     <GestureHandlerRootView>

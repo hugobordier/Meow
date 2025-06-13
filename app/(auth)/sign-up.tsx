@@ -615,7 +615,7 @@ export default function SignUpScreen() {
                     "• 1 Lettre majuscule",
                     "• 1 Chiffre",
                     "• 1 Caractère spécial",
-                    "• 6 Caractères",
+                    "• 8 Caractères",
                   ].map((requirement, index) => (
                     <Text
                       key={index}
