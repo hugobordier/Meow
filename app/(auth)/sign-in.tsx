@@ -176,6 +176,14 @@ const SignInScreen = () => {
             //@ts-ignore
             setUser(user);
           }
+
+          const socket = await createSocket();
+
+          if (!socket) {
+            console.log("❌ Socket non initialisé");
+            showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
+            return;
+          }
           try {
             const petsitterResponse = await api.get(
               //@ts-ignore
@@ -189,6 +197,12 @@ const SignInScreen = () => {
             console.log(" Pas de profil petsitter pour cet utilisateur");
             setPetsitter(null);
           }
+
+          socket.on("connect", () => {
+            console.log("✅ Socket maintenant connecté");
+            console.log("Voici", socket.id);
+            socket.emit("register", user.username);
+          });
           //@ts-ignore
           console.log("user.data", user);
           //@ts-ignore

@@ -21,13 +21,15 @@ export const useAuth = () => {
         }
 
         const { data } = await api.get("/authRoutes/me");
-        
+
         if (data) {
           setUser(data.data);
           setIsAuthenticated(true);
 
           try {
-            const petsitterResponse = await api.get(`/Petsitter/user/${data.data.id}`);
+            const petsitterResponse = await api.get(
+              `/Petsitter/user/${data.data.id}`
+            );
             if (petsitterResponse.data) {
               setPetsitter(petsitterResponse.data);
               console.log("✅ Profil petsitter trouvé");
@@ -37,12 +39,16 @@ export const useAuth = () => {
             setPetsitter(null);
           }
 
-          // Créer socket à l'ouverture de l'app
-          // const socket = createSocket();
-          // socket.on("connect", () => {
-          //   console.log("🔌 Reconnexion socket automatique");
-          //    socket.emit("register", data.data.username); 
-          // });
+          const socket = await createSocket();
+          if (!socket) {
+            console.log("❌ Socket non initialisé");
+            //showToast("Connexion échouée, tokens manquants", ToastType.ERROR);
+            return;
+          }
+          socket.on("connect", () => {
+            console.log("🔌 Reconnexion socket automatique");
+            socket.emit("register", data.data.username);
+          });
         }
       } catch (error: any) {
         console.log("Auth check failed", error);
@@ -65,7 +71,7 @@ export const useAuth = () => {
 
   const refreshPetsitterProfile = useCallback(async () => {
     if (!user) return;
-    
+
     try {
       console.log("user.id", user.id);
       const petsitterResponse = await api.get(`/Petsitter/user/${user.id}`);
@@ -80,14 +86,14 @@ export const useAuth = () => {
     }
   }, [user]);
 
-  return { 
-    user, 
-    setUser, 
-    petsitter, 
+  return {
+    user,
+    setUser,
+    petsitter,
     setPetsitter,
-    isAuthenticated, 
-    loading, 
+    isAuthenticated,
+    loading,
     logout,
-    refreshPetsitterProfile
+    refreshPetsitterProfile,
   };
 };
