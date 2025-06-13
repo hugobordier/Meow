@@ -93,7 +93,7 @@ const HomeSettings = () => {
           className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
           <Text className="text-base text-black dark:text-white">
-            {noAds ? "🧘 Mode Easy Activé ✨" : "🚫 Activer le Mode No Easy"}
+              {noAds ? "🧘 Mode Aleksei Activé ✨" : "🚫 Désactiver le Mode Aleksei"}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
