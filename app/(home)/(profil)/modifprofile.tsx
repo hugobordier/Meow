@@ -11,7 +11,7 @@ import {
   useColorScheme,
   StatusBar,
   Platform,
-  ActivityIndicator, // N'oubliez pas d'importer ActivityIndicator si vous l'utilisez
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
@@ -21,8 +21,7 @@ import { useAuthContext } from "@/context/AuthContext";
 import axios from "axios";
 import { updateUser } from "@/services/user.service";
 import { ToastType, useToast } from "@/context/ToastContext";
-
-// Importez l'interface User existante
+import { updatePetsitter } from "@/services/petsitter.service"; // Assurez-vous que cette fonction existe et est importée
 import { User } from "@/types/type";
 
 import ProfilePictureZoomable from "@/components/ProfilePIctureZoomable";
@@ -43,13 +42,13 @@ const GENDER_OPTIONS = [
 ];
 
 const DAYS_OPTIONS = [
-  { label: 'Lundi', value: 'Lundi' },
-  { label: 'Mardi', value: 'Mardi' },
-  { label: 'Mercredi', value: 'Mercredi' },
-  { label: 'Jeudi', value: 'Jeudi' },
-  { label: 'Vendredi', value: 'Vendredi' },
-  { label: 'Samedi', value: 'Samedi' },
-  { label: 'Dimanche', value: 'Dimanche' }
+  { label: 'Monday', value: 'Monday' },
+  { label: 'Tuesday', value: 'Tuesday' },
+  { label: 'Wednesday', value: 'Wednesday' },
+  { label: 'Thursday', value: 'Thursday' },
+  { label: 'Friday', value: 'Friday' },
+  { label: 'Saturday', value: 'Saturday' },
+  { label: 'Sunday', value: 'Sunday' }
 ];
 
 const TIME_SLOTS_OPTIONS = [
@@ -108,38 +107,49 @@ const ModifProfile: React.FC = () => {
   const [address, setAddress] = useState<string>(user?.address || "");
   const [isLoading, setIsLoading] = useState(false);
 
-  // CORRECTION DE LA LIGNE 122 : Ajout de .toString()
-  const [hourly_rate, setHourly_rate] = useState<string>(petsitter?.hourly_rate?.toString() || "");
-  const [experience, setExperience] = useState<string | null>(
-    petsitter?.experience?.toString() || ""
+  
+  const petsitterInfo = petsitter?.data?.petsitter;
+
+  const [hourly_rate, setHourly_rate] = useState<string>(
+    petsitterInfo?.hourly_rate?.toString() || ""
   );
+
+  const [experience, setExperience] = useState<string>(
+    petsitterInfo?.experience?.toString() || ""
+  );
+
   const [animal_types, setAnimal_types] = useState<string[]>(
-    Array.isArray(petsitter?.animal_types) ? petsitter.animal_types : []
+    Array.isArray(petsitterInfo?.animal_types) ? petsitterInfo.animal_types : []
   );
+
   const [services, setServices] = useState<string[]>(
-    Array.isArray(petsitter?.services) ? petsitter.services : []
+    Array.isArray(petsitterInfo?.services) ? petsitterInfo.services : []
   );
+
   const [available_days, setAvailable_days] = useState<string[]>(
-    Array.isArray(petsitter?.available_days) ? petsitter.available_days : []
+    Array.isArray(petsitterInfo?.available_days) ? petsitterInfo.available_days : []
   );
 
   const [available_slots, setAvailable_slots] = useState<string[]>(
-    Array.isArray(petsitter?.available_slots) ? petsitter.available_slots : []
+    Array.isArray(petsitterInfo?.available_slots) ? petsitterInfo.available_slots : []
   );
+
   const [latitude, setLatitude] = useState<string>(
-    petsitter?.latitude?.toString() || ""
+    petsitterInfo?.latitude?.toString() || ""
   );
+
   const [longitude, setLongitude] = useState<string>(
-    petsitter?.longitude?.toString() || ""
+    petsitterInfo?.longitude?.toString() || ""
   );
+
 
 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (petsitter && typeof (petsitter as any).hourly_rate === 'number') {
-      setHourly_rate(String((petsitter as any).hourly_rate));
+    if (petsitter && typeof (petsitterInfo as any).hourly_rate === 'number') {
+      setHourly_rate(String((petsitterInfo as any).hourly_rate));
     }
   }, [user, petsitter]);
 
@@ -167,6 +177,23 @@ const ModifProfile: React.FC = () => {
       return false;
     }
 
+    // Validation des champs numériques pour petsitter
+    if (petsitter) {
+      if (isNaN(parseFloat(hourly_rate)) || parseFloat(hourly_rate) <= 0) {
+        Alert.alert("Erreur", "Le tarif horaire doit être un nombre positif.");
+        return false;
+      }
+      if (latitude && isNaN(parseFloat(latitude))) {
+        Alert.alert("Erreur", "La latitude doit être un nombre valide.");
+        return false;
+      }
+      if (longitude && isNaN(parseFloat(longitude))) {
+        Alert.alert("Erreur", "La longitude doit être un nombre valide.");
+        return false;
+      }
+    }
+
+
     return true;
   };
 
@@ -192,7 +219,8 @@ const ModifProfile: React.FC = () => {
     try {
       setIsLoading(true);
 
-      const cleanedData: any = {
+      // Données pour la mise à jour de l'utilisateur
+      const userDataToUpdate: any = {
         id: user.id,
         username: username.trim(),
         lastName: lastName.trim(),
@@ -209,37 +237,60 @@ const ModifProfile: React.FC = () => {
         ...(phone && { phoneNumber: phone.trim() }),
         ...(identityDoc && { identityDocument: identityDoc }),
         ...(insuranceCertificate && { insuranceCertificate }),
-        // Modification des clés pour correspondre au backend
-        ...(petsitter && {
-          hourly_rate: parseFloat(hourly_rate),
-          experience: experience,
+      };
+
+      console.log("Données utilisateur envoyées:", userDataToUpdate);
+      const userResponse = await updateUser(userDataToUpdate);
+      console.log("Réponse du serveur utilisateur:", userResponse);
+
+      if (!userResponse || userResponse.success === false) {
+        throw new Error(userResponse.message || "Échec de la mise à jour de l'utilisateur");
+      }
+
+      // Mettre à jour l'état de l'utilisateur dans le contexte
+      setUser({
+        ...user,
+        ...userDataToUpdate,
+        profilePicture: user.profilePicture // Garder la photo de profil car elle est gérée séparément
+      });
+
+      // Si l'utilisateur est un petsitter, mettre à jour les informations du petsitter
+      if (petsitter) {
+        const petsitterDataToUpdate: any = {
+          // Assurez-vous d'avoir l'ID du petsitter pour la mise à jour, si nécessaire
+          // Cela dépend de votre endpoint updatePetsitter
+          // Par exemple: petsitterId: petsitter.data.petsitter.id,
+          hourly_rate: parseFloat(hourly_rate), // CONVERSION ICI
+          experience: parseFloat(experience),
           animal_types: animal_types,
           services: services,
           available_days: available_days,
           available_slots: available_slots,
-          latitude: parseFloat(latitude),
-          longitude: parseFloat(longitude)
-        })
-      };
+          // CONVERSION ICI pour latitude et longitude
+          ...(latitude && { latitude: parseFloat(latitude) }),
+          ...(longitude && { longitude: parseFloat(longitude) }),
+        };
 
-      console.log("Données envoyées:", cleanedData);
-      const response = await updateUser(cleanedData);
-      console.log("Réponse du serveur:", response);
+        console.log("Données petsitter envoyées:", petsitterDataToUpdate);
+        const petsitterResponse = await updatePetsitter(petsitterDataToUpdate); // Assurez-vous que updatePetsitter accepte ces données
+        console.log("Réponse du serveur petsitter:", petsitterResponse);
 
-      if (!response || response.success === false) {
-        throw new Error(response.message || "Échec de la mise à jour");
+        if (!petsitterResponse || petsitterResponse.success === false) {
+          throw new Error(petsitterResponse.message || "Échec de la mise à jour des informations du petsitter");
+        }
+
+        // Mettre à jour l'objet petsitter dans le contexte
+        setPetsitter({
+          ...petsitter,
+          data: {
+            petsitter: {
+              ...petsitter.data.petsitter,
+              ...petsitterDataToUpdate,
+            },
+          },
+        });
       }
 
-      setUser({
-        ...user,
-        ...cleanedData,
-        profilePicture: user.profilePicture
-      });
-
-      // Mettre à jour l'objet petsitter dans le contexte si applicable
-      if (petsitter && response.petsitterData) { // Assurez-vous que response.petsitterData existe
-        setPetsitter(response.petsitterData);
-      }
 
 
       Alert.alert(
@@ -422,7 +473,7 @@ const ModifProfile: React.FC = () => {
       customInput: (
         <View style={styles.genderContainer}>
           {GENDER_OPTIONS.map((option) => (
-            option.value && (
+            option.value ? ( // Exclure l'option "Sélectionnez votre genre"
               <Pressable
                 key={option.value}
                 style={[
@@ -442,7 +493,7 @@ const ModifProfile: React.FC = () => {
                   {option.label}
                 </Text>
               </Pressable>
-            )
+            ) : null
           ))}
         </View>
       )
@@ -551,7 +602,7 @@ const ModifProfile: React.FC = () => {
         <View style={styles.optionsContainer}>
           {ANIMAL_TYPES_OPTIONS.map((option) => (
             <Pressable
-              //key={option.value}
+              key={option.value}
               style={[
                 styles.optionButton,
                 animal_types.includes(option.value) && styles.optionButtonSelected,
@@ -586,7 +637,7 @@ const ModifProfile: React.FC = () => {
         <View style={styles.optionsContainer}>
           {SERVICES_OPTIONS.map((option) => (
             <Pressable
-              //key={option.value}
+              key={option.value}
               style={[
                 styles.optionButton,
                 services.includes(option.value) && styles.optionButtonSelected,
@@ -621,7 +672,7 @@ const ModifProfile: React.FC = () => {
         <View style={styles.optionsContainer}>
           {DAYS_OPTIONS.map((option) => (
             <Pressable
-              //key={option.value}
+              key={option.value}
               style={[
                 styles.optionButton,
                 available_days.includes(option.value) && styles.optionButtonSelected,
@@ -656,7 +707,7 @@ const ModifProfile: React.FC = () => {
         <View style={styles.optionsContainer}>
           {TIME_SLOTS_OPTIONS.map((option) => (
             <Pressable
-              //key={option.value}
+              key={option.value}
               style={[
                 styles.optionButton,
                 available_slots.includes(option.value) && styles.optionButtonSelected,
@@ -683,6 +734,18 @@ const ModifProfile: React.FC = () => {
           ))}
         </View>
       )
+    },
+    {
+      label: "Latitude",
+      value: latitude,
+      setter: setLatitude,
+      keyboardType: "numeric",
+    },
+    {
+      label: "Longitude",
+      value: longitude,
+      setter: setLongitude,
+      keyboardType: "numeric",
     }
   ];
 

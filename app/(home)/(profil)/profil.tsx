@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -15,6 +15,9 @@ import { useRouter } from "expo-router";
 import { AntDesign } from "@expo/vector-icons";
 import { useAuthContext } from "@/context/AuthContext";
 import { deleteUser } from '@/services/user.service';
+import { getPetSitters } from '@/services/petsitter.service';
+
+
 
 const Profil: React.FC = () => {
   const router = useRouter();
@@ -24,6 +27,7 @@ const Profil: React.FC = () => {
   const colorScheme = useColorScheme();
   const isDark = colorScheme === "dark";
 
+  console.log("Profil component rendered,petsitter:", petsitter.data.petsitter.latitude );
   if (!user) {
     return (
       <SafeAreaView style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>
@@ -90,7 +94,10 @@ const Profil: React.FC = () => {
         }
       ]
     );
+    
   };
+  
+
 
   return (
     <SafeAreaView style={[styles.container, isDark ? styles.containerDark : styles.containerLight]}>
@@ -182,6 +189,7 @@ const Profil: React.FC = () => {
           )}
         </View>
 
+        
         {/* Section Petsitter */}
         {petsitter && petsitter.hourly_rate !== null && (
           <>
@@ -191,31 +199,39 @@ const Profil: React.FC = () => {
           <View style={[styles.infoSection, isDark ? styles.infoSectionDark : styles.infoSectionLight]}>
             <InfoRow
               label="Tarif horaire"
-              value={petsitter?.hourly_rate ? `${petsitter.hourly_rate}€/h` : null} 
+              value={petsitter?.data?.petsitter?.hourly_rate ? `${petsitter.data.petsitter.hourly_rate}€/h` : null}
+
               required
             />
             <InfoRow
               label="Expérience"
-              value={petsitter.experience ?? null}
+              value={petsitter?.data?.petsitter?.experience ?? null}
             />
             <InfoRow
               label="Types d'animaux"
               // Assurez-vous que .join() est utilisé pour les tableaux
-              value={petsitter.animal_types?.length ? petsitter.animal_types.join(", ") : null}
+              value={petsitter?.data?.petsitter?.animal_types ? petsitter.data.petsitter.animal_types : null}
             />
             <InfoRow
               label="Services proposés"
-              value={petsitter.services?.length ? petsitter.services.join(", ") : null}
+              value={petsitter?.data?.petsitter?.services ? petsitter.data.petsitter.services: null}
             />
             <InfoRow
               label="Jours disponibles"
-              value={petsitter.available_days?.length ? petsitter.available_days.join(", ") : null}
+              value={petsitter?.data?.petsitter?.available_days ? petsitter.data.petsitter.available_days : null}
             />
             <InfoRow
               label="Créneaux horaires"
-              value={petsitter.available_slots?.length ? petsitter.available_slots.join(", ") : null}
+              value={petsitter?.data?.petsitter?.available_slots ? petsitter.data.petsitter.available_slots : null}
             />
-            {/* Ajoutez ici d'autres champs si nécessaire */}
+            <InfoRow
+              label="Longitude"
+              value={petsitter?.data?.petsitter?.longitude ? petsitter.data.petsitter.longitude : null}
+            />
+            <InfoRow
+              label="Latitude"
+              value={petsitter?.data?.petsitter?.latitude ? petsitter.data.petsitter.latitude : null}
+            />
           </View>
           </>
         )}
@@ -258,6 +274,7 @@ const Profil: React.FC = () => {
       </ScrollView>
     </SafeAreaView>
   );
+ 
 };
 
 const styles = StyleSheet.create({
