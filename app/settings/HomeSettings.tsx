@@ -96,11 +96,11 @@ const HomeSettings = () => {
             {noAds ? "🧘 Mode Easy Activé ✨" : "🚫 Activer le Mode No Easy"}
           </Text>
         </TouchableOpacity>
-                      <TouchableOpacity
+        <TouchableOpacity
           onPress={() => router.push('/(auth)/(id_verification)/welcome_id_verification')}
           className="flex-row items-center justify-between py-4 border-b border-gray-200 dark:border-slate-700"
         >
-          <Text className="text-base text-indigo-600 dark:text-indigo-400 font-semibold">
+          <Text className="text-base text-black dark:text-white">
             Devenir petsitter
           </Text>
         </TouchableOpacity>
